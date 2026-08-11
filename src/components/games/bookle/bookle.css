@@ -1,0 +1,607 @@
+/* Bookle — scoped so Search/Games chrome is unaffected */
+.bookle-root {
+  --paper: #fbf6ee;
+  --border: #e0d1bf;
+  --line-soft: #e0d1bf;
+  --serif: var(--font-fraunces), Georgia, "Times New Roman", serif;
+  --sans: var(--font-source-sans), system-ui, sans-serif;
+  --absent: #9a8f82;
+  --present: #c9a15b;
+  --correct: #2f4a36;
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  font-family: var(--sans);
+  color: var(--ink);
+  background:
+    radial-gradient(ellipse 120% 80% at 10% 0%, rgba(201, 161, 91, 0.12), transparent 55%),
+    radial-gradient(ellipse 90% 70% at 95% 15%, rgba(47, 74, 54, 0.08), transparent 50%),
+    linear-gradient(180deg, #fbf6ee 0%, #f3ebe0 55%, #efe4d4 100%);
+  border-radius: inherit;
+}
+
+.bookle-root * {
+  box-sizing: border-box;
+}
+
+.bookle-root h1,
+.bookle-root h2 {
+  color: var(--forest);
+  font-family: var(--serif);
+  margin: 0;
+}
+
+/* Theme select */
+.bookle-root .theme-select {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 28px 16px 32px;
+  text-align: center;
+  gap: 8px;
+  overflow: auto;
+}
+
+.bookle-root .theme-select h1 {
+  font-size: clamp(2rem, 5vw, 2.75rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.bookle-root .subtitle {
+  color: var(--muted);
+  margin: 0 0 20px;
+  font-size: 1.02rem;
+  max-width: 28rem;
+}
+
+.bookle-root .theme-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(200px, 1fr));
+  gap: 14px;
+  max-width: 640px;
+  width: 100%;
+}
+
+@media (max-width: 520px) {
+  .bookle-root .theme-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.bookle-root .theme-card {
+  --accent: var(--forest);
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-top: 4px solid var(--accent);
+  border-radius: 1.5rem;
+  padding: 0;
+  min-height: 156px;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  align-items: flex-end;
+  background: var(--paper);
+  box-shadow: 0 6px 20px rgba(60, 45, 30, 0.06);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.bookle-root .theme-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 32px rgba(60, 45, 30, 0.12);
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+}
+
+.bookle-root .theme-card-content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  padding: 14px 16px;
+  background: linear-gradient(
+    to top,
+    rgba(251, 246, 238, 0.96) 0%,
+    rgba(251, 246, 238, 0.78) 55%,
+    transparent 100%
+  );
+}
+
+.bookle-root .theme-card h2 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.bookle-root .theme-card p {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.bookle-root .theme-card-locked {
+  cursor: not-allowed;
+  opacity: 0.72;
+  filter: grayscale(0.15);
+}
+
+.bookle-root .theme-card-locked:hover {
+  transform: none;
+  box-shadow: 0 6px 20px rgba(60, 45, 30, 0.06);
+  border-color: var(--line);
+}
+
+.bookle-root .theme-card-cta {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--forest);
+  opacity: 0.85;
+}
+
+/* Effects */
+.bookle-root .effect-stars {
+  background-image: radial-gradient(2px 2px at 20% 20%, var(--overlay-color), transparent),
+    radial-gradient(1.5px 1.5px at 60% 10%, var(--overlay-color), transparent),
+    radial-gradient(1.5px 1.5px at 80% 25%, var(--overlay-color), transparent),
+    radial-gradient(2px 2px at 35% 35%, var(--overlay-color), transparent),
+    radial-gradient(1px 1px at 90% 15%, var(--overlay-color), transparent),
+    radial-gradient(1.5px 1.5px at 10% 45%, var(--overlay-color), transparent),
+    radial-gradient(2px 2px at 70% 40%, var(--overlay-color), transparent);
+  background-size: 100% 60%;
+  background-repeat: no-repeat;
+  animation: bookle-twinkle 3s ease-in-out infinite alternate;
+  opacity: 0.45;
+}
+
+.bookle-root .effect-snow {
+  background-image: radial-gradient(2px 2px at 15% 20%, var(--overlay-color), transparent),
+    radial-gradient(1.5px 1.5px at 45% 10%, var(--overlay-color), transparent),
+    radial-gradient(1.5px 1.5px at 75% 30%, var(--overlay-color), transparent),
+    radial-gradient(1px 1px at 90% 12%, var(--overlay-color), transparent),
+    radial-gradient(1.5px 1.5px at 30% 40%, var(--overlay-color), transparent),
+    radial-gradient(1px 1px at 60% 22%, var(--overlay-color), transparent);
+  background-size: 100% 200%;
+  background-position: 0 0;
+  opacity: 0.4;
+  animation: bookle-snowfall 9s linear infinite;
+}
+
+.bookle-root .effect-mist {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(201, 161, 91, 0.08) 25%,
+    rgba(232, 220, 192, 0.18) 50%,
+    rgba(201, 161, 91, 0.08) 75%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: bookle-mist-drift 12s ease-in-out infinite alternate;
+}
+
+.bookle-root .effect-fireflies {
+  background-image: radial-gradient(2px 2px at 25% 60%, var(--overlay-color), transparent),
+    radial-gradient(2px 2px at 55% 70%, var(--overlay-color), transparent),
+    radial-gradient(1.5px 1.5px at 80% 55%, var(--overlay-color), transparent),
+    radial-gradient(2px 2px at 40% 80%, var(--overlay-color), transparent),
+    radial-gradient(1.5px 1.5px at 70% 65%, var(--overlay-color), transparent);
+  background-size: 100% 100%;
+  animation: bookle-twinkle 2s ease-in-out infinite alternate;
+  opacity: 0.55;
+}
+
+@keyframes bookle-twinkle {
+  from { opacity: 0.4; }
+  to { opacity: 0.85; }
+}
+
+@keyframes bookle-snowfall {
+  from { background-position: 0 0; }
+  to { background-position: 0 100%; }
+}
+
+@keyframes bookle-mist-drift {
+  from { background-position: 0% 0; }
+  to { background-position: 100% 0; }
+}
+
+/* Game panel */
+.bookle-root .game-panel {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 14px 14px;
+  gap: 10px;
+  max-width: 520px;
+  margin: 10px auto 12px;
+  width: calc(100% - 24px);
+  overflow: hidden;
+}
+
+.bookle-root .game-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(201, 161, 91, 0.08), transparent 60%),
+    rgba(251, 246, 238, 0.94);
+  backdrop-filter: blur(4px);
+  border: 1px solid #e4d5c3;
+  border-radius: 1.5rem;
+  box-shadow: 0 24px 60px rgba(40, 30, 20, 0.14);
+}
+
+.bookle-root .game-status {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.bookle-root .game-board-area {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* flex-start + margin auto on .board: centers when space allows,
+     but does not clip row 1 when banners shrink the area (unlike justify-content: center). */
+  justify-content: flex-start;
+  overflow: auto;
+}
+
+.bookle-root .board {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-block: auto;
+}
+
+.bookle-root .row {
+  display: flex;
+  gap: 6px;
+}
+
+.bookle-root .tile {
+  --tile: min(52px, 6.2vh, 12vw);
+  width: var(--tile);
+  height: var(--tile);
+  border: 2px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(16px, calc(var(--tile) * 0.5), 26px);
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--forest);
+  background: #f7f0e6;
+  border-radius: 0.65rem;
+  transition: transform 0.1s;
+}
+
+.bookle-root .tile.filled {
+  border-color: #c9b8a4;
+  background: #fbf6ee;
+}
+
+.bookle-root .tile.correct {
+  background: var(--correct);
+  border-color: var(--correct);
+  color: #fbf6ee;
+}
+
+.bookle-root .tile.present {
+  background: var(--present);
+  border-color: var(--present);
+  color: #2a342c;
+}
+
+.bookle-root .tile.absent {
+  background: var(--absent);
+  border-color: var(--absent);
+  color: #fbf6ee;
+}
+
+.bookle-root .tile.hint {
+  background: rgba(47, 74, 54, 0.12);
+  border-color: var(--correct);
+  border-style: dashed;
+  color: var(--correct);
+}
+
+.bookle-root .tile.shake {
+  animation: bookle-shake 0.4s;
+}
+
+@keyframes bookle-shake {
+  10%, 90% { transform: translateX(-2px); }
+  20%, 80% { transform: translateX(4px); }
+  30%, 50%, 70% { transform: translateX(-6px); }
+  40%, 60% { transform: translateX(6px); }
+}
+
+@media (max-width: 380px) {
+  .bookle-root .tile {
+    --tile: min(42px, 6.2vh, 12vw);
+  }
+}
+
+.bookle-root .keyboard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  max-width: 480px;
+  flex-shrink: 0;
+  padding-bottom: max(2px, env(safe-area-inset-bottom, 0px));
+}
+
+.bookle-root .keyboard-row {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+}
+
+.bookle-root .key {
+  flex: 1;
+  max-width: 43px;
+  height: clamp(40px, 5.5vh, 48px);
+  border: 1px solid #e0d1bf;
+  border-radius: 0.65rem;
+  background: #f7f0e6;
+  color: var(--forest);
+  font-weight: 600;
+  font-size: 14px;
+  text-transform: uppercase;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bookle-root .key.wide {
+  max-width: 65px;
+  font-size: 12px;
+}
+
+.bookle-root .key:hover {
+  background: #efe4d4;
+}
+
+.bookle-root .key.correct {
+  background: var(--correct);
+  border-color: var(--correct);
+  color: #fbf6ee;
+}
+
+.bookle-root .key.present {
+  background: var(--present);
+  border-color: var(--present);
+  color: #2a342c;
+}
+
+.bookle-root .key.absent {
+  background: var(--absent);
+  border-color: var(--absent);
+  color: #fbf6ee;
+}
+
+.bookle-root .game-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  border-bottom: 1px solid #e4d5c3;
+  padding-bottom: 12px;
+  gap: 8px;
+  color: var(--forest);
+  flex-shrink: 0;
+}
+
+.bookle-root .game-title {
+  text-align: center;
+  flex: 1;
+}
+
+.bookle-root .game-title h1 {
+  font-family: var(--serif);
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--accent, var(--forest));
+}
+
+.bookle-root .game-title p {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.bookle-root .header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.bookle-root .back-btn,
+.bookle-root .reset-btn,
+.bookle-root .hint-btn {
+  background: #f7f0e6;
+  border: 1px solid #e0d1bf;
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--forest);
+  white-space: nowrap;
+}
+
+.bookle-root .back-btn:hover,
+.bookle-root .reset-btn:hover,
+.bookle-root .hint-btn:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--accent, var(--forest)) 50%, #e0d1bf);
+  background: #efe4d4;
+  color: var(--accent, var(--forest));
+}
+
+.bookle-root .hint-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  color: var(--muted);
+}
+
+.bookle-root .hint-btn.used {
+  border-style: dashed;
+}
+
+.bookle-root .hint-reveal {
+  flex-shrink: 0;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--correct);
+  background: rgba(47, 74, 54, 0.1);
+  border: 1px solid color-mix(in srgb, var(--correct) 35%, #e4d5c3);
+}
+
+.bookle-root .hint-reveal .hint-letter {
+  font-family: var(--serif);
+  font-size: 1.05em;
+  letter-spacing: 0.04em;
+}
+
+.bookle-root .toast {
+  background: var(--forest);
+  color: #fbf6ee;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.bookle-root .banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-radius: 1rem;
+  font-weight: 600;
+  font-size: 14px;
+  border: 1px solid #e4d5c3;
+  flex-shrink: 0;
+}
+
+.bookle-root .banner.won {
+  background: rgba(47, 74, 54, 0.1);
+  color: var(--correct);
+}
+
+.bookle-root .banner.lost {
+  background: rgba(154, 143, 130, 0.18);
+  color: var(--forest);
+}
+
+.bookle-root .banner button {
+  border: 1px solid currentColor;
+  background: none;
+  border-radius: 999px;
+  padding: 4px 10px;
+  cursor: pointer;
+  color: inherit;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.bookle-root .puzzle-progress {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.bookle-root .puzzle-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #e0d1bf;
+}
+
+.bookle-root .puzzle-dot.completed {
+  background: var(--correct);
+}
+
+.bookle-root .puzzle-dot.active {
+  background: var(--gold, #c9a15b);
+  box-shadow: 0 0 0 3px rgba(201, 161, 91, 0.25);
+}
+
+.bookle-root .puzzle-dot.failed {
+  background: var(--absent);
+}
+
+.bookle-root .daily-summary {
+  text-align: center;
+  color: var(--forest);
+  padding: 20px;
+}
+
+.bookle-root .daily-summary h2 {
+  font-family: var(--serif);
+  font-size: 1.35rem;
+  margin-bottom: 12px;
+}
+
+.bookle-root .daily-summary .summary-row {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.bookle-root .daily-summary .summary-item {
+  text-align: center;
+  padding: 8px 14px;
+  background: #f3ebe0;
+  border: 1px solid #e4d5c3;
+  border-radius: 1rem;
+}
+
+.bookle-root .daily-summary .summary-item .label {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.bookle-root .daily-summary .summary-item .value {
+  font-size: 24px;
+  font-weight: 700;
+  font-family: var(--serif);
+}
+
+.bookle-root .daily-summary .comeback {
+  font-size: 14px;
+  color: var(--muted);
+  margin-top: 8px;
+}

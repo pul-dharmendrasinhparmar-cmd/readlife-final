@@ -1,0 +1,147 @@
+@import "tailwindcss";
+
+:root {
+  --cream: #f6eade;
+  --cream-deep: #efe2d2;
+  --cream-card: #f0e4d0;
+  --ink: #2a342c;
+  --forest: #2f4a36;
+  --forest-deep: #243a2b;
+  --forest-soft: #3d5a45;
+  --muted: #6b7468;
+  --muted-soft: #8a9184;
+  --peach: #efd0a8;
+  --peach-text: #9a6b3a;
+  --gold: #c9a15b;
+  --line: #d4c4b0;
+  --white: #fffaf4;
+}
+
+@theme inline {
+  --color-cream: var(--cream);
+  --color-cream-deep: var(--cream-deep);
+  --color-cream-card: var(--cream-card);
+  --color-ink: var(--ink);
+  --color-forest: var(--forest);
+  --color-forest-deep: var(--forest-deep);
+  --color-forest-soft: var(--forest-soft);
+  --color-muted: var(--muted);
+  --color-muted-soft: var(--muted-soft);
+  --color-peach: var(--peach);
+  --color-peach-text: var(--peach-text);
+  --color-gold: var(--gold);
+  --color-line: var(--line);
+  --color-paper: var(--white);
+  --font-serif: var(--font-fraunces);
+  --font-sans: var(--font-source-sans);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--cream);
+  color: var(--ink);
+  font-family: var(--font-source-sans), system-ui, sans-serif;
+}
+
+::selection {
+  background: color-mix(in oklab, var(--forest) 25%, white);
+}
+
+@keyframes float-soft {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scale(0.9) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.08) rotate(12deg);
+  }
+}
+
+@keyframes rain-drift {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 40px 80px;
+  }
+}
+
+.animate-fade-up {
+  opacity: 0;
+  animation: fade-up 0.8s ease-out forwards;
+}
+
+.animate-fade-up-delay-1 {
+  opacity: 0;
+  animation: fade-up 0.8s ease-out 0.12s forwards;
+}
+
+.animate-fade-up-delay-2 {
+  opacity: 0;
+  animation: fade-up 0.8s ease-out 0.24s forwards;
+}
+
+.animate-fade-up-delay-3 {
+  opacity: 0;
+  animation: fade-up 0.8s ease-out 0.36s forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-up,
+  .animate-fade-up-delay-1,
+  .animate-fade-up-delay-2,
+  .animate-fade-up-delay-3,
+  .animate-float,
+  .animate-twinkle {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+.animate-float {
+  animation: float-soft 5s ease-in-out infinite;
+}
+
+.animate-twinkle {
+  animation: twinkle 2.8s ease-in-out infinite;
+}
+
+.page-shell {
+  background:
+    radial-gradient(ellipse 80% 50% at 10% 0%, rgba(255, 250, 240, 0.7), transparent 55%),
+    radial-gradient(ellipse 60% 40% at 90% 10%, rgba(239, 208, 168, 0.25), transparent 50%),
+    linear-gradient(180deg, #f8eee3 0%, #f6eade 40%, #f3e4d5 100%);
+}
+
+.hero-glow {
+  background:
+    radial-gradient(ellipse 70% 80% at 70% 45%, rgba(201, 161, 91, 0.12), transparent 60%),
+    radial-gradient(ellipse 50% 60% at 85% 30%, rgba(47, 74, 54, 0.06), transparent 55%);
+}

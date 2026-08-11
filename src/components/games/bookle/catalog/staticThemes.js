@@ -1,0 +1,81 @@
+/** @type {import('../game/themeSpec').ThemeSpec[]} */
+export const STATIC_THEMES = [
+  {
+    bookId: 'lotr',
+    title: 'The Lord of the Rings',
+    author: 'J.R.R. Tolkien',
+    tagline: 'One guess to rule them all',
+    accent: '#c9a15b',
+    schemaVersion: 1,
+    words: [
+      'FRODO', 'SHIRE', 'ROHAN', 'ELVES', 'DWARF', 'ARWEN', 'GIMLI', 'EOWYN',
+      'STING', 'RINGS', 'MERRY', 'BILBO', 'SMAUG', 'TOWER', 'QUEST', 'SWORD',
+      'CLOAK', 'STAFF', 'HORSE', 'BLACK', 'TROLL', 'MAGIC',
+    ],
+    backdrop: {
+      preset: 'shire-hills',
+      skyGradient: ['#fbf6ee 0%', '#f3ebe0 38%', '#e8dcc0 70%', '#c9d4b8 100%'],
+      silhouetteColor: '#2f4a36',
+      overlayEffect: 'none',
+      overlayColor: '#fff6d5',
+    },
+  },
+  {
+    bookId: 'harry-potter',
+    title: 'Harry Potter',
+    author: 'J.K. Rowling',
+    tagline: 'Wingardium Guessiosa',
+    accent: '#8b3a3a',
+    schemaVersion: 1,
+    words: [
+      'HARRY', 'SNAPE', 'DOBBY', 'DRACO', 'GINNY', 'REMUS', 'TONKS', 'MOODY',
+      'MAGIC', 'WANDS', 'SPELL', 'CLOAK', 'TOWER', 'BROOM', 'STONE', 'TROLL',
+      'FLEUR', 'OWLER', 'CHASE', 'QUILL',
+    ],
+    backdrop: {
+      preset: 'castle-towers',
+      skyGradient: ['#fbf6ee 0%', '#f0e6d8 40%', '#e4d0c4 72%', '#d4b8a8 100%'],
+      silhouetteColor: '#3d2a2a',
+      overlayEffect: 'mist',
+      overlayColor: '#c9a15b',
+    },
+  },
+  {
+    bookId: 'hunger-games',
+    title: 'The Hunger Games',
+    author: 'Suzanne Collins',
+    tagline: 'May the odds be ever in your favor',
+    accent: '#2f4a36',
+    schemaVersion: 1,
+    words: [
+      'PEETA', 'ARENA', 'CINNA', 'CLOVE', 'BREAD', 'FLAME', 'ARROW', 'SPEAR',
+      'PANEM', 'GAMES', 'CROWN', 'TRAIN', 'STYLE', 'TOKEN', 'SNARE', 'BERRY',
+    ],
+    backdrop: {
+      preset: 'treeline',
+      skyGradient: ['#fbf6ee 0%', '#f3ebe0 42%', '#e5e0d0 75%', '#d2d8c4 100%'],
+      silhouetteColor: '#243a2b',
+      overlayEffect: 'fireflies',
+      overlayColor: '#c9a15b',
+    },
+  },
+  {
+    bookId: 'stephen-king-shining-it',
+    title: 'Stephen King (The Shining & IT)',
+    author: 'Stephen King',
+    tagline: 'Redrum your vocabulary',
+    accent: '#8b5a4a',
+    schemaVersion: 1,
+    words: [
+      'DANNY', 'WENDY', 'HOTEL', 'GHOST', 'CLOWN', 'DERRY', 'SEWER', 'FLOAT',
+      'MAINE', 'TWINS', 'BLOOD', 'CABIN', 'HAUNT', 'FEVER', 'CRAZY',
+    ],
+    backdrop: {
+      preset: 'hotel-snow',
+      skyGradient: ['#f7f2ea 0%', '#ebe4dc 40%', '#ddd4ce 70%', '#cfc4bc 100%'],
+      silhouetteColor: '#3a3532',
+      overlayEffect: 'snow',
+      overlayColor: '#ffffff',
+    },
+  },
+]
