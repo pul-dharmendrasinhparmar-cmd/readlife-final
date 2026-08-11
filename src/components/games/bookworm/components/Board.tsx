@@ -62,7 +62,11 @@ export function Board({
 }: BoardProps) {
   const occupied = new Map<string, number>();
   snake.forEach((seg, i) => occupied.set(pointKey(seg), i));
-  const obstacles = new Set(level.obstacles.map(pointKey));
+  // Only from level config — Level 1 uses obstacles: [] (open board).
+  const obstacles =
+    level.obstacles.length > 0
+      ? new Set(level.obstacles.map(pointKey))
+      : null;
   const n = level.grid;
 
   return (
@@ -82,7 +86,7 @@ export function Board({
         const segIndex = occupied.get(key);
         const isHead = segIndex === 0;
         const isBody = segIndex !== undefined;
-        const isObstacle = obstacles.has(key);
+        const isObstacle = obstacles?.has(key) ?? false;
         const isBook = book && book.x === x && book.y === y && !isBody;
         const popHere = eatPop && eatPop.x === x && eatPop.y === y;
 

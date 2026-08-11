@@ -2,7 +2,7 @@ import type { LevelConfig } from "./types";
 
 /**
  * Level 1 — Cozy Shelf
- * Static bookshelf corridors only; classic snake skills.
+ * Open board (no mid-grid shelves); walls kill; classic snake skills.
  */
 export const LEVEL_1_COZY_SHELF: LevelConfig = {
   id: "level-1-cozy-shelf",
@@ -27,17 +27,8 @@ export const LEVEL_1_COZY_SHELF: LevelConfig = {
     { id: "score500", label: "Score 500+" },
     { id: "combo10", label: "Reach a 10-book combo" },
   ],
-  // Two short vertical bookshelf sections → soft corridors
-  obstacles: [
-    { x: 4, y: 3 },
-    { x: 4, y: 4 },
-    { x: 4, y: 5 },
-    { x: 4, y: 6 },
-    { x: 11, y: 9 },
-    { x: 11, y: 10 },
-    { x: 11, y: 11 },
-    { x: 11, y: 12 },
-  ],
+  // Open playfield — no mid-board bookshelf obstacles
+  obstacles: [],
   startSnake: [
     { x: 8, y: 8 },
     { x: 7, y: 8 },

@@ -126,8 +126,10 @@ export function useBookwormGame(levelId?: string) {
 
   const queueDir = useCallback((next: Dir) => {
     if (phaseRef.current !== "playing") return;
-    const current = pendingDir.current ?? dirRef.current;
-    if (!canTurn(current, next)) return;
+    // One buffered turn per tick — don't overwrite, or a second key/swipe
+    // can cancel an escape and steer back into a wall ("random" death).
+    if (pendingDir.current !== null) return;
+    if (!canTurn(dirRef.current, next)) return;
     pendingDir.current = next;
   }, []);
 

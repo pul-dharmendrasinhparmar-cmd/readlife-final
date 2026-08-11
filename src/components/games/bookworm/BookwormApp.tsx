@@ -129,7 +129,7 @@ export function BookwormApp({ onBackToGames }: Props) {
 
         <p className="bw-hint">
           {game.phase === "playing"
-            ? "Don't hit walls, shelves, or yourself"
+            ? "Don't hit walls or yourself"
             : "Arrow keys / WASD · swipe on the board"}
         </p>
       </div>
