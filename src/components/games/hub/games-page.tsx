@@ -109,9 +109,9 @@ export function GamesPage() {
   const empty = !profile.hasPlayedAny;
 
   return (
-    <div className="games-hub min-h-screen pb-20">
+    <div className="games-hub min-h-screen max-w-[100vw] pb-20">
       <AppNav />
-      <main className="mx-auto max-w-6xl px-4 pt-8 sm:px-6 lg:px-8">
+      <main className="mx-auto w-full max-w-6xl overflow-x-clip px-4 pt-8 sm:px-6 lg:px-8">
         {/* Header */}
         <header className="max-w-2xl">
           <p className="text-[0.7rem] font-semibold tracking-[0.16em] text-ink/55 uppercase">
@@ -132,10 +132,10 @@ export function GamesPage() {
           <EmptyShelf onPlay={play} />
         ) : (
           <>
-            <section className="mt-10">
+            <section className="mt-10 min-w-0">
               <SectionEyebrow tone="page">Today in Games</SectionEyebrow>
-              <div className="mt-3 grid items-stretch gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                <div className="games-card flex h-full flex-col rounded-[1.5rem] p-5">
+              <div className="mt-3 grid min-w-0 grid-cols-1 items-stretch gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="games-card flex h-full w-full min-w-0 max-w-full flex-col rounded-[1.5rem] p-4 sm:p-5">
                   <p className="text-[0.65rem] font-semibold tracking-[0.12em] text-ink/55 uppercase">
                     Your streak
                   </p>
@@ -163,7 +163,7 @@ export function GamesPage() {
                   )}
 
                   <ol
-                    className="mt-4 flex justify-between gap-1"
+                    className="games-streak-week mt-4 flex w-full min-w-0 items-start justify-between gap-0.5 sm:gap-1"
                     aria-label="This week's streak"
                   >
                     {weekDays.map((date, i) => {
@@ -185,7 +185,7 @@ export function GamesPage() {
                         label = "Today — not yet completed";
                         mark = "●";
                         cls =
-                          "border-gold bg-[#ebe6f4] text-ink ring-2 ring-gold/50";
+                          "border-gold bg-[#ebe6f4] text-ink ring-2 ring-inset ring-gold/50";
                       } else if (missed) {
                         label = "Missed";
                         mark = "–";
@@ -196,13 +196,13 @@ export function GamesPage() {
                       return (
                         <li
                           key={date}
-                          className="flex flex-1 flex-col items-center gap-1"
+                          className="games-streak-day flex min-w-0 flex-1 flex-col items-center gap-1"
                         >
-                          <span className="text-[0.6rem] font-semibold tracking-wide text-ink/60 uppercase">
+                          <span className="text-[0.55rem] font-semibold tracking-wide text-ink/60 uppercase sm:text-[0.6rem]">
                             {WEEK_LABELS[i]}
                           </span>
                           <span
-                            className={`flex h-7 w-7 items-center justify-center rounded-full border text-xs font-semibold ${cls}`}
+                            className={`games-streak-mark flex aspect-square w-full max-w-7 items-center justify-center rounded-full border text-[0.65rem] font-semibold sm:max-w-7 sm:text-xs ${cls}`}
                             title={label}
                             aria-label={`${WEEK_LABELS[i]}: ${label}`}
                           >
@@ -222,9 +222,9 @@ export function GamesPage() {
                   onViewAll={() => setPanel("achievements")}
                 />
 
-                <div className="games-card flex h-full flex-col rounded-[1.5rem] p-5 sm:col-span-2 lg:col-span-1">
+                <div className="games-card flex h-full w-full min-w-0 max-w-full flex-col overflow-hidden rounded-[1.5rem] p-4 sm:col-span-2 sm:p-5 lg:col-span-1">
                   <div className="flex items-start justify-between gap-2">
-                    <div>
+                    <div className="min-w-0">
                       <p className="text-[0.65rem] font-semibold tracking-[0.12em] text-ink/55 uppercase">
                         Leaderboard
                       </p>
@@ -235,12 +235,12 @@ export function GamesPage() {
                     <button
                       type="button"
                       onClick={() => setPanel("leaderboard")}
-                      className="text-xs font-semibold text-ink underline-offset-2 hover:underline"
+                      className="shrink-0 text-xs font-semibold text-ink underline-offset-2 hover:underline"
                     >
                       See all
                     </button>
                   </div>
-                  <div className="mt-2.5 -mx-0.5 flex gap-1.5 overflow-x-auto px-0.5 pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                  <div className="mt-2.5 flex max-w-full gap-1.5 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                     {LEADERBOARD_GAMES.map(([id, label]) => (
                       <button
                         key={id}
@@ -256,7 +256,7 @@ export function GamesPage() {
                       </button>
                     ))}
                   </div>
-                  <div className="mt-auto">
+                  <div className="mt-auto min-w-0">
                     <LeaderboardPreview
                       game={lbGame}
                       profile={profile}
@@ -268,12 +268,12 @@ export function GamesPage() {
 
             </section>
 
-            <div className="mt-8 grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_19.5rem] xl:grid-cols-[minmax(0,1fr)_21rem]">
+            <div className="mt-8 grid min-w-0 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_19.5rem] xl:grid-cols-[minmax(0,1fr)_21rem]">
               {/* Main: play */}
               <div className="min-w-0 space-y-8">
-                <section>
+                <section className="min-w-0">
                   <SectionEyebrow tone="page">Play</SectionEyebrow>
-                  <div className="mt-4 grid grid-cols-1 items-stretch gap-3 sm:grid-cols-2 sm:gap-4">
+                  <div className="mt-4 grid min-w-0 grid-cols-1 items-stretch gap-3 sm:grid-cols-2 sm:gap-4">
                     <BookboundCard
                       profile={profile}
                       onPlay={() => play("bookbound")}
@@ -304,7 +304,7 @@ export function GamesPage() {
               </div>
 
               {/* Right rail */}
-              <aside className="space-y-4 lg:sticky lg:top-[5.25rem]">
+              <aside className="min-w-0 space-y-4 lg:sticky lg:top-[5.25rem]">
                 <section className="games-card flex min-h-[18.5rem] flex-col rounded-[1.35rem] p-4 sm:min-h-[20rem]">
                   <div className="flex items-start justify-between gap-2">
                     <div>
@@ -460,9 +460,9 @@ function BadgesCarousel({
   };
 
   return (
-    <div className="games-card flex h-full flex-col rounded-[1.5rem] p-5">
-      <div className="flex items-start justify-between gap-2">
-        <div>
+    <div className="games-card flex h-full w-full min-w-0 max-w-full flex-col overflow-hidden rounded-[1.5rem] p-4 sm:p-5">
+      <div className="flex min-w-0 items-start justify-between gap-2">
+        <div className="min-w-0">
           <p className="text-[0.65rem] font-semibold tracking-[0.12em] text-ink/55 uppercase">
             Badges
           </p>
@@ -470,7 +470,7 @@ function BadgesCarousel({
             Achievements
           </h2>
         </div>
-        <div className="flex items-center gap-1.5">
+        <div className="flex shrink-0 items-center gap-1.5">
           {showControls ? (
             <>
               <button
@@ -509,7 +509,7 @@ function BadgesCarousel({
       ) : (
         <ul
           ref={scrollerRef}
-          className="mt-4 flex flex-1 gap-2.5 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] snap-x snap-mandatory [&::-webkit-scrollbar]:hidden"
+          className="mt-4 flex max-w-full flex-1 gap-2.5 overflow-x-auto overscroll-x-contain pb-1 [-ms-overflow-style:none] [scrollbar-width:none] snap-x snap-mandatory [&::-webkit-scrollbar]:hidden"
         >
           {unlocked.map((a) => {
             const def = getAchievement(a.achievementId);
@@ -517,7 +517,7 @@ function BadgesCarousel({
             return (
               <li
                 key={a.achievementId}
-                className="games-nest flex w-[9.5rem] shrink-0 snap-start flex-col rounded-xl px-3 py-3"
+                className="games-nest flex w-[8.5rem] shrink-0 snap-start flex-col rounded-xl px-3 py-3 sm:w-[9.5rem]"
               >
                 <AchievementBadgeIcon def={def} size="md" />
                 <p className="mt-2 line-clamp-2 text-sm font-semibold text-ink">

@@ -91,7 +91,7 @@ export function RightPanel({
   ] as const;
 
   return (
-    <aside className="flex flex-col gap-3.5 lg:max-h-[calc(100vh-1.5rem)] lg:overflow-y-auto lg:pr-1">
+    <aside className="flex min-w-0 flex-col gap-3.5 lg:max-h-[calc(100vh-1.5rem)] lg:overflow-y-auto lg:pr-1">
       {/* Currently reading */}
       <section className="rounded-[1.35rem] border border-[#4a425c] bg-[#3a324f] p-4 shadow-[0_6px_20px_rgba(42,36,56,0.05)] sm:p-5">
         <h2 className="text-[0.68rem] font-semibold tracking-[0.14em] text-ink/70 uppercase">
@@ -236,17 +236,17 @@ export function RightPanel({
           </div>
           <FlameIcon className="h-7 w-7 text-[#e07a3a]" />
         </div>
-        <div className="mt-4 flex justify-between gap-1">
+        <div className="mt-4 flex w-full min-w-0 justify-between gap-0.5">
           {WEEK.map((d, i) => {
             const done = i < Math.min(6, streakDays);
             const today = i === 5;
             return (
               <div
                 key={`${d}-${i}`}
-                className="flex flex-1 flex-col items-center gap-1.5"
+                className="flex min-w-0 flex-1 flex-col items-center gap-1"
               >
                 <span
-                  className={`flex h-8 w-8 items-center justify-center rounded-full text-[0.7rem] font-bold ${
+                  className={`flex h-7 w-7 items-center justify-center rounded-full text-[0.65rem] font-bold sm:h-8 sm:w-8 sm:text-[0.7rem] ${
                     done || today
                       ? "bg-forest text-paper"
                       : "border border-[#564d6a] bg-transparent text-muted-soft"
@@ -254,7 +254,9 @@ export function RightPanel({
                 >
                   {done || today ? "✓" : ""}
                 </span>
-                <span className="text-[0.65rem] font-medium text-muted">{d}</span>
+                <span className="text-[0.6rem] font-medium text-muted sm:text-[0.65rem]">
+                  {d}
+                </span>
               </div>
             );
           })}
@@ -292,7 +294,7 @@ export function RightPanel({
         <h2 className="text-[0.68rem] font-semibold tracking-[0.14em] text-ink/70 uppercase">
           Quick Actions
         </h2>
-        <div className="mt-3 grid grid-cols-4 gap-2">
+        <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
           {actions.map((action) => {
             const Icon = action.icon;
             return (
@@ -300,7 +302,7 @@ export function RightPanel({
                 key={action.label}
                 type="button"
                 onClick={action.onClick}
-                className="flex flex-col items-center gap-2 rounded-xl px-1 py-2 text-center transition hover:bg-[#3f3654]"
+                className="flex min-w-0 flex-col items-center gap-2 rounded-xl px-1 py-2 text-center transition hover:bg-[#3f3654]"
               >
                 <span className="flex h-11 w-11 items-center justify-center rounded-full border border-[#564d6a] bg-[#342c45] text-ink shadow-sm">
                   <Icon className="h-4 w-4" />

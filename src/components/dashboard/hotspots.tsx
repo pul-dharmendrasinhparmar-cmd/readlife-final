@@ -63,7 +63,7 @@ export function Hotspots({
                 onActivate(spot.id);
               }
             }}
-            className={`absolute z-30 -translate-x-1/2 -translate-y-1/2 cursor-pointer text-left transition duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a227] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent ${
+            className={`absolute z-30 max-w-[min(100%,14rem)] -translate-x-1/2 -translate-y-1/2 cursor-pointer text-left transition duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a227] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent ${
               active ? "z-40" : ""
             }`}
           >

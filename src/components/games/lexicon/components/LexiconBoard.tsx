@@ -9,16 +9,20 @@ type Props = {
   board: BoardCell[][];
   pendingByKey: Map<string, PendingCell>;
   disabled?: boolean;
+  selectedTileId?: string | null;
   onDropTile: (row: number, col: number, tileId: string) => void;
   onPickupPending: (row: number, col: number) => void;
+  onSelectEmptyCell?: (row: number, col: number) => void;
 };
 
 export function LexiconBoard({
   board,
   pendingByKey,
   disabled,
+  selectedTileId,
   onDropTile,
   onPickupPending,
+  onSelectEmptyCell,
 }: Props) {
   return (
     <div className="lex-board-wrap">
@@ -36,7 +40,7 @@ export function LexiconBoard({
               <div
                 key={`${row}-${col}`}
                 role="gridcell"
-                className={`lex-cell prem-${prem}${isPending ? " is-pending" : ""}${disabled ? " is-disabled" : ""}`}
+                className={`lex-cell prem-${prem}${isPending ? " is-pending" : ""}${disabled ? " is-disabled" : ""}${selectedTileId && !showLetter && !cell.letter ? " is-drop-target" : ""}`}
                 onDragOver={(e) => {
                   if (disabled || cell.letter) return;
                   e.preventDefault();
@@ -47,6 +51,11 @@ export function LexiconBoard({
                   e.preventDefault();
                   const tileId = e.dataTransfer.getData("text/tile-id");
                   if (tileId) onDropTile(row, col, tileId);
+                }}
+                onClick={() => {
+                  if (disabled || cell.letter || isPending) return;
+                  if (selectedTileId) onDropTile(row, col, selectedTileId);
+                  else onSelectEmptyCell?.(row, col);
                 }}
                 aria-label={
                   showLetter

@@ -1,12 +1,6 @@
 import Image from "next/image";
 import { GoogleIcon, LeafIcon, SparkleIcon } from "@/components/icons";
-
-const navLinks = [
-  { label: "Features", href: "#features" },
-  { label: "How It Works", href: "#how-it-works" },
-  { label: "For Readers", href: "#for-readers" },
-  { label: "Community", href: "#community" },
-];
+import { LandingHeader } from "@/components/landing/landing-header";
 
 const features = [
   {
@@ -53,44 +47,9 @@ const avatars = [
 export default function Home() {
   return (
     <div className="page-shell relative min-h-screen overflow-hidden">
-      <header className="relative z-30 mx-auto flex max-w-6xl items-center justify-between px-5 py-5 sm:px-8 lg:px-10">
-        <a href="/" className="flex items-center gap-2 text-ink">
-          <LeafIcon className="h-5 w-5" />
-          <span className="font-serif text-[1.55rem] font-semibold tracking-[-0.02em]">
-            ReadLife
-          </span>
-        </a>
+      <LandingHeader />
 
-        <nav className="hidden items-center gap-8 md:flex">
-          {navLinks.map((link) => (
-            <a
-              key={link.href}
-              href={link.href}
-              className="text-[0.95rem] font-medium text-ink/80 transition hover:text-ink"
-            >
-              {link.label}
-            </a>
-          ))}
-        </nav>
-
-        <div className="flex items-center gap-2.5">
-          <a
-            href="/home"
-            className="rounded-full border border-accent/70 px-4 py-1.5 text-sm font-semibold text-accent transition hover:bg-accent/5"
-          >
-            Log in
-          </a>
-          <a
-            href="/home"
-            className="inline-flex items-center gap-1.5 rounded-full bg-forest px-4 py-1.5 text-sm font-semibold text-[#2a2438] shadow-sm transition hover:bg-forest-deep"
-          >
-            Sign up
-            <LeafIcon className="h-3.5 w-3.5 text-[#2a2438]/90" />
-          </a>
-        </div>
-      </header>
-
-      <main className="relative z-10">
+      <main id="main-content" className="relative z-10" tabIndex={-1}>
         {/* Hero */}
         <section className="hero-glow relative mx-auto grid max-w-6xl items-center gap-10 px-5 pb-10 pt-4 sm:px-8 lg:grid-cols-[1.05fr_1fr] lg:gap-6 lg:px-10 lg:pb-14 lg:pt-6">
           <div className="max-w-xl">

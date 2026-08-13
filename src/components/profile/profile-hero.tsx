@@ -82,17 +82,17 @@ export function ProfileHero({
   }
 
   return (
-    <section className="relative overflow-hidden rounded-[1.75rem] border border-line bg-gradient-to-br from-paper via-cream to-[#322a45] p-5 sm:p-7">
+    <section className="relative max-w-full overflow-hidden rounded-[1.75rem] border border-line bg-gradient-to-br from-paper via-cream to-[#322a45] p-4 sm:p-7">
       <div className="pointer-events-none absolute -right-10 -top-12 h-44 w-44 rounded-full bg-forest/10 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-16 left-1/3 h-40 w-40 rounded-full bg-accent/10 blur-3xl" />
 
       <div className="relative flex flex-col gap-6 lg:flex-row lg:items-stretch lg:justify-between">
-        <div className="flex min-w-0 flex-1 gap-4 sm:gap-5">
+        <div className="flex min-w-0 flex-1 gap-3 sm:gap-5">
           <button
             type="button"
             onClick={isOwner ? onEdit : undefined}
             disabled={!isOwner}
-            className="relative h-28 w-28 shrink-0 overflow-hidden rounded-full border-2 border-line shadow-lg sm:h-32 sm:w-32"
+            className="relative h-24 w-24 shrink-0 overflow-hidden rounded-full border-2 border-line shadow-lg sm:h-32 sm:w-32"
             aria-label={isOwner ? "Edit avatar" : undefined}
           >
             <Image
@@ -106,7 +106,7 @@ export function ProfileHero({
 
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="font-serif text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+              <h1 className="font-serif text-2xl font-semibold tracking-tight text-ink sm:text-4xl">
                 {profile.displayName}
               </h1>
               <span
@@ -120,9 +120,9 @@ export function ProfileHero({
             <p className="mt-0.5 text-muted">@{profile.username}</p>
 
             {personality ? (
-              <p className="mt-2.5 inline-flex items-center gap-1.5 rounded-full bg-cream-card px-3 py-1 text-sm font-semibold text-ink">
+              <p className="mt-2.5 inline-flex max-w-full flex-wrap items-center gap-x-1.5 gap-y-1 rounded-full bg-cream-card px-3 py-1 text-sm font-semibold text-ink">
                 <span aria-hidden>{personality.emoji}</span>
-                <span>{personality.name}</span>
+                <span className="min-w-0 break-words">{personality.name}</span>
                 {personality.code ? (
                   <span className="font-sans text-xs font-semibold tracking-wide text-muted">
                     {formatPersonalityCode(personality.code)}
@@ -325,7 +325,7 @@ function FeaturedBadgesStrip({
   if (!isOwner && badges.length === 0) return null;
 
   return (
-    <div className="mt-4 max-w-md">
+    <div className="mt-4 w-full min-w-0 max-w-md">
       <div className="flex items-center justify-between gap-2">
         <p className="text-[0.62rem] font-semibold tracking-[0.14em] text-muted uppercase">
           Featured badges
@@ -334,7 +334,7 @@ function FeaturedBadgesStrip({
           <button
             type="button"
             onClick={onChoose}
-            className="text-[0.65rem] font-semibold text-forest-soft underline-offset-2 hover:underline"
+            className="shrink-0 text-[0.65rem] font-semibold text-forest-soft underline-offset-2 hover:underline"
           >
             Choose badges
           </button>
@@ -343,14 +343,20 @@ function FeaturedBadgesStrip({
 
       {badges.length > 0 ? (
         <ul
-          className={`mt-2.5 grid w-fit gap-2 ${
-            badges.length <= 3 ? "grid-cols-3" : "grid-cols-4"
+          className={`mt-2.5 grid w-full min-w-0 gap-2 ${
+            badges.length === 1
+              ? "grid-cols-1 max-w-[6.5rem]"
+              : badges.length === 2
+                ? "grid-cols-2"
+                : badges.length === 3
+                  ? "grid-cols-3"
+                  : "grid-cols-2 sm:grid-cols-4"
           }`}
         >
           {badges.map((badge) => (
-            <li key={badge.id} className="w-[4.5rem]">
+            <li key={badge.id} className="min-w-0">
               <div
-                className="flex aspect-square flex-col items-center justify-center rounded-xl border border-line/80 bg-cream-card/70 p-1.5 shadow-[0_6px_18px_rgba(20,16,30,0.2)]"
+                className="flex aspect-square w-full flex-col items-center justify-center overflow-hidden rounded-xl border border-line/80 bg-cream-card/70 p-1.5 shadow-[0_6px_18px_rgba(20,16,30,0.2)]"
                 style={{
                   borderColor: `${badge.accent}66`,
                   background: `linear-gradient(165deg, ${badge.accent}18, rgba(58,50,79,0.72) 55%)`,
@@ -364,7 +370,7 @@ function FeaturedBadgesStrip({
                     alt={badge.name}
                     width={72}
                     height={72}
-                    className="h-full max-h-[3.25rem] w-auto max-w-full object-contain"
+                    className="h-auto max-h-[3rem] w-full max-w-[3rem] object-contain sm:max-h-[3.25rem] sm:max-w-[3.25rem]"
                     draggable={false}
                   />
                 ) : (
@@ -374,7 +380,7 @@ function FeaturedBadgesStrip({
                 )}
               </div>
               <p
-                className="mt-1 line-clamp-2 text-center text-[0.58rem] font-semibold leading-tight text-ink/90"
+                className="mt-1 line-clamp-2 break-words text-center text-[0.58rem] font-semibold leading-tight text-ink/90"
                 style={{ color: badge.accent }}
               >
                 {badge.name}
@@ -386,7 +392,7 @@ function FeaturedBadgesStrip({
         <button
           type="button"
           onClick={onChoose}
-          className="mt-2.5 rounded-xl border border-dashed border-line/80 bg-cream-card/40 px-3 py-4 text-center text-xs font-semibold text-muted transition hover:border-forest/40 hover:text-ink"
+          className="mt-2.5 w-full rounded-xl border border-dashed border-line/80 bg-cream-card/40 px-3 py-4 text-center text-xs font-semibold text-muted transition hover:border-forest/40 hover:text-ink"
         >
           Choose up to 4 badges to feature
         </button>

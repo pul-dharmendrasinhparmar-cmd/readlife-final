@@ -134,7 +134,7 @@ function ProfilePageInner() {
 
   if (!ready || !profileState || !discovery) {
     return (
-      <div className="min-h-screen bg-[#2a2438]">
+      <div className="min-h-screen max-w-[100vw] overflow-x-clip bg-[#2a2438]">
         <AppNav />
         <main className="mx-auto max-w-[1440px] px-4 py-16 text-center text-muted">
           Loading profile…
@@ -190,9 +190,9 @@ function ProfilePageInner() {
   ];
 
   return (
-    <div className="min-h-screen bg-cream text-ink">
+    <div className="min-h-screen max-w-[100vw] overflow-x-clip bg-cream text-ink">
       <AppNav />
-      <main className="mx-auto max-w-[1440px] px-4 py-6 sm:px-6 lg:px-8">
+      <main className="mx-auto w-full max-w-[1440px] overflow-x-clip px-4 py-6 sm:px-6 lg:px-8">
         <ProfileHero
           profile={profile}
           personality={
@@ -241,7 +241,7 @@ function ProfilePageInner() {
 
         {/* Tabs */}
         <div
-          className="mt-6 flex gap-1 overflow-x-auto border-b border-line"
+          className="mt-6 flex max-w-full gap-1 overflow-x-auto overscroll-x-contain border-b border-line [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           role="tablist"
           aria-label="Profile sections"
         >
@@ -268,11 +268,11 @@ function ProfilePageInner() {
 
         <div className="mt-6" role="tabpanel">
           {tab === "overview" && (
-            <div className="space-y-6">
-              <div className="grid gap-5 lg:grid-cols-2">
+            <div className="min-w-0 space-y-6">
+              <div className="grid min-w-0 gap-5 lg:grid-cols-2">
                 <Section title="Currently reading" eyebrow>
                   {readingBook && readingEntry ? (
-                    <div className="flex items-start gap-4">
+                    <div className="flex min-w-0 items-start gap-4">
                       <Cover src={readingBook.cover} className="w-20 sm:w-24" />
                       <div className="min-w-0 flex-1">
                         <p className="font-serif text-lg font-semibold text-ink">
@@ -302,19 +302,19 @@ function ProfilePageInner() {
                     <EmptyOwner text="Nothing currently reading — pick up a book from your Library." />
                   )}
 
-                  <div className="mt-6 border-t border-[#4a425c]/80 pt-5">
+                  <div className="mt-6 min-w-0 border-t border-[#4a425c]/80 pt-5">
                     <div className="mb-3 flex items-end justify-between gap-3">
                       <h3 className="text-[0.72rem] font-semibold tracking-[0.14em] text-muted uppercase">
                         Recent reads
                       </h3>
                       <Link
                         href="/library"
-                        className="text-sm font-semibold text-forest-soft underline-offset-2 hover:underline"
+                        className="shrink-0 text-sm font-semibold text-forest-soft underline-offset-2 hover:underline"
                       >
                         View all →
                       </Link>
                     </div>
-                    <div className="flex items-start gap-3 overflow-x-auto pb-1">
+                    <div className="flex max-w-full items-start gap-3 overflow-x-auto overscroll-x-contain pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                       {recentReads.length === 0 ? (
                         <EmptyOwner text="No finished books yet." />
                       ) : (
@@ -341,19 +341,19 @@ function ProfilePageInner() {
                     </div>
                   </div>
 
-                  <div className="mt-5">
+                  <div className="mt-5 min-w-0">
                     <div className="mb-3 flex items-end justify-between gap-3">
                       <h3 className="text-[0.72rem] font-semibold tracking-[0.14em] text-muted uppercase">
                         Favorites
                       </h3>
                       <Link
                         href="/library"
-                        className="text-sm font-semibold text-forest-soft underline-offset-2 hover:underline"
+                        className="shrink-0 text-sm font-semibold text-forest-soft underline-offset-2 hover:underline"
                       >
                         View all →
                       </Link>
                     </div>
-                    <div className="flex items-start gap-3 overflow-x-auto pb-1">
+                    <div className="flex max-w-full items-start gap-3 overflow-x-auto overscroll-x-contain pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                       {favorites.length === 0 ? (
                         <EmptyOwner text="Pin favorites from your library." />
                       ) : (
@@ -362,9 +362,12 @@ function ProfilePageInner() {
                             <Link
                               key={b.id}
                               href={`/books/${b.id}`}
-                              className="flex w-32 shrink-0 flex-col"
+                              className="flex w-28 shrink-0 flex-col sm:w-32"
                             >
-                              <Cover src={b.cover} className="w-32" />
+                              <Cover
+                                src={b.cover}
+                                className="w-28 sm:w-32"
+                              />
                               <p className="mt-2 line-clamp-2 text-xs text-muted">
                                 {b.title}
                               </p>
@@ -650,7 +653,7 @@ function Section({
   eyebrow?: boolean;
 }) {
   return (
-    <section className="rounded-[1.5rem] border border-line bg-paper p-4 sm:p-5">
+    <section className="min-w-0 overflow-hidden rounded-[1.5rem] border border-line bg-paper p-4 sm:p-5">
       <h2
         className={
           eyebrow
@@ -660,7 +663,7 @@ function Section({
       >
         {title}
       </h2>
-      <div className="mt-3">{children}</div>
+      <div className="mt-3 min-w-0">{children}</div>
     </section>
   );
 }

@@ -88,7 +88,7 @@ export function FeaturedBadgesModal({
             Earn reading or games badges to feature them here.
           </p>
         ) : (
-          <ul className="mt-5 grid grid-cols-3 gap-2.5 sm:grid-cols-4">
+          <ul className="mt-5 grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-4">
             {earned.map((badge) => {
               const selected = draft.includes(badge.id);
               const atCap = !selected && draft.length >= MAX_FEATURED_BADGES;

@@ -119,6 +119,7 @@ export function LexiconApp() {
                 board={state.board}
                 pendingByKey={g.pendingByKey}
                 disabled={!yourTurn || g.exchangeMode}
+                selectedTileId={g.dragTileId}
                 onDropTile={g.onDropOnCell}
                 onPickupPending={g.pickupPending}
               />
@@ -151,10 +152,12 @@ export function LexiconApp() {
               </>
             ) : g.exchangeMode ? (
               "Select tiles to exchange with the bag, then tap Exchange"
+            ) : g.dragTileId ? (
+              "Tile selected — tap a square on the board to place it"
             ) : g.hintBusy ? (
               "Looking for a play…"
             ) : (
-              "Drag tiles onto the board, then press Play word"
+              "Tap a tile then a square (or drag), then press Play word"
             )}
           </p>
 
@@ -176,11 +179,12 @@ export function LexiconApp() {
             >
               {g.rackVisible.map((tile) => {
                 const selected = g.exchangeIds.includes(tile.id);
+                const placing = g.dragTileId === tile.id && !g.exchangeMode;
                 return (
                   <button
                     key={tile.id}
                     type="button"
-                    className={`lex-rack-tile${selected ? " is-selected" : ""}${tile.isBlank ? " is-blank" : ""}`}
+                    className={`lex-rack-tile${selected || placing ? " is-selected" : ""}${tile.isBlank ? " is-blank" : ""}`}
                     disabled={!yourTurn}
                     draggable={yourTurn && !g.exchangeMode}
                     onDragStart={(e) => {
@@ -191,12 +195,23 @@ export function LexiconApp() {
                     }}
                     onDragEnd={() => g.setDragTileId(null)}
                     onClick={() => {
-                      if (g.exchangeMode) g.toggleExchangeTile(tile.id);
+                      if (!yourTurn) return;
+                      if (g.exchangeMode) {
+                        g.toggleExchangeTile(tile.id);
+                        return;
+                      }
+                      // Tap-to-select for mobile (HTML5 drag is unreliable on touch)
+                      g.setDragTileId((id) => (id === tile.id ? null : tile.id));
                     }}
+                    aria-pressed={placing || selected}
                     aria-label={
                       tile.isBlank
-                        ? "Blank tile"
-                        : `${tile.letter}, ${tile.points} points`
+                        ? placing
+                          ? "Blank tile selected — tap a square"
+                          : "Blank tile"
+                        : placing
+                          ? `${tile.letter} selected — tap a square`
+                          : `${tile.letter}, ${tile.points} points`
                     }
                   >
                     {tile.isBlank ? "?" : tile.letter}

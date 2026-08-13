@@ -51,7 +51,7 @@ export function ReadingRoom({
         </h1>
       </div>
 
-      <div className="relative aspect-[16/11] w-full overflow-hidden rounded-[1.75rem] border border-[#564d6a]/70 bg-[#d8c4a8] shadow-[0_18px_50px_rgba(42,36,56,0.12)] sm:aspect-[16/10] lg:aspect-auto lg:min-h-[calc(100vh-5.5rem)] lg:flex-1">
+      <div className="relative aspect-[16/11] w-full max-w-full overflow-hidden rounded-[1.75rem] border border-[#564d6a]/70 bg-[#d8c4a8] shadow-[0_18px_50px_rgba(42,36,56,0.12)] sm:aspect-[16/10] lg:aspect-auto lg:min-h-[calc(100vh-5.5rem)] lg:flex-1">
         {/* Room art — swaps with window vibe */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img

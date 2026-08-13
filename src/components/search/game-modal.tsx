@@ -92,7 +92,12 @@ export function GameModal({ game, open, onClose }: Props) {
       if (e.key === "Escape" && game.id !== "bookbound") onClose();
     };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prevOverflow;
+    };
   }, [open, game, onClose]);
 
   const answerTitle = useMemo(() => {
@@ -102,11 +107,24 @@ export function GameModal({ game, open, onClose }: Props) {
 
   if (!open || !game) return null;
 
+  const fullscreenSize =
+    game.id === "lexicon"
+      ? "max-md:h-[100dvh] h-[min(96svh,920px)] max-w-4xl"
+      : game.id === "uncovered"
+        ? "max-md:h-[100dvh] h-[min(96svh,920px)] max-w-xl"
+        : game.id === "pieces"
+          ? "max-md:h-[100dvh] h-[min(96svh,960px)] max-w-3xl"
+          : game.id === "trolley"
+            ? "max-md:h-[100dvh] h-[min(96svh,920px)] max-w-md"
+            : game.id === "bookbound"
+              ? "max-md:h-[100dvh] h-[min(96svh,760px)] max-w-5xl"
+              : "max-md:h-[100dvh] h-[min(96svh,960px)] max-w-3xl";
+
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-4">
+    <div className="fixed inset-0 z-[70] flex items-stretch justify-center p-0 sm:items-center sm:p-4">
       <button
         type="button"
-        className="absolute inset-0 bg-[#2a2438]/35 backdrop-blur-[2px]"
+        className="absolute inset-0 bg-[#2a2438]/55 backdrop-blur-[2px] max-md:hidden"
         aria-label="Close game"
         onClick={onClose}
       />
@@ -116,36 +134,24 @@ export function GameModal({ game, open, onClose }: Props) {
         aria-labelledby={titleId}
         className={
           isFullscreenGame
-            ? `relative z-10 flex w-full flex-col overflow-hidden rounded-[1.5rem] border border-[#4a425c] bg-[#3a324f] shadow-[0_24px_60px_rgba(42,36,56,0.25)] ${
-                game?.id === "lexicon"
-                  ? "h-[min(96svh,920px)] max-w-4xl"
-                  : game?.id === "uncovered"
-                    ? "h-[min(96svh,920px)] max-w-xl"
-                    : game?.id === "pieces"
-                      ? "h-[min(96svh,960px)] max-w-3xl"
-                  : game?.id === "trolley"
-                    ? "h-[min(96svh,920px)] max-w-md"
-                    : game?.id === "bookbound"
-                      ? "h-[min(96svh,760px)] max-w-5xl"
-                      : "h-[min(96svh,960px)] max-w-3xl"
-              }`
-            : "relative z-10 w-full max-w-lg rounded-[1.5rem] border border-[#4a425c] bg-[#3a324f] p-6 shadow-[0_24px_60px_rgba(42,36,56,0.25)]"
+            ? `relative z-10 flex w-full flex-col overflow-hidden border-[#4a425c] bg-[#3a324f] shadow-[0_24px_60px_rgba(42,36,56,0.25)] max-md:rounded-none max-md:border-0 sm:rounded-[1.5rem] sm:border ${fullscreenSize}`
+            : "relative z-10 m-3 w-full max-w-lg rounded-[1.5rem] border border-[#4a425c] bg-[#3a324f] p-6 shadow-[0_24px_60px_rgba(42,36,56,0.25)] sm:m-0"
         }
       >
         <div
           className={
             isFullscreenGame
-              ? "flex shrink-0 items-start justify-between gap-3 border-b border-[#4a425c]/80 px-5 py-3"
+              ? "flex shrink-0 items-start justify-between gap-3 border-b border-[#4a425c]/80 px-4 py-2.5 pt-[max(0.65rem,env(safe-area-inset-top))] sm:px-5 sm:py-3 sm:pt-3"
               : "flex items-start justify-between gap-3"
           }
         >
-          <div>
+          <div className="min-w-0">
             <p className="text-[0.68rem] font-semibold tracking-[0.14em] text-ink/65 uppercase">
               Mini game
             </p>
             <h2
               id={titleId}
-              className="mt-1 font-serif text-2xl font-semibold text-ink"
+              className="mt-0.5 truncate font-serif text-xl font-semibold text-ink sm:mt-1 sm:text-2xl"
             >
               {game.title}
             </h2>
@@ -153,7 +159,7 @@ export function GameModal({ game, open, onClose }: Props) {
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full px-3 py-1.5 text-sm font-semibold text-ink hover:bg-[#3f3654]"
+            className="min-h-11 shrink-0 rounded-full px-3 py-1.5 text-sm font-semibold text-ink hover:bg-[#3f3654] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest"
           >
             Close
           </button>

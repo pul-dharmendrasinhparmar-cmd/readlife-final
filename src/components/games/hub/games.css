@@ -2,6 +2,43 @@
 
 .games-hub {
   background: #3a324f;
+  overflow-x: clip;
+  max-width: 100vw;
+  width: 100%;
+}
+
+.games-hub .games-card {
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+/* Streak week: all 7 days visible within ~390px card width */
+.games-streak-week {
+  min-width: 0;
+  width: 100%;
+}
+
+.games-streak-day {
+  min-width: 0;
+}
+
+.games-streak-mark {
+  min-width: 0;
+  max-width: 1.75rem;
+  height: auto;
+}
+
+@media (max-width: 390px) {
+  .games-streak-mark {
+    max-width: 1.5rem;
+    font-size: 0.6rem;
+  }
+}
+
+@media (max-width: 767px) {
+  .games-hub {
+    padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
+  }
 }
 
 /* Light card surfaces + dark text tokens (scoped; app-wide ink stays light) */

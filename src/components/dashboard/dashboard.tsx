@@ -300,11 +300,11 @@ export function Dashboard() {
     tourStep != null ? TOUR_STEPS[tourStep]?.id ?? null : null;
 
   return (
-    <div className="min-h-screen bg-[#2a2438] text-ink">
+    <div className="min-h-screen max-w-[100vw] overflow-x-clip bg-[#2a2438] text-ink">
       <AppNav />
 
-      <main className="relative mx-auto grid w-full max-w-[1600px] gap-4 px-3 py-3 sm:px-5 sm:py-4 lg:grid-cols-[minmax(0,1.85fr)_minmax(300px,0.72fr)] lg:gap-5 lg:px-5 lg:py-3 xl:grid-cols-[minmax(0,1.95fr)_minmax(320px,0.68fr)]">
-        <div className="relative min-h-0">
+      <main className="relative mx-auto grid w-full max-w-[1600px] gap-4 overflow-x-clip px-3 py-3 sm:px-5 sm:py-4 lg:grid-cols-[minmax(0,1.85fr)_minmax(300px,0.72fr)] lg:gap-5 lg:px-5 lg:py-3 xl:grid-cols-[minmax(0,1.95fr)_minmax(320px,0.68fr)]">
+        <div className="relative min-h-0 min-w-0">
           <ReadingRoom
             vibe={vibe}
             spots={hotspots}

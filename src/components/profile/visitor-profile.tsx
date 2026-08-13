@@ -102,13 +102,13 @@ function VisitorProfileInner({ username }: Props) {
   ];
 
   return (
-    <div className="min-h-screen bg-cream text-ink">
+    <div className="min-h-screen max-w-[100vw] overflow-x-clip bg-cream text-ink">
       <AppNav />
-      <main className="mx-auto max-w-[1440px] px-4 py-6 sm:px-6 lg:px-8">
-        <section className="relative overflow-hidden rounded-[1.75rem] border border-line bg-gradient-to-br from-paper via-cream to-[#322a45] p-5 sm:p-7">
+      <main className="mx-auto w-full max-w-[1440px] overflow-x-clip px-4 py-6 sm:px-6 lg:px-8">
+        <section className="relative max-w-full overflow-hidden rounded-[1.75rem] border border-line bg-gradient-to-br from-paper via-cream to-[#322a45] p-4 sm:p-7">
           <div className="relative flex flex-col gap-6 lg:flex-row lg:items-stretch lg:justify-between">
-            <div className="flex min-w-0 flex-1 gap-4 sm:gap-5">
-              <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-full border-2 border-line shadow-lg sm:h-32 sm:w-32">
+            <div className="flex min-w-0 flex-1 gap-3 sm:gap-5">
+              <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-full border-2 border-line shadow-lg sm:h-32 sm:w-32">
                 <Image
                   src={reader.avatar}
                   alt=""
@@ -118,13 +118,13 @@ function VisitorProfileInner({ username }: Props) {
                 />
               </div>
               <div className="min-w-0 flex-1">
-                <h1 className="font-serif text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+                <h1 className="font-serif text-2xl font-semibold tracking-tight text-ink sm:text-4xl">
                   {reader.displayName}
                 </h1>
                 <p className="mt-0.5 text-muted">@{reader.username}</p>
-                <p className="mt-2.5 inline-flex items-center gap-1.5 rounded-full bg-cream-card px-3 py-1 text-sm font-semibold text-ink">
+                <p className="mt-2.5 inline-flex max-w-full flex-wrap items-center gap-x-1.5 gap-y-1 rounded-full bg-cream-card px-3 py-1 text-sm font-semibold text-ink">
                   <span aria-hidden>{personality.emoji}</span>
-                  <span>{personality.name}</span>
+                  <span className="min-w-0 break-words">{personality.name}</span>
                   <span className="font-sans text-xs font-semibold tracking-wide text-muted">
                     {formatPersonalityCode(personality.code)}
                   </span>
