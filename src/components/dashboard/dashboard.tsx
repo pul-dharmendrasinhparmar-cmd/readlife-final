@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   type OnboardingState,
-  resolveAvatarImage,
   resolvePet,
 } from "@/components/onboarding/data";
 import { BuddyReadModal } from "@/components/profile/buddy-read-modal";
@@ -36,7 +35,6 @@ import {
   ChairIcon,
   JournalIcon,
   MailIcon,
-  PetIcon,
   QuoteIcon,
   WindowIcon,
 } from "./dash-icons";
@@ -52,14 +50,25 @@ import { SessionFlow } from "./overlays/session-flow";
 import { TbrPanel } from "./overlays/tbr-panel";
 import { VibePicker } from "./overlays/vibe-picker";
 import { TOUR_STEPS, WelcomeTour } from "./overlays/welcome-tour";
-import { addJournalEntry, loadJournal } from "./journal-storage";
+import {
+  addJournalEntry,
+  deleteJournalEntry,
+  loadJournal,
+  updateJournalEntry,
+} from "./journal-storage";
 import type { JournalEntry } from "./journal-storage";
 import {
   loadMailbox,
   markMailboxRead,
   type MailItem,
 } from "./mailbox-data";
-import { addQuote, loadQuotes, type FavoriteQuote } from "./quotes-storage";
+import {
+  addQuote,
+  deleteQuote,
+  loadQuotes,
+  updateQuote,
+  type FavoriteQuote,
+} from "./quotes-storage";
 import { ReadingRoom } from "./reading-room";
 import { RightPanel } from "./right-panel";
 import {
@@ -93,13 +102,12 @@ type Overlay =
 export function Dashboard() {
   const [onboarding, setOnboarding] = useState<OnboardingState | null>(null);
   const [discovery, setDiscovery] = useState<DiscoveryState | null>(null);
-  const [vibe, setVibe] = useState<RoomVibe>("afternoon");
+  const [vibe, setVibe] = useState<RoomVibe>("day");
   const [overlay, setOverlay] = useState<Overlay>(null);
   const [quotes, setQuotes] = useState<FavoriteQuote[]>([]);
   const [journal, setJournal] = useState<JournalEntry[]>([]);
   const [mail, setMail] = useState<MailItem[]>([]);
   const [todayDone, setTodayDone] = useState(18);
-  const [petBubble, setPetBubble] = useState<string | null>(null);
   const [tourStep, setTourStep] = useState<number | null>(null);
   const [readingEra, setReadingEra] = useState<{
     title: string;
@@ -176,94 +184,78 @@ export function Dashboard() {
   }, [onboarding]);
 
   const hotspots: HotspotDef[] = useMemo(() => {
-    const companionTitle = pet?.label ?? "Shelf pet";
     const vibeLabel =
-      VIBE_OPTIONS.find((opt) => opt.id === vibe)?.label ?? "Afternoon";
+      VIBE_OPTIONS.find((opt) => opt.id === vibe)?.label ?? "Day";
     const vibeSubtitle =
       vibe === "rainy"
         ? "Soft rain · Change vibe"
-        : vibe === "evening"
-          ? "Evening glow · Change vibe"
-          : `${vibeLabel} light · Change vibe`;
+        : vibe === "snowy"
+          ? "Snowfall · Change vibe"
+          : vibe === "night"
+            ? "Night sky · Change vibe"
+            : `${vibeLabel} light · Change vibe`;
     return [
       {
         id: "bookshelf",
         title: "Bookshelf",
         subtitle: "Explore your books",
-        top: "24%",
-        left: "12%",
+        top: "32%",
+        left: "11%",
         icon: BookIcon,
       },
       {
         id: "quotes",
         title: "Quote Wall",
         subtitle: "Daily inspiration",
-        top: "16%",
-        left: "44%",
+        top: "14%",
+        left: "48%",
         icon: QuoteIcon,
       },
       {
         id: "window",
         title: "Window",
         subtitle: vibeSubtitle,
-        top: "20%",
-        left: "82%",
+        top: "28%",
+        left: "84%",
         icon: WindowIcon,
       },
       {
         id: "journal",
         title: "Journal",
         subtitle: "Write your thoughts",
-        top: "46%",
-        left: "40%",
+        top: "38%",
+        left: "46%",
         icon: JournalIcon,
       },
       {
         id: "tbr",
         title: "TBR Cart",
         subtitle: "Manage your reading list",
-        top: "68%",
-        left: "18%",
+        top: "72%",
+        left: "22%",
         icon: CartIcon,
-      },
-      {
-        id: "companion",
-        title: onboarding?.petName.trim() || companionTitle,
-        subtitle: "Your shelf companion",
-        top: "78%",
-        left: "42%",
-        icon: PetIcon,
       },
       {
         id: "chair",
         title: "Reading Chair",
         subtitle: "Your cozy spot",
-        top: "62%",
-        left: "68%",
+        top: "52%",
+        left: "52%",
         icon: ChairIcon,
       },
       {
         id: "mailbox",
         title: "Mailbox",
         subtitle: "Messages & updates",
-        top: "52%",
-        left: "90%",
+        top: "58%",
+        left: "76%",
         icon: MailIcon,
       },
     ];
-  }, [pet?.label, onboarding?.petName, vibe]);
+  }, [vibe]);
 
   const onHotspot = (id: HotspotId) => {
-    if (id === "companion") {
-      setPetBubble(
-        petBubble
-          ? null
-          : `${onboarding?.petName.trim() || "Mochi"} purrs softly.`,
-      );
-      window.setTimeout(() => setPetBubble(null), 3200);
-      return;
-    }
-    const map: Record<Exclude<HotspotId, "companion">, Overlay> = {
+    const map: Record<HotspotId, Overlay> = {
       bookshelf: "bookshelf",
       quotes: "quotes",
       window: "window",
@@ -292,14 +284,12 @@ export function Dashboard() {
 
   if (!onboarding || !discovery || !pet) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f3ebe0] text-muted">
+      <div className="flex min-h-screen items-center justify-center bg-[#2a2438] text-muted">
         Opening your reading room…
       </div>
     );
   }
 
-  const displayName = onboarding.displayName.trim() || "Alex";
-  const avatarSrc = resolveAvatarImage(onboarding.avatar);
   const petName = onboarding.petName.trim() || pet.label;
   const todayGoalMins = getTodayGoalMinutes(onboarding);
   const featuredQuote =
@@ -310,21 +300,16 @@ export function Dashboard() {
     tourStep != null ? TOUR_STEPS[tourStep]?.id ?? null : null;
 
   return (
-    <div className="min-h-screen bg-[#f3ebe0] text-ink">
+    <div className="min-h-screen bg-[#2a2438] text-ink">
       <AppNav />
 
       <main className="relative mx-auto grid w-full max-w-[1600px] gap-4 px-3 py-3 sm:px-5 sm:py-4 lg:grid-cols-[minmax(0,1.85fr)_minmax(300px,0.72fr)] lg:gap-5 lg:px-5 lg:py-3 xl:grid-cols-[minmax(0,1.95fr)_minmax(320px,0.68fr)]">
         <div className="relative min-h-0">
           <ReadingRoom
-            pet={pet}
-            petName={petName}
-            avatarSrc={avatarSrc}
-            displayName={displayName}
             vibe={vibe}
             spots={hotspots}
             greeting={greeting.line}
             highlightedId={tourHighlight}
-            petBubble={petBubble}
             onHotspot={onHotspot}
           />
           {tourStep != null ? (
@@ -384,6 +369,8 @@ export function Dashboard() {
         quotes={quotes}
         onClose={() => setOverlay(null)}
         onWrite={() => setOverlay("write-quote")}
+        onUpdate={(id, payload) => setQuotes(updateQuote(id, payload))}
+        onDelete={(id) => setQuotes(deleteQuote(id))}
       />
       <WriteQuotePanel
         open={overlay === "write-quote"}
@@ -407,6 +394,8 @@ export function Dashboard() {
         entries={journal}
         onClose={() => setOverlay(null)}
         onWrite={() => setOverlay("write-journal")}
+        onUpdate={(id, payload) => setJournal(updateJournalEntry(id, payload))}
+        onDelete={(id) => setJournal(deleteJournalEntry(id))}
       />
       <WriteJournalPanel
         open={overlay === "write-journal"}

@@ -14,7 +14,7 @@ export function MoveInStep({ state, onChange }: Props) {
 
   return (
     <div>
-      <h1 className="font-serif text-[2.15rem] leading-tight font-semibold tracking-[-0.025em] text-forest sm:text-[2.55rem]">
+      <h1 className="font-serif text-[2.15rem] leading-tight font-semibold tracking-[-0.025em] text-ink sm:text-[2.55rem]">
         Your reading home is almost ready{" "}
         <span className="text-gold" aria-hidden>
           ✦
@@ -28,7 +28,7 @@ export function MoveInStep({ state, onChange }: Props) {
       <section className="mt-8">
         <label
           htmlFor="display-name"
-          className="font-serif text-xl font-semibold text-forest"
+          className="font-serif text-xl font-semibold text-ink"
         >
           Your name
         </label>
@@ -38,13 +38,13 @@ export function MoveInStep({ state, onChange }: Props) {
           value={state.displayName}
           onChange={(e) => onChange({ displayName: e.target.value })}
           placeholder="Write your name…"
-          className="mt-3 w-full rounded-full border-2 border-line/60 bg-paper px-5 py-3.5 text-base text-forest outline-none placeholder:text-muted-soft focus:border-forest/45"
+          className="mt-3 w-full rounded-full border-2 border-line/60 bg-paper px-5 py-3.5 text-base text-ink outline-none placeholder:text-muted-soft focus:border-forest/45"
         />
       </section>
 
       {/* Avatar */}
       <section className="mt-10">
-        <h2 className="font-serif text-xl font-semibold text-forest">
+        <h2 className="font-serif text-xl font-semibold text-ink">
           Select your avatar
         </h2>
         <p className="mt-1 text-sm text-muted">
@@ -61,7 +61,7 @@ export function MoveInStep({ state, onChange }: Props) {
                 onClick={() => onChange({ avatar: avatar.id })}
                 className={`relative flex flex-col items-center rounded-[1.35rem] border-2 bg-paper/80 px-3 pb-4 pt-5 transition ${
                   selected
-                    ? "border-forest shadow-[0_0_0_1px_rgba(47,74,54,0.2)]"
+                    ? "border-forest shadow-[0_0_0_1px_rgba(176,143,206,0.2)]"
                     : "border-line/50 hover:border-forest/35"
                 }`}
               >
@@ -79,7 +79,7 @@ export function MoveInStep({ state, onChange }: Props) {
                     sizes="240px"
                   />
                 </div>
-                <p className="mt-3 text-center font-serif text-base font-semibold text-forest">
+                <p className="mt-3 text-center font-serif text-base font-semibold text-ink">
                   {avatar.label}
                 </p>
               </button>
@@ -100,7 +100,7 @@ export function MoveInStep({ state, onChange }: Props) {
             ✏️
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block font-serif text-lg font-semibold text-forest">
+            <span className="block font-serif text-lg font-semibold text-ink">
               Customize your own avatar
             </span>
             <span className="text-sm text-muted">
@@ -119,7 +119,7 @@ export function MoveInStep({ state, onChange }: Props) {
 
       {/* Shelf pet */}
       <section className="mt-10">
-        <h2 className="font-serif text-xl font-semibold text-forest">
+        <h2 className="font-serif text-xl font-semibold text-ink">
           Select a shelf pet
         </h2>
         <p className="mt-1 text-sm text-muted">
@@ -141,7 +141,7 @@ export function MoveInStep({ state, onChange }: Props) {
                 }
                 className={`relative flex flex-col items-center rounded-[1.25rem] border-2 bg-paper/80 px-2 pb-3 pt-4 transition ${
                   selected
-                    ? "border-forest shadow-[0_0_0_1px_rgba(47,74,54,0.2)]"
+                    ? "border-forest shadow-[0_0_0_1px_rgba(176,143,206,0.2)]"
                     : "border-line/50 hover:border-forest/35"
                 }`}
               >
@@ -150,7 +150,7 @@ export function MoveInStep({ state, onChange }: Props) {
                     ✓
                   </span>
                 ) : null}
-                <div className="relative h-36 w-full overflow-hidden rounded-2xl bg-[#f0e4d0] p-2 sm:h-40 sm:p-2.5">
+                <div className="relative h-36 w-full overflow-hidden rounded-2xl bg-[#342c45] p-2 sm:h-40 sm:p-2.5">
                   <div className="relative h-full w-full">
                     <Image
                       src={pet.image}
@@ -161,7 +161,7 @@ export function MoveInStep({ state, onChange }: Props) {
                     />
                   </div>
                 </div>
-                <p className="mt-2 text-center font-serif text-sm font-semibold text-forest">
+                <p className="mt-2 text-center font-serif text-sm font-semibold text-ink">
                   {pet.label}
                 </p>
                 <p className="mt-0.5 line-clamp-2 px-1 text-center text-[0.7rem] text-muted">
@@ -174,7 +174,7 @@ export function MoveInStep({ state, onChange }: Props) {
 
         <label
           htmlFor="pet-name"
-          className="mt-5 block font-serif text-lg font-semibold text-forest"
+          className="mt-5 block font-serif text-lg font-semibold text-ink"
         >
           Name your pet
         </label>
@@ -189,7 +189,7 @@ export function MoveInStep({ state, onChange }: Props) {
           onChange={(e) => onChange({ petName: e.target.value })}
           placeholder={selectedPet ? `e.g. ${selectedPet.label}` : "Pet name…"}
           disabled={!state.pet}
-          className="mt-3 w-full rounded-full border-2 border-line/60 bg-paper px-5 py-3.5 text-base text-forest outline-none placeholder:text-muted-soft focus:border-forest/45 disabled:cursor-not-allowed disabled:opacity-50"
+          className="mt-3 w-full rounded-full border-2 border-line/60 bg-paper px-5 py-3.5 text-base text-ink outline-none placeholder:text-muted-soft focus:border-forest/45 disabled:cursor-not-allowed disabled:opacity-50"
         />
       </section>
     </div>

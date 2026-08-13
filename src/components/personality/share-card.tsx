@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { getPersonality } from "./personalities";
+import { getPersonality, formatPersonalityCode } from "./personalities";
 import { scoreAnswers } from "./score";
 import type { PersonalityAssessment } from "./types";
 
@@ -35,10 +35,10 @@ export function PersonalityShareCard({ assessment, open, onClose }: Props) {
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md overflow-hidden rounded-[1.75rem] border border-[#e4d5c3] bg-[#fbf6ee] shadow-[0_24px_60px_rgba(40,30,20,0.28)]"
+        className="w-full max-w-md overflow-hidden rounded-[1.75rem] border border-[#4a425c] bg-[#3a324f] shadow-[0_24px_60px_rgba(42,36,56,0.28)]"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="bg-gradient-to-br from-[#2f4a36] via-[#3d5a45] to-[#243a2b] px-6 py-8 text-center text-paper">
+        <div className="bg-gradient-to-br from-[#5b4e8c] via-[#c9b0e0] to-[#9a78c0] px-6 py-8 text-center text-paper">
           <p className="text-4xl" aria-hidden>
             {p.emoji}
           </p>
@@ -46,14 +46,16 @@ export function PersonalityShareCard({ assessment, open, onClose }: Props) {
             I&apos;m a
           </p>
           <h2 className="mt-1 font-serif text-3xl font-semibold">
-            {p.name.replace(/^The /, "")}
+            {p.name.replace(/^The /, "")}{" "}
+            <span className="font-sans text-base font-semibold tracking-wide opacity-80">
+              {formatPersonalityCode(p.code)}
+            </span>
           </h2>
-          <p className="mt-2 text-sm tracking-[0.2em] opacity-90">{p.code}</p>
           <div className="mt-5 grid grid-cols-2 gap-2 text-left text-xs">
             {scored.dimensions.map((d) => (
               <div
                 key={d.dimension}
-                className="rounded-xl bg-white/10 px-3 py-2 backdrop-blur-sm"
+                className="rounded-xl bg-paper/10 px-3 py-2 backdrop-blur-sm"
               >
                 <p className="font-semibold">
                   {d.firstPolePercentage}% {d.winnerLabel || "—"}
@@ -74,7 +76,7 @@ export function PersonalityShareCard({ assessment, open, onClose }: Props) {
             className="flex-1 rounded-full bg-forest px-4 py-2.5 text-sm font-semibold text-paper"
             onClick={() => {
               void navigator.clipboard?.writeText(
-                `I'm ${p.emoji} ${p.name} (${p.code}) on ReadLife — "${p.motto}"`,
+                `I'm ${p.emoji} ${p.name} (${formatPersonalityCode(p.code)}) on ReadLife — "${p.motto}"`,
               );
               onClose();
             }}
@@ -83,7 +85,7 @@ export function PersonalityShareCard({ assessment, open, onClose }: Props) {
           </button>
           <button
             type="button"
-            className="rounded-full bg-[#efe4d4] px-4 py-2.5 text-sm font-semibold text-forest"
+            className="rounded-full bg-[#3f3654] px-4 py-2.5 text-sm font-semibold text-ink"
             onClick={onClose}
           >
             Close

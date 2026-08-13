@@ -113,9 +113,13 @@ export type BadgeDef = {
   id: string;
   name: string;
   description: string;
+  /** Square art under /public/insights/badges/{id}.png */
+  image: string;
   earned: boolean;
   earnedDate?: string;
   progress?: { current: number; target: number };
+  /** Accent hex for badge chrome (readable on Ink & Amethyst) */
+  accent: string;
 };
 
 export type WrappedSlide = {

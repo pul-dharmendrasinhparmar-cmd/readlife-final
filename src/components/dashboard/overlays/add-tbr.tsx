@@ -42,10 +42,10 @@ export function AddTbrPanel({ open, discovery, onClose, onAdd }: Props) {
         </p>
       ) : (
         <>
-          <label className="block text-sm text-forest">
+          <label className="block text-sm text-ink">
             Book
             <select
-              className="mt-1 w-full rounded-2xl border border-[#e0d1bf] bg-white px-3 py-2.5"
+              className="mt-1 w-full rounded-2xl border border-[#564d6a] bg-paper px-3 py-2.5"
               value={bookId}
               onChange={(e) => setBookId(e.target.value)}
             >
@@ -56,10 +56,10 @@ export function AddTbrPanel({ open, discovery, onClose, onAdd }: Props) {
               ))}
             </select>
           </label>
-          <label className="mt-3 block text-sm text-forest">
+          <label className="mt-3 block text-sm text-ink">
             Priority
             <select
-              className="mt-1 w-full rounded-2xl border border-[#e0d1bf] bg-white px-3 py-2.5"
+              className="mt-1 w-full rounded-2xl border border-[#564d6a] bg-paper px-3 py-2.5"
               value={priority}
               onChange={(e) => setPriority(e.target.value as TbrPriority)}
             >
@@ -69,10 +69,10 @@ export function AddTbrPanel({ open, discovery, onClose, onAdd }: Props) {
               <option value="someday">Someday</option>
             </select>
           </label>
-          <label className="mt-3 block text-sm text-forest">
+          <label className="mt-3 block text-sm text-ink">
             Note
             <input
-              className="mt-1 w-full rounded-2xl border border-[#e0d1bf] bg-white px-3 py-2.5"
+              className="mt-1 w-full rounded-2xl border border-[#564d6a] bg-paper px-3 py-2.5"
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder="Why this one?"

@@ -20,7 +20,7 @@ const STEPS: {
   {
     id: "window",
     title: "The window",
-    body: "Change the vibe — morning light, evening glow, or soft rain.",
+    body: "Change the vibe — day, night, rain, or snow outside your window.",
   },
   {
     id: "tbr",
@@ -42,11 +42,11 @@ export function WelcomeTour({ step, onNext, onSkip }: Props) {
 
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-4 z-40 flex justify-center px-4 sm:bottom-6">
-      <div className="pointer-events-auto w-full max-w-md rounded-[1.5rem] border border-[#e4d5c3] bg-[#fbf6ee]/97 p-4 shadow-[0_16px_40px_rgba(40,30,20,0.25)] backdrop-blur-sm">
-        <p className="text-[0.68rem] font-semibold tracking-[0.14em] text-forest/65 uppercase">
+      <div className="pointer-events-auto w-full max-w-md rounded-[1.5rem] border border-[#4a425c] bg-[#3a324f]/97 p-4 shadow-[0_16px_40px_rgba(42,36,56,0.25)] backdrop-blur-sm">
+        <p className="text-[0.68rem] font-semibold tracking-[0.14em] text-ink/65 uppercase">
           Welcome home · {step + 1}/{STEPS.length}
         </p>
-        <h3 className="mt-1 font-serif text-xl font-semibold text-forest">
+        <h3 className="mt-1 font-serif text-xl font-semibold text-ink">
           {current.title}
         </h3>
         <p className="mt-1 text-sm text-muted">{current.body}</p>
@@ -54,7 +54,7 @@ export function WelcomeTour({ step, onNext, onSkip }: Props) {
           <button
             type="button"
             onClick={onSkip}
-            className="text-sm font-semibold text-muted hover:text-forest"
+            className="text-sm font-semibold text-muted hover:text-ink"
           >
             Skip tour
           </button>

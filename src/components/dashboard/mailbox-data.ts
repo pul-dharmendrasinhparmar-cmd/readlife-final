@@ -2,7 +2,7 @@
 
 export type MailItem = {
   id: string;
-  kind: "buddy" | "badge" | "list" | "wrapped" | "party";
+  kind: "buddy" | "badge" | "list" | "wrapped" | "party" | "game" | "book" | "update";
   title: string;
   body: string;
   at: string;
@@ -14,6 +14,24 @@ const KEY = "readlife-mailbox-v1";
 
 const SEED: MailItem[] = [
   {
+    id: "m-game-1",
+    kind: "game",
+    title: "Daily Bookle is ready",
+    body: "A fresh puzzle is waiting. Keep your game streak going.",
+    at: "2026-08-12T08:00:00.000Z",
+    unread: true,
+    href: "/games",
+  },
+  {
+    id: "m-game-2",
+    kind: "game",
+    title: "Mina climbed the Bookworm board",
+    body: "She's at 4,820 — three spots above you this week.",
+    at: "2026-08-12T07:15:00.000Z",
+    unread: true,
+    href: "/games",
+  },
+  {
     id: "m-buddy-1",
     kind: "buddy",
     title: "Mina is catching up",
@@ -23,6 +41,15 @@ const SEED: MailItem[] = [
     href: "/profile",
   },
   {
+    id: "m-book-1",
+    kind: "book",
+    title: "From your shelf",
+    body: "Piranesi is trending with readers who loved The Night Circus.",
+    at: "2026-08-11T16:40:00.000Z",
+    unread: true,
+    href: "/search",
+  },
+  {
     id: "m-badge-1",
     kind: "badge",
     title: "Night Owl unlocked",
@@ -30,6 +57,15 @@ const SEED: MailItem[] = [
     at: "2026-08-10T22:05:00.000Z",
     unread: true,
     href: "/profile",
+  },
+  {
+    id: "m-update-1",
+    kind: "update",
+    title: "Games hub is open",
+    body: "Bookle and Bookworm now live on their own page — streaks, boards, and badges included.",
+    at: "2026-08-10T12:00:00.000Z",
+    unread: false,
+    href: "/games",
   },
   {
     id: "m-list-1",
@@ -59,18 +95,37 @@ const SEED: MailItem[] = [
   },
 ];
 
+function sortMail(items: MailItem[]) {
+  return [...items].sort(
+    (a, b) => new Date(b.at).getTime() - new Date(a.at).getTime(),
+  );
+}
+
+/** Merge any new seed messages the user doesn't have yet. */
+function mergeSeed(existing: MailItem[]): MailItem[] {
+  const ids = new Set(existing.map((m) => m.id));
+  const missing = SEED.filter((m) => !ids.has(m.id));
+  if (!missing.length) return sortMail(existing);
+  return sortMail([...missing, ...existing]);
+}
+
 export function loadMailbox(): MailItem[] {
-  if (typeof window === "undefined") return SEED;
+  if (typeof window === "undefined") return sortMail([...SEED]);
   try {
     const raw = localStorage.getItem(KEY);
     if (!raw) {
-      localStorage.setItem(KEY, JSON.stringify(SEED));
-      return [...SEED];
+      const seeded = sortMail([...SEED]);
+      localStorage.setItem(KEY, JSON.stringify(seeded));
+      return seeded;
     }
     const parsed = JSON.parse(raw) as MailItem[];
-    return Array.isArray(parsed) && parsed.length ? parsed : [...SEED];
+    const base =
+      Array.isArray(parsed) && parsed.length ? parsed : [...SEED];
+    const merged = mergeSeed(base);
+    localStorage.setItem(KEY, JSON.stringify(merged));
+    return merged;
   } catch {
-    return [...SEED];
+    return sortMail([...SEED]);
   }
 }
 

@@ -24,6 +24,11 @@ export type LevelConfig = {
   stars: StarDefinition[];
   /** Static obstacle cells (bookshelf sections) */
   obstacles: Point[];
+  /**
+   * When true, leaving an edge wraps to the opposite side (classic Snake).
+   * When false, walls kill.
+   */
+  wrapEdges: boolean;
   /** Starting snake body, head first */
   startSnake: Point[];
   startDir: "up" | "down" | "left" | "right";

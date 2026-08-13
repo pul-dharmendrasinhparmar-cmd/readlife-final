@@ -29,7 +29,7 @@ export function TasteStep({ state, onChange }: Props) {
 
   return (
     <div>
-      <h1 className="font-serif text-[2.15rem] leading-tight font-semibold tracking-[-0.025em] text-forest sm:text-[2.55rem]">
+      <h1 className="font-serif text-[2.15rem] leading-tight font-semibold tracking-[-0.025em] text-ink sm:text-[2.55rem]">
         What do you love to read?
       </h1>
       <p className="mt-2.5 text-lg text-muted">
@@ -46,8 +46,8 @@ export function TasteStep({ state, onChange }: Props) {
               onClick={() => toggleGenre(genre.id)}
               className={`relative flex aspect-square flex-col items-center justify-center gap-2.5 rounded-[1.35rem] border-2 px-2 text-center transition ${
                 selected
-                  ? "border-forest bg-cream-card shadow-[0_8px_20px_rgba(47,74,54,0.12)]"
-                  : "border-line/50 bg-[#faf4ea] hover:border-forest/35 hover:bg-cream-card"
+                  ? "border-forest bg-cream-card shadow-[0_8px_20px_rgba(176,143,206,0.12)]"
+                  : "border-line/50 bg-[#342c45] hover:border-forest/35 hover:bg-cream-card"
               }`}
             >
               {selected ? (
@@ -58,7 +58,7 @@ export function TasteStep({ state, onChange }: Props) {
               <span className="text-[2rem] sm:text-[2.35rem]" aria-hidden>
                 {genre.emoji}
               </span>
-              <span className="text-[0.9rem] leading-tight font-semibold text-forest sm:text-[0.95rem]">
+              <span className="text-[0.9rem] leading-tight font-semibold text-ink sm:text-[0.95rem]">
                 {genre.label}
               </span>
             </button>
@@ -66,7 +66,7 @@ export function TasteStep({ state, onChange }: Props) {
         })}
       </div>
 
-      <h2 className="mt-10 font-serif text-[1.45rem] font-semibold text-forest">
+      <h2 className="mt-10 font-serif text-[1.45rem] font-semibold text-ink">
         How do you usually read?
       </h2>
       <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -80,13 +80,13 @@ export function TasteStep({ state, onChange }: Props) {
               className={`flex min-h-[7.5rem] flex-col items-center justify-center gap-2.5 rounded-[1.35rem] border-2 px-3 py-5 transition ${
                 selected
                   ? "border-forest bg-cream-card"
-                  : "border-line/50 bg-[#faf4ea] hover:border-forest/35"
+                  : "border-line/50 bg-[#342c45] hover:border-forest/35"
               }`}
             >
               <span className="text-[2.1rem]" aria-hidden>
                 {format.emoji}
               </span>
-              <span className="text-center text-[0.95rem] font-semibold text-forest">
+              <span className="text-center text-[0.95rem] font-semibold text-ink">
                 {format.label}
               </span>
             </button>

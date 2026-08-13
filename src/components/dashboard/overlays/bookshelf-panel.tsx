@@ -31,7 +31,7 @@ export function BookshelfPanel({ open, spines, onClose, onOpenBook }: Props) {
               <button
                 type="button"
                 onClick={() => onOpenBook?.(s.bookId)}
-                className="flex w-full items-center gap-3 rounded-2xl border border-[#e8dccb] bg-[#f7f0e6] px-3 py-2.5 text-left transition hover:border-forest/30"
+                className="flex w-full items-center gap-3 rounded-2xl border border-[#564d6a] bg-[#342c45] px-3 py-2.5 text-left transition hover:border-forest/30"
               >
                 <span
                   className="relative h-14 w-10 shrink-0 overflow-hidden rounded-md shadow"
@@ -46,7 +46,7 @@ export function BookshelfPanel({ open, spines, onClose, onOpenBook }: Props) {
                   />
                 </span>
                 <span className="min-w-0">
-                  <span className="block truncate font-semibold text-forest">
+                  <span className="block truncate font-semibold text-ink">
                     {s.title}
                   </span>
                   <span className="block truncate text-sm text-muted">

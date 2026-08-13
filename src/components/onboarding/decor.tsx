@@ -10,14 +10,14 @@ export function VineAccent({ className = "" }: { className?: string }) {
     >
       <path
         d="M58 312c2-48 14-86 34-118"
-        stroke="#3d5a45"
+        stroke="#c9b0e0"
         strokeWidth="2.2"
         strokeLinecap="round"
         opacity="0.55"
       />
       <path
         d="M58 312c-8-52-28-92-48-124"
-        stroke="#2f4a36"
+        stroke="#5b4e8c"
         strokeWidth="2"
         strokeLinecap="round"
         opacity="0.45"
@@ -41,7 +41,7 @@ export function VineAccent({ className = "" }: { className?: string }) {
           rx={rx}
           ry={rx * 0.55}
           transform={`rotate(${rot} ${cx} ${cy})`}
-          fill={i % 2 ? "#3d5a45" : "#2f4a36"}
+          fill={i % 2 ? "#c9b0e0" : "#5b4e8c"}
           opacity={0.35 + (i % 3) * 0.08}
         />
       ))}
@@ -53,20 +53,20 @@ export function BooksStackAccent({ className = "" }: { className?: string }) {
   return (
     <svg viewBox="0 0 160 110" className={className} aria-hidden>
       <rect x="18" y="62" width="120" height="18" rx="2" fill="#5c3d2e" opacity="0.85" />
-      <rect x="14" y="44" width="128" height="18" rx="2" fill="#2f4a36" opacity="0.88" />
+      <rect x="14" y="44" width="128" height="18" rx="2" fill="#5b4e8c" opacity="0.88" />
       <rect x="22" y="26" width="112" height="18" rx="2" fill="#7a4a3a" opacity="0.85" />
-      <rect x="20" y="28" width="3" height="14" fill="#c9a15b" opacity="0.5" />
-      <rect x="16" y="46" width="3" height="14" fill="#c9a15b" opacity="0.45" />
-      <rect x="20" y="64" width="3" height="14" fill="#c9a15b" opacity="0.4" />
+      <rect x="20" y="28" width="3" height="14" fill="#b08fce" opacity="0.5" />
+      <rect x="16" y="46" width="3" height="14" fill="#b08fce" opacity="0.45" />
+      <rect x="20" y="64" width="3" height="14" fill="#b08fce" opacity="0.4" />
       {/* tiny plant */}
       <path
         d="M78 26c0-14 8-22 16-24-2 10-6 16-16 24Z"
-        fill="#3d5a45"
+        fill="#c9b0e0"
         opacity="0.7"
       />
       <path
         d="M78 26c0-12-8-20-16-22 2 10 6 14 16 22Z"
-        fill="#2f4a36"
+        fill="#5b4e8c"
         opacity="0.65"
       />
     </svg>
@@ -79,10 +79,10 @@ export function LampAccent({ className = "" }: { className?: string }) {
       <path d="M50 8v28" stroke="#5c4a32" strokeWidth="2.5" strokeLinecap="round" />
       <path
         d="M28 40c4-14 14-22 22-22s18 8 22 22H28Z"
-        fill="#2f4a36"
+        fill="#5b4e8c"
         opacity="0.85"
       />
-      <ellipse cx="50" cy="40" rx="24" ry="5" fill="#c9a15b" opacity="0.35" />
+      <ellipse cx="50" cy="40" rx="24" ry="5" fill="#b08fce" opacity="0.35" />
       <path
         d="M36 40c2 18 6 36 8 52"
         stroke="#5c4a32"

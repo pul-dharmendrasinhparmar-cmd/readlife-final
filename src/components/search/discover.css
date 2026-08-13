@@ -1,0 +1,10 @@
+.discover-card {
+  --ink: #2a2438;
+  --color-ink: #2a2438;
+  --muted: #5c5f6a;
+  --color-muted: #5c5f6a;
+  --muted-soft: #6b6e78;
+  --color-muted-soft: #6b6e78;
+  background: #f3f4f8;
+  border: 1px solid #e2e4ea;
+}

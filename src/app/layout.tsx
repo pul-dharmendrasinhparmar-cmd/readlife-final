@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
-import { Fraunces, Source_Sans_3 } from "next/font/google";
+import { Bebas_Neue, Source_Sans_3 } from "next/font/google";
 import "./globals.css";
 
-const fraunces = Fraunces({
-  variable: "--font-fraunces",
+const bebasNeue = Bebas_Neue({
+  weight: "400",
   subsets: ["latin"],
+  variable: "--font-bebas",
+  display: "swap",
 });
 
 const sourceSans = Source_Sans_3({
@@ -24,7 +26,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${fraunces.variable} ${sourceSans.variable} h-full`}>
+    <html
+      lang="en"
+      className={`${bebasNeue.variable} ${sourceSans.variable} h-full`}
+    >
       <body className="min-h-full antialiased">{children}</body>
     </html>
   );

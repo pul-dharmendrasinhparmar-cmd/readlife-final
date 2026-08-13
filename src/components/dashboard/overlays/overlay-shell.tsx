@@ -46,7 +46,7 @@ export function OverlayShell({
       onClick={onClose}
     >
       <div
-        className={`flex max-h-[min(92vh,880px)] w-full flex-col overflow-hidden rounded-[1.75rem] border border-[#e4d5c3] bg-[#fbf6ee] shadow-[0_24px_60px_rgba(40,30,20,0.28)] ${
+        className={`flex max-h-[min(92vh,880px)] w-full flex-col overflow-hidden rounded-[1.75rem] border border-[#4a425c] bg-[#3a324f] shadow-[0_24px_60px_rgba(42,36,56,0.28)] ${
           side === "right"
             ? "my-0 max-w-md sm:my-2"
             : wide
@@ -55,9 +55,9 @@ export function OverlayShell({
         }`}
         onClick={(e) => e.stopPropagation()}
       >
-        <header className="flex items-start justify-between gap-3 border-b border-[#e8dccb] px-5 py-4">
+        <header className="flex items-start justify-between gap-3 border-b border-[#564d6a] px-5 py-4">
           <div className="min-w-0">
-            <h2 className="font-serif text-2xl font-semibold text-forest">
+            <h2 className="font-serif text-2xl font-semibold text-ink">
               {title}
             </h2>
             {subtitle ? (
@@ -67,7 +67,7 @@ export function OverlayShell({
           <button
             type="button"
             onClick={onClose}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-forest transition hover:bg-[#efe4d4]"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-ink transition hover:bg-[#3f3654]"
             aria-label="Close"
           >
             <CloseIcon className="h-4 w-4" />

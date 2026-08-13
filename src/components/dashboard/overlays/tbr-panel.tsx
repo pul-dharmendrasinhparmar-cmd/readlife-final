@@ -28,7 +28,7 @@ export function TbrPanel({ open, items, onClose }: Props) {
           {items.map(({ entry, book }) => (
             <li
               key={entry.bookId}
-              className="flex items-center gap-3 rounded-2xl border border-[#e8dccb] bg-[#f7f0e6] px-3 py-2.5"
+              className="flex items-center gap-3 rounded-2xl border border-[#564d6a] bg-[#342c45] px-3 py-2.5"
             >
               <span
                 className="relative h-14 w-10 shrink-0 overflow-hidden rounded-md shadow"
@@ -43,7 +43,7 @@ export function TbrPanel({ open, items, onClose }: Props) {
                 />
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block truncate font-semibold text-forest">
+                <span className="block truncate font-semibold text-ink">
                   {book.title}
                 </span>
                 <span className="block truncate text-sm text-muted">

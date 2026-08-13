@@ -1,13 +1,13 @@
 /* BOOKWORM Level 1 — Cozy Shelf (scoped) */
 .bw-root {
-  --bw-board: #f3ebe0;
-  --bw-paper: #fbf6ee;
-  --bw-grid: rgba(47, 74, 54, 0.09);
+  --bw-board: #2a2438;
+  --bw-paper: #3a324f;
+  --bw-grid: rgba(176, 143, 206, 0.09);
   --bw-warn: #c45a3a;
-  --bw-border: #e0d1bf;
+  --bw-border: #564d6a;
   --bw-wood: #8b6a4a;
   --bw-worm: #5a8f68;
-  --bw-worm-deep: #2f4a36;
+  --bw-worm-deep: #5b4e8c;
 
   position: relative;
   display: flex;
@@ -20,9 +20,9 @@
   font-family: var(--font-source-sans), system-ui, sans-serif;
   color: var(--ink);
   background:
-    radial-gradient(ellipse 120% 80% at 8% 0%, rgba(201, 161, 91, 0.14), transparent 55%),
-    radial-gradient(ellipse 90% 70% at 96% 12%, rgba(47, 74, 54, 0.09), transparent 50%),
-    linear-gradient(180deg, #fbf6ee 0%, #f3ebe0 55%, #efe4d4 100%);
+    radial-gradient(ellipse 120% 80% at 8% 0%, rgba(176, 143, 206, 0.14), transparent 55%),
+    radial-gradient(ellipse 90% 70% at 96% 12%, rgba(176, 143, 206, 0.09), transparent 50%),
+    linear-gradient(180deg, #3a324f 0%, #2a2438 55%, #3f3654 100%);
   user-select: none;
 }
 
@@ -54,8 +54,8 @@
   width: 18px;
   height: 36px;
   border-radius: 8px 8px 3px 3px;
-  background: linear-gradient(180deg, #f6e7c2, #c9a15b 70%, #8b6a4a);
-  box-shadow: 0 0 24px rgba(201, 161, 91, 0.35);
+  background: linear-gradient(180deg, #f6e7c2, #b08fce 70%, #8b6a4a);
+  box-shadow: 0 0 24px rgba(176, 143, 206, 0.35);
 }
 
 .bw-plant {
@@ -64,7 +64,7 @@
   width: 22px;
   height: 28px;
   border-radius: 50% 50% 40% 40%;
-  background: radial-gradient(circle at 40% 40%, #6f9a78, #2f4a36);
+  background: radial-gradient(circle at 40% 40%, #6f9a78, #5b4e8c);
 }
 
 .bw-chair {
@@ -140,7 +140,7 @@
   gap: 0.4rem;
   align-items: center;
   padding: 0.55rem 0.65rem;
-  background: color-mix(in srgb, var(--cream-deep, #f3ebe0) 88%, white);
+  background: color-mix(in srgb, var(--cream-deep, #241e30) 88%, #3a324f);
   border: 1px solid var(--line, var(--bw-border));
   border-radius: 1rem;
 }
@@ -152,9 +152,9 @@
 }
 
 .bw-hud-brand strong {
-  font-family: var(--font-fraunces), Georgia, serif;
+  font-family: var(--font-bebas), "Bebas Neue", Impact, sans-serif;
   font-size: 0.95rem;
-  color: var(--forest, #2f4a36);
+  color: var(--forest, #b08fce);
   letter-spacing: -0.01em;
 }
 
@@ -162,7 +162,7 @@
   font-size: 0.62rem;
   font-weight: 600;
   letter-spacing: 0.04em;
-  color: color-mix(in srgb, var(--forest, #2f4a36) 65%, transparent);
+  color: color-mix(in srgb, var(--forest, #b08fce) 65%, transparent);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -188,27 +188,27 @@
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--muted, #7a6e60);
+  color: var(--muted, #a89db8);
 }
 
 .bw-hud-value {
-  font-family: var(--font-fraunces), Georgia, serif;
+  font-family: var(--font-bebas), "Bebas Neue", Impact, sans-serif;
   font-size: 1.1rem;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
-  color: var(--forest, #2f4a36);
+  color: var(--forest, #b08fce);
 }
 
 .bw-combo-badge {
   display: inline-block;
   padding: 0.2rem 0.45rem;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--gold, #c9a15b) 28%, #fbf6ee);
-  border: 1px solid color-mix(in srgb, var(--gold, #c9a15b) 55%, #e0d1bf);
+  background: color-mix(in srgb, var(--gold, #d4c4e8) 28%, #3a324f);
+  border: 1px solid color-mix(in srgb, var(--gold, #d4c4e8) 55%, #564d6a);
   font-size: 0.65rem;
   font-weight: 700;
   letter-spacing: 0.06em;
-  color: var(--forest, #2f4a36);
+  color: var(--forest, #b08fce);
   animation: bw-pop-in 0.28s ease;
 }
 
@@ -247,7 +247,7 @@
   border-radius: 1.2rem;
   box-shadow:
     inset 0 1px 0 rgba(255, 250, 244, 0.85),
-    0 10px 28px rgba(40, 30, 20, 0.1);
+    0 10px 28px rgba(42, 36, 56, 0.1);
 }
 
 .bw-board {
@@ -329,7 +329,7 @@
     #5c4030;
   box-shadow:
     inset 0 1px 0 rgba(255, 240, 220, 0.2),
-    0 1px 2px rgba(40, 30, 20, 0.2);
+    0 1px 2px rgba(42, 36, 56, 0.2);
 }
 
 .bw-shelf::after {
@@ -339,7 +339,7 @@
   right: 6%;
   top: 42%;
   height: 2px;
-  background: rgba(201, 161, 91, 0.35);
+  background: rgba(176, 143, 206, 0.35);
 }
 
 /* Cute bookworm */
@@ -364,7 +364,7 @@
   inset: 0;
   border-radius: 42% 42% 38% 38%;
   background: linear-gradient(160deg, #7faf88, var(--bw-worm) 45%, var(--bw-worm-deep));
-  box-shadow: 0 2px 5px rgba(47, 74, 54, 0.28);
+  box-shadow: 0 2px 5px rgba(176, 143, 206, 0.28);
   animation: bw-bob 0.9s ease-in-out infinite;
 }
 
@@ -426,16 +426,16 @@
 .bw-lens {
   width: 34%;
   aspect-ratio: 1;
-  border: 1.5px solid rgba(40, 30, 20, 0.55);
+  border: 1.5px solid rgba(42, 36, 56, 0.55);
   border-radius: 50%;
   background: rgba(255, 250, 244, 0.18);
-  box-shadow: inset 0 0 0 0.5px rgba(201, 161, 91, 0.4);
+  box-shadow: inset 0 0 0 0.5px rgba(176, 143, 206, 0.4);
 }
 
 .bw-bridge {
   width: 10%;
   height: 1.5px;
-  background: rgba(40, 30, 20, 0.5);
+  background: rgba(42, 36, 56, 0.5);
 }
 
 .bw-eyes {
@@ -474,7 +474,7 @@
   background:
     radial-gradient(circle at 30% 30%, rgba(255, 250, 244, 0.18), transparent 45%),
     linear-gradient(145deg, #6d9a76, var(--bw-worm) 50%, var(--bw-worm-deep));
-  box-shadow: 0 1px 2px rgba(40, 30, 20, 0.12);
+  box-shadow: 0 1px 2px rgba(42, 36, 56, 0.12);
   z-index: 1;
 }
 
@@ -494,7 +494,7 @@
   display: block;
   transform: rotate(-6deg);
   animation: bw-book-spawn 0.28s ease both, bw-book-idle 1.4s ease-in-out 0.28s infinite;
-  filter: drop-shadow(0 2px 3px rgba(40, 30, 20, 0.2));
+  filter: drop-shadow(0 2px 3px rgba(42, 36, 56, 0.2));
   z-index: 2;
 }
 
@@ -547,7 +547,7 @@
     );
   box-shadow:
     inset 0 0 0 1px rgba(255, 250, 244, 0.12),
-    inset -2px 0 0 rgba(40, 30, 20, 0.18);
+    inset -2px 0 0 rgba(42, 36, 56, 0.18);
 }
 
 .bw-book-spine {
@@ -576,7 +576,7 @@
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(201, 161, 91, 0.8),
+    rgba(176, 143, 206, 0.8),
     transparent
   );
 }
@@ -591,10 +591,10 @@
   border-radius: 0 2px 2px 0;
   background: repeating-linear-gradient(
     180deg,
-    #fffaf4 0px,
-    #fffaf4 1px,
-    #f0e4d0 1px,
-    #f0e4d0 2px
+    #3a324f 0px,
+    #3a324f 1px,
+    #342c45 1px,
+    #342c45 2px
   );
 }
 
@@ -603,10 +603,10 @@
   inset: 0;
   display: grid;
   place-items: center;
-  font-family: var(--font-fraunces), Georgia, serif;
+  font-family: var(--font-bebas), "Bebas Neue", Impact, sans-serif;
   font-size: clamp(0.55rem, 2.2vw, 0.75rem);
   font-weight: 700;
-  color: var(--forest, #2f4a36);
+  color: var(--forest, #b08fce);
   animation: bw-float-pop 0.42s ease forwards;
   z-index: 4;
   pointer-events: none;
@@ -658,25 +658,25 @@
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: color-mix(in srgb, var(--forest, #2f4a36) 70%, transparent);
+  color: color-mix(in srgb, var(--forest, #b08fce) 70%, transparent);
 }
 
 .bw-panel-title {
   margin: 0;
   display: grid;
   gap: 0.15rem;
-  font-family: var(--font-fraunces), Georgia, serif;
+  font-family: var(--font-bebas), "Bebas Neue", Impact, sans-serif;
   font-size: clamp(1.35rem, 4vw, 1.7rem);
   font-weight: 600;
   letter-spacing: -0.02em;
-  color: var(--forest, #2f4a36);
+  color: var(--forest, #b08fce);
   line-height: 1.05;
 }
 
 .bw-panel-title span {
   display: block;
   font-size: 0.85em;
-  color: color-mix(in srgb, var(--forest, #2f4a36) 80%, #c9a15b);
+  color: color-mix(in srgb, var(--forest, #b08fce) 80%, #b08fce);
 }
 
 .bw-panel-title.die {
@@ -687,7 +687,7 @@
   margin: 0;
   font-size: 0.9rem;
   font-weight: 600;
-  color: var(--muted, #7a6e60);
+  color: var(--muted, #a89db8);
 }
 
 .bw-panel-tagline {
@@ -695,14 +695,14 @@
   max-width: 16rem;
   white-space: pre-line;
   font-size: 0.88rem;
-  color: var(--muted, #7a6e60);
+  color: var(--muted, #a89db8);
 }
 
 .bw-intro-progress {
   display: grid;
   gap: 0.15rem;
   font-size: 0.8rem;
-  color: var(--muted, #7a6e60);
+  color: var(--muted, #a89db8);
 }
 
 .bw-intro-progress p {
@@ -710,34 +710,34 @@
 }
 
 .bw-intro-progress strong {
-  color: var(--forest, #2f4a36);
+  color: var(--forest, #b08fce);
 }
 
 .bw-stars {
   display: inline-flex;
   gap: 0.15rem;
   font-size: 1.1rem;
-  color: var(--gold, #c9a15b);
+  color: var(--gold, #d4c4e8);
 }
 
 .bw-stars .empty {
-  color: color-mix(in srgb, var(--gold, #c9a15b) 35%, #cfc3b2);
+  color: color-mix(in srgb, var(--gold, #d4c4e8) 35%, #cfc3b2);
 }
 
 .bw-goal-box {
   width: min(100%, 16rem);
   padding: 0.65rem 0.75rem;
   border-radius: 0.85rem;
-  background: color-mix(in srgb, #f3ebe0 80%, white);
+  background: color-mix(in srgb, #2a2438 80%, #3a324f);
   border: 1px solid var(--bw-border);
   text-align: left;
 }
 
 .bw-goal-main {
   margin: 0 0 0.4rem;
-  font-family: var(--font-fraunces), Georgia, serif;
+  font-family: var(--font-bebas), "Bebas Neue", Impact, sans-serif;
   font-weight: 600;
-  color: var(--forest, #2f4a36);
+  color: var(--forest, #b08fce);
 }
 
 .bw-star-goals {
@@ -747,34 +747,34 @@
   display: grid;
   gap: 0.25rem;
   font-size: 0.82rem;
-  color: var(--muted, #7a6e60);
+  color: var(--muted, #a89db8);
 }
 
 .bw-star-goals span {
-  color: var(--gold, #c9a15b);
+  color: var(--gold, #d4c4e8);
 }
 
 .bw-controls-hint {
   margin: 0;
   font-size: 0.75rem;
-  color: var(--muted, #7a6e60);
+  color: var(--muted, #a89db8);
 }
 
 .bw-btn {
   border: 0;
   border-radius: 999px;
   padding: 0.7rem 1.25rem;
-  background: var(--forest, #2f4a36);
-  color: #fbf6ee;
+  background: var(--forest, #b08fce);
+  color: #2a2438;
   font-weight: 600;
   letter-spacing: 0.01em;
   cursor: pointer;
-  box-shadow: 0 8px 20px rgba(47, 74, 54, 0.22);
+  box-shadow: 0 8px 20px rgba(176, 143, 206, 0.22);
   transition: background 0.15s ease, transform 0.15s ease;
 }
 
 .bw-btn:hover:not(:disabled) {
-  background: var(--forest-deep, #243a2b);
+  background: var(--forest-deep, #9a78c0);
   transform: translateY(-1px);
 }
 
@@ -786,13 +786,13 @@
 
 .bw-btn-ghost {
   background: transparent;
-  color: var(--forest, #2f4a36);
+  color: var(--forest, #b08fce);
   box-shadow: none;
   border: 1px solid var(--bw-border);
 }
 
 .bw-btn-ghost:hover:not(:disabled) {
-  background: color-mix(in srgb, #f3ebe0 70%, white);
+  background: color-mix(in srgb, #2a2438 70%, #3a324f);
 }
 
 .bw-actions {
@@ -817,14 +817,14 @@
 }
 
 .bw-stats dt {
-  color: var(--muted, #7a6e60);
+  color: var(--muted, #a89db8);
 }
 
 .bw-stats dd {
   margin: 0;
-  font-family: var(--font-fraunces), Georgia, serif;
+  font-family: var(--font-bebas), "Bebas Neue", Impact, sans-serif;
   font-weight: 600;
-  color: var(--forest, #2f4a36);
+  color: var(--forest, #b08fce);
 }
 
 .bw-funny {
@@ -832,7 +832,7 @@
   max-width: 16rem;
   font-size: 0.86rem;
   font-style: italic;
-  color: var(--muted, #7a6e60);
+  color: var(--muted, #a89db8);
 }
 
 .bw-result-stars {
@@ -844,18 +844,18 @@
   text-align: left;
   width: min(100%, 15rem);
   font-size: 0.86rem;
-  color: var(--muted, #7a6e60);
+  color: var(--muted, #a89db8);
 }
 
 .bw-result-stars .earned {
-  color: var(--forest, #2f4a36);
+  color: var(--forest, #b08fce);
   font-weight: 600;
 }
 
 .bw-result-stars span {
   display: inline-block;
   width: 1.2em;
-  color: var(--gold, #c9a15b);
+  color: var(--gold, #d4c4e8);
 }
 
 .bw-star-count {
@@ -863,7 +863,7 @@
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.1em;
-  color: var(--forest, #2f4a36);
+  color: var(--forest, #b08fce);
 }
 
 .bw-countdown {
@@ -877,12 +877,12 @@
 }
 
 .bw-countdown-num {
-  font-family: var(--font-fraunces), Georgia, serif;
+  font-family: var(--font-bebas), "Bebas Neue", Impact, sans-serif;
   font-size: clamp(2.8rem, 12vw, 4rem);
   font-weight: 700;
-  color: var(--forest, #2f4a36);
+  color: var(--forest, #b08fce);
   animation: bw-count 0.65s ease both;
-  text-shadow: 0 4px 18px rgba(47, 74, 54, 0.18);
+  text-shadow: 0 4px 18px rgba(176, 143, 206, 0.18);
 }
 
 @keyframes bw-count {
@@ -906,12 +906,12 @@
   gap: 0.1rem;
   padding: 0.45rem 0.8rem;
   border-radius: 0.85rem;
-  background: color-mix(in srgb, #fbf6ee 90%, #c9a15b);
-  border: 1px solid color-mix(in srgb, #c9a15b 50%, #e0d1bf);
-  font-family: var(--font-fraunces), Georgia, serif;
+  background: color-mix(in srgb, #3a324f 90%, #b08fce);
+  border: 1px solid color-mix(in srgb, #b08fce 50%, #564d6a);
+  font-family: var(--font-bebas), "Bebas Neue", Impact, sans-serif;
   font-weight: 700;
   font-size: 0.95rem;
-  color: var(--forest, #2f4a36);
+  color: var(--forest, #b08fce);
   text-align: center;
   white-space: pre-line;
   animation: bw-pop-in 0.28s ease;
@@ -931,14 +931,14 @@
   width: 8px;
   height: 8px;
   border-radius: 2px;
-  background: var(--gold, #c9a15b);
+  background: var(--gold, #d4c4e8);
   animation: bw-spark 1.2s ease forwards;
 }
 
-.bw-spark.s0 { left: 12%; top: 70%; background: #c9a15b; animation-delay: 0s; }
-.bw-spark.s1 { left: 28%; top: 75%; background: #2f4a36; animation-delay: 0.05s; }
+.bw-spark.s0 { left: 12%; top: 70%; background: #b08fce; animation-delay: 0s; }
+.bw-spark.s1 { left: 28%; top: 75%; background: #5b4e8c; animation-delay: 0.05s; }
 .bw-spark.s2 { left: 45%; top: 68%; background: #8b5a3c; animation-delay: 0.1s; }
-.bw-spark.s3 { left: 62%; top: 72%; background: #c9a15b; animation-delay: 0.08s; }
+.bw-spark.s3 { left: 62%; top: 72%; background: #b08fce; animation-delay: 0.08s; }
 .bw-spark.s4 { left: 78%; top: 66%; background: #5a8f68; animation-delay: 0.12s; }
 .bw-spark.s5 { left: 88%; top: 74%; background: #c45a3a; animation-delay: 0.15s; }
 
@@ -957,7 +957,7 @@
   margin: 0;
   text-align: center;
   font-size: 0.74rem;
-  color: var(--muted, #7a6e60);
+  color: var(--muted, #a89db8);
 }
 
 @media (max-width: 480px) {

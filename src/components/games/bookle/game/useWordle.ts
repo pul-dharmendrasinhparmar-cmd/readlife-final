@@ -110,8 +110,10 @@ export function useWordle({
 
     if (current === answer) {
       setStatus("won");
+      setHinted(Array(WORD_LENGTH).fill(null));
     } else if (nextGuesses.length >= MAX_GUESSES) {
       setStatus("lost");
+      setHinted(Array(WORD_LENGTH).fill(null));
     }
   }, [current, answer, guesses, status, validSet]);
 

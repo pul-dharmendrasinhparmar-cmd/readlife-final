@@ -15,7 +15,7 @@ export function VibePicker({ open, vibe, onClose, onSelect }: Props) {
     <OverlayShell
       open={open}
       title="Window vibe"
-      subtitle={`Now: ${VIBE_OPTIONS.find((opt) => opt.id === vibe)?.label ?? vibe} · Atmosphere overlays`}
+      subtitle={`Now: ${VIBE_OPTIONS.find((opt) => opt.id === vibe)?.label ?? vibe} · Scene changes with your window`}
       onClose={onClose}
     >
       <div className="grid gap-2.5 sm:grid-cols-2">
@@ -32,7 +32,7 @@ export function VibePicker({ open, vibe, onClose, onSelect }: Props) {
               className={`rounded-2xl border px-4 py-3.5 text-left transition ${
                 active
                   ? "border-forest bg-forest text-paper"
-                  : "border-[#e8dccb] bg-[#f7f0e6] text-forest hover:border-forest/30"
+                  : "border-[#564d6a] bg-[#342c45] text-ink hover:border-forest/30"
               }`}
             >
               <span className="block font-semibold">{opt.label}</span>

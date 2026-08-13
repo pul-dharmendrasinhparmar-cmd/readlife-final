@@ -52,7 +52,7 @@ export function OnboardingShell({
 
       <div className="relative z-10 mx-auto flex min-h-screen max-w-6xl flex-col px-4 py-5 sm:px-6 md:px-10 lg:px-14">
         <header className="mb-6 flex items-center justify-between gap-4">
-          <Link href="/" className="flex shrink-0 items-center gap-2.5 text-forest">
+          <Link href="/" className="flex shrink-0 items-center gap-2.5 text-ink">
             <LeafIcon className="h-6 w-6" />
             <span className="font-serif text-[1.65rem] font-semibold tracking-[-0.02em]">
               ReadLife
@@ -71,7 +71,7 @@ export function OnboardingShell({
                         active
                           ? "bg-forest text-paper"
                           : done
-                            ? "bg-forest/20 text-forest"
+                            ? "bg-forest/20 text-ink"
                             : "bg-cream-deep/90 text-muted"
                       }`}
                     >
@@ -80,9 +80,9 @@ export function OnboardingShell({
                     <span
                       className={`truncate text-[0.95rem] font-semibold sm:text-[1.05rem] ${
                         active
-                          ? "text-forest"
+                          ? "text-ink"
                           : done
-                            ? "text-forest-soft"
+                            ? "text-ink/80"
                             : "text-muted-soft"
                       }`}
                     >
@@ -105,7 +105,7 @@ export function OnboardingShell({
           <button
             type="button"
             onClick={onSkip}
-            className="shrink-0 text-base font-semibold text-muted transition hover:text-forest"
+            className="shrink-0 text-base font-semibold text-muted transition hover:text-ink"
           >
             Skip
           </button>
@@ -113,7 +113,7 @@ export function OnboardingShell({
 
         <div className="grid flex-1 gap-6 lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-7 xl:grid-cols-[240px_minmax(0,1fr)]">
           <aside className="hidden lg:block">
-            <nav className="sticky top-6 space-y-1.5 rounded-[1.75rem] border border-line/40 bg-paper/85 p-4 shadow-[0_10px_30px_rgba(60,45,30,0.08)] backdrop-blur-md">
+            <nav className="sticky top-6 space-y-1.5 rounded-[1.75rem] border border-line/40 bg-paper/85 p-4 shadow-[0_10px_30px_rgba(42,36,56,0.08)] backdrop-blur-md">
               {ONBOARDING_STEPS.map((step, i) => {
                 const active = i === stepIndex;
                 const done = i < stepIndex;
@@ -124,7 +124,7 @@ export function OnboardingShell({
                       active
                         ? "bg-forest text-paper shadow-sm"
                         : done
-                          ? "text-forest"
+                          ? "text-ink"
                           : "text-muted-soft"
                     }`}
                   >
@@ -133,7 +133,7 @@ export function OnboardingShell({
                         active
                           ? "bg-paper/20 text-paper"
                           : done
-                            ? "bg-forest/15 text-forest"
+                            ? "bg-forest/15 text-ink"
                             : "bg-cream-deep text-muted-soft"
                       }`}
                     >
@@ -148,9 +148,9 @@ export function OnboardingShell({
             </nav>
 
             {note ? (
-              <div className="relative mt-7 rotate-[-2.5deg] rounded-md border border-[#e2cfa8] bg-[#f7ebc8]/95 px-4 py-4 shadow-[0_8px_18px_rgba(60,45,30,0.1)] backdrop-blur-sm">
+              <div className="relative mt-7 rotate-[-2.5deg] rounded-md border border-[#e2cfa8] bg-[#f7ebc8]/95 px-4 py-4 shadow-[0_8px_18px_rgba(42,36,56,0.1)] backdrop-blur-sm">
                 <div className="absolute -top-2.5 left-1/2 h-5 w-14 -translate-x-1/2 rounded-sm bg-[#d4b896]/85 shadow-sm" />
-                <p className="font-serif text-[1rem] leading-snug text-forest/90 italic">
+                <p className="font-serif text-[1rem] leading-snug text-ink/90 italic">
                   {note}
                 </p>
               </div>
@@ -160,7 +160,7 @@ export function OnboardingShell({
           <div className="flex min-h-0 flex-1 flex-col pb-6">
             <div className="mb-4 md:hidden">
               <div className="mb-2 flex items-center justify-between">
-                <span className="text-base font-semibold text-forest">
+                <span className="text-base font-semibold text-ink">
                   {ONBOARDING_STEPS[stepIndex].label}
                 </span>
                 <span className="text-sm text-muted">
@@ -177,7 +177,7 @@ export function OnboardingShell({
               </div>
             </div>
 
-            <div className="relative z-[5] flex-1 rounded-[2rem] border border-line/30 bg-paper/88 p-6 shadow-[0_18px_50px_rgba(60,45,30,0.1)] backdrop-blur-md sm:p-8 lg:p-10">
+            <div className="relative z-[5] flex-1 rounded-[2rem] border border-line/30 bg-paper/88 p-6 shadow-[0_18px_50px_rgba(42,36,56,0.1)] backdrop-blur-md sm:p-8 lg:p-10">
               {children}
             </div>
 
@@ -196,7 +196,7 @@ export function BackButton({ onClick }: { onClick: () => void }) {
     <button
       type="button"
       onClick={onClick}
-      className="rounded-full border-2 border-forest/35 bg-paper/85 px-6 py-3 text-base font-semibold text-forest backdrop-blur-sm transition hover:bg-forest/5"
+      className="rounded-full border-2 border-forest/35 bg-paper/85 px-6 py-3 text-base font-semibold text-ink backdrop-blur-sm transition hover:bg-forest/5"
     >
       ← Back
     </button>
@@ -214,7 +214,7 @@ export function NextButton({
     <button
       type="button"
       onClick={onClick}
-      className="ml-auto rounded-full bg-forest px-8 py-3 text-base font-semibold text-paper shadow-[0_10px_24px_rgba(47,74,54,0.25)] transition hover:bg-forest-deep"
+      className="ml-auto rounded-full bg-forest px-8 py-3 text-base font-semibold text-paper shadow-[0_10px_24px_rgba(176,143,206,0.25)] transition hover:bg-forest-deep"
     >
       {label}
     </button>

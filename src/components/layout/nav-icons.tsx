@@ -49,3 +49,15 @@ export function BellIcon({ className = "h-4 w-4" }: { className?: string }) {
     </svg>
   );
 }
+
+export function GamesIcon({ className = "h-4 w-4" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className={className} aria-hidden>
+      <rect x="3.5" y="8" width="17" height="11" rx="3.5" />
+      <path d="M8 13.5h3M9.5 12v3" strokeLinecap="round" />
+      <circle cx="15.2" cy="12.5" r="1" fill="currentColor" stroke="none" />
+      <circle cx="17.2" cy="14.8" r="1" fill="currentColor" stroke="none" />
+      <path d="M9 8V6.5a3 3 0 0 1 6 0V8" strokeLinecap="round" />
+    </svg>
+  );
+}

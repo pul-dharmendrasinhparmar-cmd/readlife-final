@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AppNav } from "@/components/layout/app-nav";
 import { LeafIcon } from "@/components/icons";
 import { loadDiscoveryState } from "@/lib/discovery-storage";
@@ -17,6 +17,37 @@ import type {
   WrappedSlide,
 } from "./types";
 import { buildMonthlyWrapped, buildYearlyWrapped } from "./wrapped";
+
+const WRAPPED_BG = {
+  month: "/rooms/dashboard-scene-clean.png",
+  year: "/rooms/dark-academia.png",
+} as const;
+
+/** Atmospheric backgrounds for pattern cards — keyed by pattern id, else cycled. */
+const PATTERN_BG_BY_ID: Record<string, string> = {
+  night: "/rooms/dashboard-scene-night.png",
+  fantasy: "/rooms/dark-academia.png",
+  friends: "/hero-nook.png",
+  audio: "/rooms/cozy-nook.png",
+  tbr: "/rooms/sunny-loft.png",
+  mina: "/rooms/dashboard-scene-day.png",
+};
+
+const PATTERN_BG_FALLBACK = [
+  "/rooms/dashboard-scene-rainy.png",
+  "/rooms/rainy-night.png",
+  "/rooms/dashboard-scene-snowy.png",
+  "/rooms/dashboard-scene-clean.png",
+  "/hero-nook.png",
+  "/rooms/cozy-nook.png",
+] as const;
+
+function patternBackground(id: string, index: number): string {
+  return (
+    PATTERN_BG_BY_ID[id] ??
+    PATTERN_BG_FALLBACK[index % PATTERN_BG_FALLBACK.length]!
+  );
+}
 
 type MainTab = "insights" | "dna";
 
@@ -79,7 +110,7 @@ export function InsightsPage() {
 
   if (!state || !snap || !dna) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f3ebe0] text-muted">
+      <div className="flex min-h-screen items-center justify-center bg-[#2a2438] text-muted">
         Opening your insights…
       </div>
     );
@@ -88,7 +119,7 @@ export function InsightsPage() {
   const isNewUser = state.entries.filter((e) => e.status === "read").length < 2;
 
   return (
-    <div className="min-h-screen bg-[#f3ebe0] text-ink">
+    <div className="min-h-screen bg-[#2a2438] text-ink">
       <AppNav />
 
       <main className="mx-auto max-w-[1440px] px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
@@ -99,13 +130,13 @@ export function InsightsPage() {
           >
             <LeafIcon className="h-5 w-5" />
           </div>
-          <h1 className="font-serif text-[2.35rem] font-semibold tracking-[-0.03em] text-forest sm:text-[2.75rem]">
+          <h1 className="insights-display text-[2.6rem] tracking-[0.04em] text-ink sm:text-[3.1rem]">
             Insights
           </h1>
-          <p className="mt-2 text-[1.05rem] text-muted">
+          <p className="insights-body mt-2 text-[1.05rem] text-muted">
             See the story behind your reading.
           </p>
-          <p className="mt-1 text-sm text-forest/70">
+          <p className="insights-body mt-1 text-sm text-ink/70">
             Your reading habits, patterns, milestones, and evolving Reader DNA.
           </p>
         </header>
@@ -132,8 +163,8 @@ export function InsightsPage() {
                 onClick={() => setMainTab(id)}
                 className={`relative rounded-full px-4 py-2 text-sm font-semibold transition ${
                   active
-                    ? "text-forest"
-                    : "text-forest/60 hover:bg-[#efe4d4] hover:text-forest"
+                    ? "text-ink"
+                    : "text-ink/60 hover:bg-[#3f3654] hover:text-ink"
                 }`}
               >
                 {label}
@@ -150,6 +181,7 @@ export function InsightsPage() {
         ) : mainTab === "insights" ? (
           <ReadingInsights
             snap={snap}
+            dna={dna}
             period={period}
             setPeriod={setPeriod}
             monthOffset={monthOffset}
@@ -176,6 +208,7 @@ export function InsightsPage() {
 
       {wrappedOpen ? (
         <WrappedModal
+          kind={wrappedOpen}
           slides={wrappedSlides}
           step={wrappedStep}
           setStep={setWrappedStep}
@@ -204,7 +237,7 @@ export function InsightsPage() {
       ) : null}
 
       {shareToast ? (
-        <div className="fixed right-4 bottom-4 z-[80] rounded-2xl border border-[#e4d5c3] bg-[#fbf6ee] px-4 py-3 text-sm text-forest shadow-lg">
+        <div className="fixed right-4 bottom-4 z-[80] rounded-2xl border border-[#4a425c] bg-[#3a324f] px-4 py-3 text-sm text-ink shadow-lg">
           {shareToast}
         </div>
       ) : null}
@@ -214,6 +247,7 @@ export function InsightsPage() {
 
 function ReadingInsights({
   snap,
+  dna,
   period,
   setPeriod,
   monthOffset,
@@ -226,6 +260,7 @@ function ReadingInsights({
   onOpenWrapped,
 }: {
   snap: PeriodSnapshot;
+  dna: ReaderDna;
   period: InsightPeriod;
   setPeriod: (p: InsightPeriod) => void;
   monthOffset: number;
@@ -237,12 +272,17 @@ function ReadingInsights({
   badges: ReturnType<typeof buildBadges>;
   onOpenWrapped: (k: "month" | "year") => void;
 }) {
-  const maxActivity = Math.max(
+  const maxDayMinutes = Math.max(
     1,
-    ...snap.activityByDay.map((d) =>
-      activityMode === "minutes" ? d.minutes : d.pages,
-    ),
+    ...snap.activityByDay.map((d) => d.minutes),
   );
+  const calendarGoldByLevel = [
+    "#3f3654", // empty
+    "#6b5210", // ~0–25% of max day
+    "#8a6a12", // ~25–50%
+    "#d4a017", // ~50–75%
+    "#ffd54f", // ~75–100%
+  ] as const;
 
   return (
     <div className="mt-8 space-y-12">
@@ -263,7 +303,7 @@ function ReadingInsights({
             className={`rounded-full px-3.5 py-1.5 text-sm font-semibold ${
               period === id
                 ? "bg-forest text-paper"
-                : "bg-[#fbf6ee] text-forest/70 hover:bg-[#efe4d4]"
+                : "bg-[#3a324f] text-ink/70 hover:bg-[#3f3654]"
             }`}
           >
             {label}
@@ -276,11 +316,11 @@ function ReadingInsights({
               aria-label="Previous month"
               disabled={monthOffset >= 2}
               onClick={() => setMonthOffset((n) => Math.min(2, n + 1))}
-              className="rounded-full border border-[#e0d1bf] px-3 py-1.5 text-sm font-semibold text-forest disabled:opacity-40"
+              className="rounded-full border border-[#564d6a] px-3 py-1.5 text-sm font-semibold text-ink disabled:opacity-40"
             >
               ←
             </button>
-            <span className="min-w-[9rem] text-center font-serif text-sm font-semibold text-forest">
+            <span className="insights-display min-w-[9rem] text-center text-sm tracking-[0.06em] text-ink">
               {snap.label}
             </span>
             <button
@@ -288,42 +328,19 @@ function ReadingInsights({
               aria-label="Next month"
               disabled={monthOffset <= 0}
               onClick={() => setMonthOffset((n) => Math.max(0, n - 1))}
-              className="rounded-full border border-[#e0d1bf] px-3 py-1.5 text-sm font-semibold text-forest disabled:opacity-40"
+              className="rounded-full border border-[#564d6a] px-3 py-1.5 text-sm font-semibold text-ink disabled:opacity-40"
             >
               →
             </button>
           </div>
         ) : (
-          <span className="ml-auto font-serif text-sm font-semibold text-forest">
+          <span className="insights-display ml-auto text-sm tracking-[0.06em] text-ink">
             {snap.label}
           </span>
         )}
       </div>
 
-      {/* Summary */}
-      <section>
-        <p className="text-[0.68rem] font-semibold tracking-[0.14em] text-forest/65 uppercase">
-          Overview · {snap.label}
-        </p>
-        <div className="mt-3 flex flex-wrap gap-x-8 gap-y-4 border-y border-[#e4d5c3]/80 py-5">
-          <BigStat value={String(snap.booksFinished.value)} label="Books Finished" />
-          <BigStat
-            value={snap.pagesRead.value.toLocaleString()}
-            label="Pages Read"
-          />
-          <BigStat
-            value={snap.minutesRead.value.toLocaleString()}
-            label="Minutes Read"
-          />
-          <BigStat value={String(snap.sessions.value)} label="Sessions" />
-          <BigStat value={`${snap.streakDays.value} days`} label="Streak" />
-          <BigStat value={`${snap.avgRating.value}★`} label="Avg Rating" />
-        </div>
-        <p className="mt-2 text-[0.7rem] text-muted-soft">
-          Metrics marked from library history are calculated; session charts use
-          demo logs for August depth.
-        </p>
-      </section>
+      <OverviewCarousel snap={snap} dna={dna} />
 
       {/* Goals */}
       <section className="grid gap-4 md:grid-cols-3">
@@ -358,70 +375,44 @@ function ReadingInsights({
         />
       </section>
 
-      {/* Activity chart + calendar */}
-      <div className="grid gap-8 lg:grid-cols-[1.4fr_1fr]">
-        <section>
-          <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
-            <div>
-              <h2 className="font-serif text-xl font-semibold text-forest">
-                Reading activity
-              </h2>
-              <p className="text-sm text-muted">When the pages actually moved.</p>
-            </div>
-            <div className="flex rounded-full border border-[#e0d1bf] bg-[#fbf6ee] p-0.5">
-              {(["minutes", "pages"] as const).map((m) => (
-                <button
-                  key={m}
-                  type="button"
-                  onClick={() => setActivityMode(m)}
-                  className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${
-                    activityMode === m
-                      ? "bg-forest text-paper"
-                      : "text-forest/70"
-                  }`}
-                >
-                  {m}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="rounded-[1.35rem] border border-[#e4d5c3]/80 bg-[#fbf6ee]/70 p-4">
-            <div className="flex h-40 items-end gap-1">
-              {snap.activityByDay.map((d) => {
-                const val =
-                  activityMode === "minutes" ? d.minutes : d.pages;
-                const h = Math.max(4, Math.round((val / maxActivity) * 100));
-                return (
-                  <div
-                    key={d.date}
-                    className="group relative flex flex-1 flex-col items-center justify-end"
-                  >
-                    <div
-                      className="w-full max-w-[18px] rounded-t-md bg-forest/80 transition group-hover:bg-forest"
-                      style={{ height: `${h}%` }}
-                      title={`${d.date}: ${d.minutes} min · ${d.pages} pages · ${d.sessions} sessions`}
-                    />
-                    <span className="pointer-events-none absolute bottom-full mb-1 hidden rounded-md bg-forest px-2 py-1 text-[0.65rem] whitespace-nowrap text-paper group-hover:block">
-                      {fmtDay(d.date)}
-                      <br />
-                      {d.minutes} min · {d.pages} pages
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-            <p className="mt-2 text-[0.65rem] text-muted">
-              Hover a bar for day details. Unit: {activityMode}.
-            </p>
-          </div>
-        </section>
+      {/* Wrapped — above metrics + calendar */}
+      <section>
+        <h2 className="font-serif text-[1.45rem] font-semibold text-ink">
+          Your Wrapped
+        </h2>
+        <p className="insights-body mt-1 text-sm text-muted">
+          Story-shaped months and years — private until you share.
+        </p>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <WrappedEntryCard
+            kind="month"
+            eyebrow="Monthly"
+            title="August Wrapped"
+            onClick={() => onOpenWrapped("month")}
+          />
+          <WrappedEntryCard
+            kind="year"
+            eyebrow="Yearly"
+            title="2026 Wrapped"
+            onClick={() => onOpenWrapped("year")}
+          />
+        </div>
+      </section>
 
-        <section>
-          <h2 className="font-serif text-xl font-semibold text-forest">
+      {/* Metrics bar carousel + reading calendar */}
+      <div className="grid gap-8 lg:grid-cols-2 lg:items-stretch">
+        <MetricsBarCarousel
+          snap={snap}
+          activityMode={activityMode}
+          setActivityMode={setActivityMode}
+        />
+
+        <section className="flex h-full flex-col">
+          <h2 className="font-serif text-xl font-semibold text-ink">
             Reading calendar
           </h2>
           <p className="mt-1 text-sm text-muted">Depth by minutes read.</p>
-          <div className="mt-3 grid grid-cols-7 gap-1.5">
+          <div className="mt-3 grid flex-1 grid-cols-7 content-start gap-1.5">
             {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (
               <span
                 key={`${d}-${i}`}
@@ -432,235 +423,150 @@ function ReadingInsights({
             ))}
             {snap.activityByDay.map((d) => {
               const intensity =
-                d.minutes === 0
+                d.minutes <= 0
                   ? 0
-                  : d.minutes < 30
-                    ? 1
-                    : d.minutes < 50
-                      ? 2
-                      : 3;
-              const bg =
-                intensity === 0
-                  ? "bg-[#efe4d4]"
-                  : intensity === 1
-                    ? "bg-forest/30"
-                    : intensity === 2
-                      ? "bg-forest/55"
-                      : "bg-forest";
+                  : Math.min(
+                      4,
+                      Math.max(1, Math.ceil((d.minutes / maxDayMinutes) * 4)),
+                    );
               return (
                 <div
                   key={d.date}
                   title={`${fmtDay(d.date)} · ${d.minutes} min · ${d.pages} pages · ${d.sessions} session(s)`}
-                  className={`aspect-square rounded-md ${bg}`}
+                  className="aspect-square rounded-md"
+                  style={{ background: calendarGoldByLevel[intensity] }}
                 />
               );
             })}
           </div>
           <p className="mt-2 text-[0.65rem] text-muted">
-            Lighter = shorter · deeper green = longer.
+            Dimmer = shorter · bright gold = longer.
           </p>
         </section>
       </div>
 
-      {/* When / format / genre */}
-      <div className="grid gap-8 lg:grid-cols-3">
-        <section>
-          <h2 className="font-serif text-lg font-semibold text-forest">
-            When do you read?
-          </h2>
-          <div className="mt-3 space-y-2">
-            {(
-              [
-                ["Morning", snap.timeOfDay.morning],
-                ["Afternoon", snap.timeOfDay.afternoon],
-                ["Evening", snap.timeOfDay.evening],
-                ["Late Night", snap.timeOfDay.lateNight],
-              ] as const
-            ).map(([label, pct]) => (
-              <BarRow key={label} label={label} pct={pct} />
-            ))}
-          </div>
-          <p className="mt-3 text-sm text-forest/80">
-            {snap.timeOfDay.evening + snap.timeOfDay.lateNight}% of your reading
-            happens after 5 PM.
-          </p>
-        </section>
-
-        <section>
-          <h2 className="font-serif text-lg font-semibold text-forest">
-            How you read
-          </h2>
-          <p className="mt-1 text-xs text-muted">By books finished</p>
-          <div className="mt-2 space-y-2">
-            {Object.entries(snap.formatByBooks).map(([k, n]) => {
-              const total =
-                Object.values(snap.formatByBooks).reduce((a, b) => a + b, 0) ||
-                1;
-              return (
-                <BarRow
-                  key={k}
-                  label={cap(k)}
-                  pct={Math.round((n / total) * 100)}
-                />
-              );
-            })}
-          </div>
-          <p className="mt-3 text-sm text-forest/80">
-            {formatTimeInsight(snap)}
-          </p>
-        </section>
-
-        <section>
-          <h2 className="font-serif text-lg font-semibold text-forest">
-            Your genres
-          </h2>
-          <div className="mt-3 space-y-2">
-            {snap.genreShare.slice(0, 6).map((g) => (
-              <BarRow key={g.genre} label={g.genre} pct={g.share} />
-            ))}
-          </div>
-          <ul className="mt-3 space-y-1 text-sm text-forest/85">
-            <li>
-              <span className="text-muted">Most read:</span>{" "}
-              {snap.genreShare[0]?.genre ?? "—"}
-            </li>
-            <li>
-              <span className="text-muted">Highest rated:</span>{" "}
-              {snap.highestRatedGenre
-                ? `${snap.highestRatedGenre.genre} — ${snap.highestRatedGenre.avgRating}★`
-                : "—"}
-            </li>
-            <li>
-              <span className="text-muted">Fastest finished:</span>{" "}
-              {snap.fastestGenre
-                ? `${snap.fastestGenre.genre} (~${snap.fastestGenre.avgDays}d)`
-                : "Not enough data yet."}
-            </li>
-          </ul>
-        </section>
-      </div>
-
-      {/* Ratings + outcomes */}
-      <div className="grid gap-8 lg:grid-cols-2">
-        <section>
-          <h2 className="font-serif text-lg font-semibold text-forest">
-            What worked for you
-          </h2>
-          <p className="mt-1 text-sm text-muted">
-            Average rating {snap.avgRating.value}★
-          </p>
-          <div className="mt-3 space-y-2">
-            {([5, 4, 3, 2, 1] as const).map((star) => {
-              const n = snap.ratingDist[star];
-              const total =
-                Object.values(snap.ratingDist).reduce((a, b) => a + b, 0) || 1;
-              return (
-                <BarRow
-                  key={star}
-                  label={"★".repeat(star)}
-                  pct={Math.round((n / total) * 100)}
-                  suffix={`${n}`}
-                />
-              );
-            })}
-          </div>
-          <p className="mt-3 text-sm text-forest/80">
-            You gave 5 stars to {snap.ratingDist[5]} of your finishes in this
-            view.
-          </p>
-        </section>
-
-        <section>
-          <h2 className="font-serif text-lg font-semibold text-forest">
-            Your reading outcomes
-          </h2>
-          <div className="mt-3 space-y-2">
-            <BarRow label="Finished" pct={snap.outcomes.finished} />
-            <BarRow label="Paused" pct={snap.outcomes.paused} />
-            <BarRow label="DNF" pct={snap.outcomes.dnf} />
-          </div>
-          <p className="mt-3 text-sm text-forest/80">
-            Paused is waiting — not abandoned. You usually return within about{" "}
-            {snap.pauseStats.avgResumeDays} days.
-          </p>
-          {snap.dnfReasons.length ? (
-            <div className="mt-4">
-              <p className="text-[0.68rem] font-semibold tracking-[0.12em] text-forest/65 uppercase">
-                Why you DNF
-              </p>
-              <div className="mt-2 space-y-1.5">
-                {snap.dnfReasons.map((r) => (
-                  <BarRow key={r.reason} label={r.reason} pct={r.share} />
-                ))}
-              </div>
-              <p className="mt-2 text-sm text-forest/80">
-                {snap.dnfReasons[0]?.reason} was your most common DNF reason.
-              </p>
+      {/* Genres: same lg:grid-cols-2 / gap-8 band as Metrics + calendar above */}
+      <section className="w-full min-w-0">
+        <h2 className="font-serif text-lg font-semibold text-ink">
+          Your genres
+        </h2>
+        <div className="mt-3 flex w-full min-w-0 flex-col items-stretch gap-5 sm:flex-row sm:items-start sm:gap-5 lg:grid lg:grid-cols-2 lg:items-start lg:gap-8">
+          <div className="flex min-w-0 flex-1 flex-col">
+            <div className="min-w-0 w-full">
+              <GenreTreemap genres={snap.genreShare.slice(0, 6)} />
             </div>
-          ) : (
-            <p className="mt-4 text-sm text-muted">
-              Not enough DNF data yet.
-            </p>
-          )}
-        </section>
-      </div>
+            <ul className="mt-3 space-y-1 text-sm text-ink/85">
+              <li>
+                <span className="text-muted">Most read:</span>{" "}
+                {snap.genreShare[0]?.genre ?? "—"}
+              </li>
+              <li>
+                <span className="text-muted">Highest rated:</span>{" "}
+                {snap.highestRatedGenre
+                  ? `${snap.highestRatedGenre.genre} — ${snap.highestRatedGenre.avgRating}★`
+                  : "—"}
+              </li>
+              <li>
+                <span className="text-muted">Fastest finished:</span>{" "}
+                {snap.fastestGenre
+                  ? `${snap.fastestGenre.genre} (~${snap.fastestGenre.avgDays}d)`
+                  : "Not enough data yet."}
+              </li>
+            </ul>
+          </div>
+          <div className="insights-mini-stats mx-auto grid w-auto max-w-full shrink-0 grid-cols-2 content-center gap-3 sm:mx-0 sm:gap-4 lg:content-center lg:justify-self-start">
+            <MiniStat
+              label="Avg session"
+              value={`${snap.sessionStats.avgMinutes} min`}
+              tone="#ffd54f"
+            />
+            <MiniStat
+              label="Longest session"
+              value={fmtDuration(snap.sessionStats.longestMinutes)}
+              tone="#f5c842"
+            />
+            <MiniStat
+              label="Typical range"
+              value={`${snap.sessionStats.typicalMin}–${snap.sessionStats.typicalMax} min`}
+              tone="#e8b923"
+            />
+            <MiniStat
+              label="Pace"
+              value={`${snap.sessionStats.pagesPerHour} pages/hr`}
+              tone="#ffcc33"
+            />
+          </div>
+        </div>
+      </section>
 
       {/* Sources + influencers + TBR */}
-      <div className="grid gap-8 lg:grid-cols-2">
-        <section>
-          <h2 className="font-serif text-lg font-semibold text-forest">
+      <div className="grid items-start gap-4 lg:grid-cols-2">
+        <section className="rounded-[1.35rem] border border-[#4a425c]/80 bg-[#3a324f]/55 p-5">
+          <h2 className="font-serif text-lg font-semibold text-ink">
             Where your best reads come from
           </h2>
           {snap.sourcePerformance.length ? (
-            <div className="mt-3 space-y-3">
+            <div className="mt-4 space-y-2">
               {snap.sourcePerformance.slice(0, 5).map((s) => (
                 <div
                   key={s.source}
-                  className="rounded-2xl border border-[#e4d5c3]/80 bg-[#fbf6ee]/80 px-4 py-3"
+                  className="flex items-center gap-3 rounded-2xl border border-[#4a425c]/70 bg-[#342c45]/90 px-4 py-3"
                 >
-                  <div className="flex justify-between gap-2">
-                    <p className="font-semibold text-forest">{s.source}</p>
-                    <p className="text-sm text-forest">{s.avgRating}★</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-semibold text-ink">{s.source}</p>
+                    <p className="mt-0.5 text-xs text-muted">
+                      {s.books} completed · {s.completionRate}% completion
+                    </p>
                   </div>
-                  <p className="mt-1 text-xs text-muted">
-                    {s.books} completed · {s.completionRate}% completion
+                  <p className="shrink-0 font-serif text-lg font-semibold tabular-nums text-ink">
+                    {s.avgRating}★
                   </p>
                 </div>
               ))}
-              <p className="text-sm text-forest/85">
+              <p className="pt-1 text-sm leading-snug text-ink/80">
                 {snap.sourcePerformance[0]
                   ? `${snap.sourcePerformance[0].source} is currently your strongest recommendation source.`
                   : null}
               </p>
             </div>
           ) : (
-            <Partial
-              text="Finish a few books from different recommendation sources to unlock this insight."
-              href="/search"
-              cta="Explore Books"
-            />
+            <div className="mt-4">
+              <Partial
+                text="Finish a few books from different recommendation sources to unlock this insight."
+                href="/search"
+                cta="Explore Books"
+              />
+            </div>
           )}
 
           {snap.influencers.length ? (
-            <div className="mt-6">
-              <h3 className="font-serif text-base font-semibold text-forest">
+            <div className="mt-6 border-t border-[#4a425c]/60 pt-5">
+              <h3 className="font-serif text-base font-semibold text-ink">
                 Your reading influences
               </h3>
-              <ul className="mt-2 space-y-2">
+              <ul className="mt-3 divide-y divide-[#4a425c]/50">
                 {snap.influencers.slice(0, 3).map((i) => (
                   <li
                     key={i.username}
-                    className="flex items-center justify-between gap-2 text-sm"
+                    className="flex flex-col gap-1 py-2.5 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between sm:gap-3"
                   >
                     <Link
                       href={`/readers/${i.username}`}
-                      className="font-semibold text-forest hover:underline"
+                      className="truncate text-sm font-semibold text-ink hover:underline"
                     >
                       @{i.username}
                     </Link>
-                    <span className="text-muted">
-                      {i.completed} done · {i.avgRating}★ · {i.onTbr} on TBR
-                    </span>
+                    <p className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs tabular-nums text-muted sm:justify-end sm:text-sm">
+                      <span>{i.completed} done</span>
+                      <span className="text-ink/25" aria-hidden>
+                        ·
+                      </span>
+                      <span>{i.avgRating}★</span>
+                      <span className="text-ink/25" aria-hidden>
+                        ·
+                      </span>
+                      <span>{i.onTbr} on TBR</span>
+                    </p>
                   </li>
                 ))}
               </ul>
@@ -668,25 +574,31 @@ function ReadingInsights({
           ) : null}
         </section>
 
-        <section>
-          <h2 className="font-serif text-lg font-semibold text-forest">
-            Your TBR
-          </h2>
-          <p className="mt-1 text-sm text-muted">{snap.tbr.total} books waiting</p>
-          <div className="mt-3 grid grid-cols-2 gap-2">
+        <section className="rounded-[1.35rem] border border-[#4a425c]/80 bg-[#3a324f]/55 p-5">
+          <div className="flex items-baseline justify-between gap-3">
+            <h2 className="font-serif text-lg font-semibold text-ink">
+              Your TBR
+            </h2>
+            <p className="text-sm text-muted">
+              {snap.tbr.total} books waiting
+            </p>
+          </div>
+          <div className="mt-4 grid grid-cols-2 gap-2.5">
             {Object.entries(snap.tbr.byPriority).map(([k, n]) => (
               <div
                 key={k}
-                className="rounded-2xl border border-[#e4d5c3] bg-[#fbf6ee] px-3 py-2.5"
+                className="rounded-2xl border border-[#4a425c]/70 bg-[#342c45]/90 px-3.5 py-3"
               >
-                <p className="text-[0.65rem] font-semibold tracking-wide text-muted uppercase">
+                <p className="text-[0.65rem] font-semibold tracking-[0.08em] text-muted uppercase">
                   {k.replace("-", " ")}
                 </p>
-                <p className="font-serif text-xl font-semibold text-forest">{n}</p>
+                <p className="mt-1 font-serif text-2xl font-semibold tabular-nums text-ink">
+                  {n}
+                </p>
               </div>
             ))}
           </div>
-          <ul className="mt-3 space-y-1.5 text-sm text-forest/85">
+          <ul className="mt-4 space-y-2 text-sm leading-snug text-ink/85">
             <li>
               Oldest TBR book has been waiting {snap.tbr.oldestDays} days.
             </li>
@@ -700,48 +612,28 @@ function ReadingInsights({
           </ul>
           <Link
             href="/library"
-            className="mt-3 inline-flex text-sm font-semibold text-forest underline-offset-2 hover:underline"
+            className="mt-4 inline-flex text-sm font-semibold text-ink underline-offset-2 hover:underline"
           >
             Review Your TBR →
           </Link>
         </section>
       </div>
 
-      {/* Session + length */}
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <MiniStat
-          label="Avg session"
-          value={`${snap.sessionStats.avgMinutes} min`}
-        />
-        <MiniStat
-          label="Longest session"
-          value={fmtDuration(snap.sessionStats.longestMinutes)}
-        />
-        <MiniStat
-          label="Typical range"
-          value={`${snap.sessionStats.typicalMin}–${snap.sessionStats.typicalMax} min`}
-        />
-        <MiniStat
-          label="Pace"
-          value={`${snap.sessionStats.pagesPerHour} pages/hr`}
-        />
-      </div>
-
-      <section>
-        <h2 className="font-serif text-lg font-semibold text-forest">
+      <section className="rounded-[1.35rem] border border-[#4a425c]/80 bg-[#3a324f]/55 p-5">
+        <h2 className="font-serif text-lg font-semibold text-ink">
           What length works for you?
         </h2>
-        <div className="mt-3 grid gap-2 sm:grid-cols-3">
+        <div className="mt-4 grid gap-2.5 sm:grid-cols-3">
           {snap.lengthBands.map((b) => (
             <div
               key={b.band}
-              className="rounded-2xl border border-[#e4d5c3] bg-[#fbf6ee] px-4 py-3"
+              className="flex flex-col rounded-2xl border border-[#4a425c]/70 bg-[#342c45]/90 px-4 py-4"
             >
-              <p className="text-xs text-muted">{b.band} pages</p>
-              <p className="font-serif text-xl font-semibold text-forest">
+              <p className="text-xs font-medium text-muted">{b.band} pages</p>
+              <p className="mt-2 font-serif text-2xl font-semibold tabular-nums text-ink">
                 {b.count ? `${b.avgRating}★` : "—"}
               </p>
-              <p className="text-xs text-muted">{b.count} books</p>
+              <p className="mt-1 text-xs text-muted">{b.count} books</p>
             </div>
           ))}
         </div>
@@ -749,56 +641,32 @@ function ReadingInsights({
 
       {/* Patterns */}
       <section>
-        <h2 className="font-serif text-[1.45rem] font-semibold text-forest">
+        <h2 className="font-serif text-[1.45rem] font-semibold text-ink">
           Patterns ReadLife noticed
         </h2>
-        <p className="mt-1 text-sm text-muted">
+        <p className="insights-body mt-1 text-sm text-muted">
           Small things hiding in your reading history.
         </p>
         <div className="mt-4 grid gap-3 md:grid-cols-2">
-          {snap.patterns.map((p) => (
-            <article
+          {snap.patterns.map((p, index) => (
+            <PatternCard
               key={p.id}
-              className="rounded-[1.25rem] border border-[#e4d5c3]/80 bg-[#fbf6ee]/90 p-4"
-            >
-              <p className="text-lg" aria-hidden>
-                {p.icon}
-              </p>
-              <p className="mt-2 text-sm leading-relaxed text-forest">{p.text}</p>
-              <div className="mt-3 flex flex-wrap gap-3">
-                <button
-                  type="button"
-                  onClick={() => setWhyId(whyId === p.id ? null : p.id)}
-                  className="text-xs font-semibold text-forest underline-offset-2 hover:underline"
-                >
-                  {whyId === p.id ? "Hide why" : "Why am I seeing this?"}
-                </button>
-                {p.action ? (
-                  <Link
-                    href={p.action.href}
-                    className="text-xs font-semibold text-forest underline-offset-2 hover:underline"
-                  >
-                    {p.action.label} →
-                  </Link>
-                ) : null}
-              </div>
-              {whyId === p.id ? (
-                <p className="mt-2 rounded-xl bg-[#f3ebe0] px-3 py-2 text-xs text-forest/80">
-                  {p.why}
-                </p>
-              ) : null}
-            </article>
+              pattern={p}
+              index={index}
+              expanded={whyId === p.id}
+              onToggleWhy={() => setWhyId(whyId === p.id ? null : p.id)}
+            />
           ))}
         </div>
       </section>
 
       {/* Compare + narrative */}
       <section className="grid gap-6 lg:grid-cols-[1fr_1.2fr]">
-        <div className="rounded-[1.35rem] border border-[#e4d5c3] bg-[#fbf6ee]/80 p-5">
-          <h2 className="font-serif text-lg font-semibold text-forest">
+        <div className="rounded-[1.35rem] border border-[#4a425c] bg-[#3a324f]/80 p-5">
+          <h2 className="font-serif text-lg font-semibold text-ink">
             Compare to last month
           </h2>
-          <ul className="mt-3 space-y-2 text-sm text-forest">
+          <ul className="mt-3 space-y-2 text-sm text-ink">
             <li>
               Books: {snap.comparePrevious.books[0]} →{" "}
               {snap.comparePrevious.books[1]}
@@ -817,11 +685,11 @@ function ReadingInsights({
             just a fuller month.
           </p>
         </div>
-        <div className="rounded-[1.35rem] border border-[#e4d5c3] bg-[#fbf6ee]/80 p-5">
-          <h2 className="font-serif text-lg font-semibold text-forest">
+        <div className="rounded-[1.35rem] border border-[#4a425c] bg-[#3a324f]/80 p-5">
+          <h2 className="font-serif text-lg font-semibold text-ink">
             Your month in a nutshell
           </h2>
-          <p className="mt-3 text-sm leading-relaxed text-forest/90">
+          <p className="mt-3 text-sm leading-relaxed text-ink/90">
             {snap.monthlyNarrative}
           </p>
         </div>
@@ -829,82 +697,70 @@ function ReadingInsights({
 
       {/* Badges */}
       <section>
-        <h2 className="font-serif text-[1.45rem] font-semibold text-forest">
+        <h2 className="font-serif text-[1.45rem] font-semibold text-ink">
           Badges & milestones
         </h2>
-        <p className="mt-1 text-sm text-muted">
+        <p className="insights-body mt-1 text-sm text-muted">
           Earned from behavior — not grind.
         </p>
-        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {badges.map((b) => (
             <article
               key={b.id}
-              className={`rounded-[1.25rem] border px-4 py-4 ${
-                b.earned
-                  ? "border-[#c9a15b]/50 bg-[#fbf6ee]"
-                  : "border-[#e4d5c3]/60 bg-[#f3ebe0]/50 opacity-80"
+              className={`flex aspect-square flex-col items-center rounded-2xl border p-2.5 text-center transition hover:-translate-y-0.5 sm:p-3 ${
+                b.earned ? "bg-[#3a324f]" : "bg-[#2a2438]/50 opacity-75"
               }`}
+              style={
+                b.earned
+                  ? {
+                      borderColor: `${b.accent}88`,
+                      boxShadow: `0 0 0 1px ${b.accent}22, 0 10px 28px ${b.accent}12`,
+                      background: `linear-gradient(165deg, ${b.accent}14, #3a324f 48%)`,
+                    }
+                  : {
+                      borderColor: `${b.accent}40`,
+                    }
+              }
             >
-              <div className="flex h-10 w-10 items-center justify-center rounded-full border border-[#c9a15b]/60 bg-[#f0e4d0] font-serif text-sm font-bold text-forest">
-                {b.earned ? "✦" : "·"}
+              <div className="flex min-h-0 w-full flex-1 items-center justify-center">
+                <img
+                  src={b.image}
+                  alt={b.name}
+                  width={342}
+                  height={342}
+                  className={`h-full max-h-[7.75rem] w-auto max-w-full object-contain ${
+                    b.earned ? "" : "grayscale-[35%] brightness-90"
+                  }`}
+                  draggable={false}
+                />
               </div>
-              <h3 className="mt-3 font-serif text-base font-semibold text-forest">
-                {b.name}
-              </h3>
-              <p className="mt-1 text-xs leading-relaxed text-muted">
-                {b.description}
-              </p>
-              {b.earned && b.earnedDate ? (
-                <p className="mt-2 text-[0.65rem] font-semibold text-forest/70">
-                  Earned {b.earnedDate}
-                </p>
-              ) : b.progress ? (
-                <p className="mt-2 text-[0.65rem] text-muted">
-                  {b.progress.current} / {b.progress.target}
-                </p>
-              ) : null}
+              <div className="mt-1.5 w-full shrink-0">
+                <h3
+                  className="insights-display text-[0.78rem] leading-tight tracking-[0.04em] text-ink sm:text-[0.88rem]"
+                  style={b.earned ? { color: b.accent } : undefined}
+                >
+                  {b.name}
+                </h3>
+                {b.earned && b.earnedDate ? (
+                  <p
+                    className="mt-0.5 text-[0.6rem] font-semibold"
+                    style={{ color: b.accent }}
+                  >
+                    Earned {b.earnedDate}
+                  </p>
+                ) : b.progress ? (
+                  <p className="mt-0.5 text-[0.6rem] text-muted">
+                    {b.progress.current}/{b.progress.target}
+                  </p>
+                ) : (
+                  <p className="mt-0.5 text-[0.6rem] text-muted">In progress</p>
+                )}
+              </div>
             </article>
           ))}
         </div>
       </section>
 
-      {/* Wrapped */}
-      <section>
-        <h2 className="font-serif text-[1.45rem] font-semibold text-forest">
-          Your Wrapped
-        </h2>
-        <p className="mt-1 text-sm text-muted">
-          Story-shaped months and years — private until you share.
-        </p>
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <button
-            type="button"
-            onClick={() => onOpenWrapped("month")}
-            className="rounded-[1.35rem] border border-[#e4d5c3] bg-[#fbf6ee] p-5 text-left transition hover:-translate-y-0.5 hover:shadow-md"
-          >
-            <p className="text-[0.68rem] font-semibold tracking-[0.12em] text-forest/65 uppercase">
-              Monthly
-            </p>
-            <p className="mt-2 font-serif text-xl font-semibold text-forest">
-              August Wrapped
-            </p>
-            <p className="mt-1 text-sm text-muted">View Wrapped →</p>
-          </button>
-          <button
-            type="button"
-            onClick={() => onOpenWrapped("year")}
-            className="rounded-[1.35rem] border border-[#e4d5c3] bg-[#fbf6ee] p-5 text-left transition hover:-translate-y-0.5 hover:shadow-md"
-          >
-            <p className="text-[0.68rem] font-semibold tracking-[0.12em] text-forest/65 uppercase">
-              Yearly
-            </p>
-            <p className="mt-2 font-serif text-xl font-semibold text-forest">
-              2026 Wrapped
-            </p>
-            <p className="mt-1 text-sm text-muted">View Wrapped →</p>
-          </button>
-        </div>
-      </section>
     </div>
   );
 }
@@ -923,19 +779,19 @@ function ReaderDnaPanel({
   return (
     <div className="mt-8 space-y-10">
       <section className="max-w-3xl">
-        <p className="text-[0.68rem] font-semibold tracking-[0.14em] text-forest/65 uppercase">
+        <p className="text-[0.68rem] font-semibold tracking-[0.14em] text-ink/65 uppercase">
           Your Reader DNA
         </p>
-        <h2 className="mt-2 font-serif text-[2rem] font-semibold text-forest">
+        <h2 className="mt-2 font-serif text-[2rem] font-semibold text-ink">
           {dna.title}
         </h2>
-        <p className="mt-3 text-[1.05rem] leading-relaxed text-forest/90">
+        <p className="mt-3 text-[1.05rem] leading-relaxed text-ink/90">
           {dna.summary}
         </p>
         <p className="mt-3 text-sm text-muted">
           Last updated: {dna.generatedAt} · {dna.dataPoints}
         </p>
-        <p className="mt-1 text-xs font-semibold text-forest/70">
+        <p className="mt-1 text-xs font-semibold text-ink/70">
           {dna.confidence === "high"
             ? "High-confidence Reader DNA"
             : dna.confidence === "medium"
@@ -956,7 +812,7 @@ function ReaderDnaPanel({
 
       {/* Trait map */}
       <section>
-        <h3 className="font-serif text-xl font-semibold text-forest">
+        <h3 className="font-serif text-xl font-semibold text-ink">
           Current reading tendencies
         </h3>
         <p className="mt-1 text-sm text-muted">
@@ -968,15 +824,15 @@ function ReaderDnaPanel({
               key={t.id}
               type="button"
               onClick={() => setTraitId(traitId === t.id ? null : t.id)}
-              className="rounded-[1.25rem] border border-[#e4d5c3] bg-[#fbf6ee] p-4 text-left transition hover:border-forest/30"
+              className="rounded-[1.25rem] border border-[#4a425c] bg-[#3a324f] p-4 text-left transition hover:border-forest/30"
             >
               <div className="flex items-baseline justify-between gap-2">
-                <span className="font-serif font-semibold text-forest">
+                <span className="font-serif font-semibold text-ink">
                   {t.label}
                 </span>
-                <span className="text-sm font-bold text-forest">{t.value}%</span>
+                <span className="text-sm font-bold text-ink">{t.value}%</span>
               </div>
-              <div className="mt-2 h-2 overflow-hidden rounded-full bg-[#e8dccb]">
+              <div className="mt-2 h-2 overflow-hidden rounded-full bg-[#564d6a]">
                 <div
                   className="h-full rounded-full bg-forest"
                   style={{ width: `${t.value}%` }}
@@ -987,11 +843,11 @@ function ReaderDnaPanel({
                 {t.value - t.previous}%
               </p>
               {traitId === t.id ? (
-                <p className="mt-3 rounded-xl bg-[#f3ebe0] px-3 py-2 text-xs leading-relaxed text-forest/85">
+                <p className="mt-3 rounded-xl bg-[#2a2438] px-3 py-2 text-xs leading-relaxed text-ink/85">
                   {t.why}
                 </p>
               ) : (
-                <p className="mt-2 text-[0.7rem] font-semibold text-forest/60">
+                <p className="mt-2 text-[0.7rem] font-semibold text-ink/60">
                   Why?
                 </p>
               )}
@@ -1001,11 +857,11 @@ function ReaderDnaPanel({
       </section>
 
       <section className="grid gap-4 lg:grid-cols-2">
-        <div className="rounded-[1.35rem] border border-[#e4d5c3] bg-[#fbf6ee] p-5">
-          <h3 className="font-serif text-lg font-semibold text-forest">
+        <div className="rounded-[1.35rem] border border-[#4a425c] bg-[#3a324f] p-5">
+          <h3 className="font-serif text-lg font-semibold text-ink">
             How your DNA changed
           </h3>
-          <ul className="mt-3 space-y-2 text-sm text-forest">
+          <ul className="mt-3 space-y-2 text-sm text-ink">
             {dna.traits
               .filter((t) => t.value !== t.previous)
               .slice(0, 4)
@@ -1024,24 +880,24 @@ function ReaderDnaPanel({
             fiction beside your fantasy home base.
           </p>
         </div>
-        <div className="rounded-[1.35rem] border border-[#e4d5c3] bg-[#fbf6ee] p-5">
-          <h3 className="font-serif text-lg font-semibold text-forest">
+        <div className="rounded-[1.35rem] border border-[#4a425c] bg-[#3a324f] p-5">
+          <h3 className="font-serif text-lg font-semibold text-ink">
             DNA history
           </h3>
           <ol className="mt-3 space-y-2 text-sm">
             <li className="text-muted">July 2026 — {dna.previousTitle}</li>
-            <li className="font-semibold text-forest">
+            <li className="font-semibold text-ink">
               August 2026 — {dna.title}
             </li>
           </ol>
-          <div className="mt-5 border-t border-[#e8dccb] pt-4">
-            <p className="text-[0.68rem] font-semibold tracking-[0.12em] text-forest/65 uppercase">
+          <div className="mt-5 border-t border-[#564d6a] pt-4">
+            <p className="text-[0.68rem] font-semibold tracking-[0.12em] text-ink/65 uppercase">
               Quiz personality vs DNA
             </p>
-            <p className="mt-2 text-sm text-forest">
+            <p className="mt-2 text-sm text-ink">
               Quiz: 🌙 {dna.quizPersonality}
             </p>
-            <p className="text-sm text-forest">
+            <p className="text-sm text-ink">
               Behavioral DNA: 🧬 {dna.title}
             </p>
             <p className="mt-2 text-sm text-muted">{dna.quizComparison}</p>
@@ -1052,13 +908,145 @@ function ReaderDnaPanel({
   );
 }
 
+function PatternCard({
+  pattern,
+  index,
+  expanded,
+  onToggleWhy,
+}: {
+  pattern: PeriodSnapshot["patterns"][number];
+  index: number;
+  expanded: boolean;
+  onToggleWhy: () => void;
+}) {
+  const bg = patternBackground(pattern.id, index);
+
+  return (
+    <article
+      role="button"
+      tabIndex={0}
+      aria-expanded={expanded}
+      onClick={onToggleWhy}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onToggleWhy();
+        }
+      }}
+      className="insights-pattern-card group relative cursor-pointer overflow-hidden rounded-[1.35rem] border border-white/15 text-left shadow-lg outline-none transition duration-300 hover:-translate-y-1 hover:scale-[1.015] hover:border-white/30 hover:shadow-xl focus-visible:ring-2 focus-visible:ring-white/50"
+      style={{ animationDelay: `${index * 70}ms` }}
+    >
+      <div
+        className="absolute inset-0 bg-cover bg-center transition duration-500 group-hover:scale-110"
+        style={{ backgroundImage: `url(${bg})` }}
+        aria-hidden
+      />
+      <div
+        className={`absolute inset-0 transition duration-300 ${
+          expanded
+            ? "bg-black/45"
+            : "bg-black/62 group-hover:bg-black/48"
+        }`}
+        aria-hidden
+      />
+      <div
+        className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-black/20"
+        aria-hidden
+      />
+
+      <div className="relative z-10 flex min-h-[11.5rem] flex-col p-4 sm:p-5">
+        <p className="text-xl drop-shadow-sm" aria-hidden>
+          {pattern.icon}
+        </p>
+        <p className="insights-body mt-2 text-sm leading-relaxed text-white/95 sm:text-[0.95rem]">
+          {pattern.text}
+        </p>
+
+        <div className="mt-auto flex flex-wrap items-center gap-x-4 gap-y-2 pt-4">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleWhy();
+            }}
+            className="insights-body text-xs font-semibold tracking-wide text-white/85 underline-offset-2 transition hover:text-white hover:underline"
+          >
+            {expanded ? "Hide why" : "Why am I seeing this?"}
+          </button>
+          {pattern.action ? (
+            <Link
+              href={pattern.action.href}
+              onClick={(e) => e.stopPropagation()}
+              className="insights-body text-xs font-semibold tracking-wide text-white underline-offset-2 transition hover:text-white hover:underline"
+            >
+              {pattern.action.label} →
+            </Link>
+          ) : null}
+        </div>
+
+        <div
+          className={`insights-pattern-why grid transition-[grid-template-rows] duration-300 ease-out ${
+            expanded ? "mt-3 grid-rows-[1fr]" : "grid-rows-[0fr]"
+          }`}
+        >
+          <div className="overflow-hidden">
+            <p className="insights-body rounded-xl border border-white/10 bg-black/45 px-3 py-2.5 text-xs leading-relaxed text-white/85 backdrop-blur-sm">
+              {pattern.why}
+            </p>
+          </div>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function WrappedEntryCard({
+  kind,
+  eyebrow,
+  title,
+  onClick,
+}: {
+  kind: "month" | "year";
+  eyebrow: string;
+  title: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="group relative overflow-hidden rounded-[1.35rem] border border-white/15 text-left shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl"
+    >
+      <div
+        className="absolute inset-0 bg-cover bg-center transition duration-500 group-hover:scale-105"
+        style={{ backgroundImage: `url(${WRAPPED_BG[kind]})` }}
+        aria-hidden
+      />
+      <div className="absolute inset-0 bg-black/55" aria-hidden />
+      <div className="relative z-10 flex min-h-[11rem] flex-col justify-end p-5">
+        <p className="insights-body text-[0.68rem] font-semibold tracking-[0.16em] text-white/70 uppercase">
+          {eyebrow}
+        </p>
+        <p className="insights-display mt-2 text-[1.85rem] leading-none tracking-[0.06em] text-white">
+          {title}
+        </p>
+        <p className="insights-body mt-2 text-sm text-white/80">
+          View Wrapped →
+        </p>
+      </div>
+    </button>
+  );
+}
+
 function WrappedModal({
+  kind,
   slides,
   step,
   setStep,
   onClose,
   onShare,
 }: {
+  kind: "month" | "year";
   slides: WrappedSlide[];
   step: number;
   setStep: (n: number | ((p: number) => number)) => void;
@@ -1067,10 +1055,20 @@ function WrappedModal({
 }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-      if (e.key === "ArrowRight")
+      if (e.key === "Escape") {
+        e.preventDefault();
+        onClose();
+        return;
+      }
+      if (e.key === "ArrowRight") {
+        e.preventDefault();
         setStep((s) => Math.min(slides.length - 1, s + 1));
-      if (e.key === "ArrowLeft") setStep((s) => Math.max(0, s - 1));
+        return;
+      }
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        setStep((s) => Math.max(0, s - 1));
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -1079,52 +1077,66 @@ function WrappedModal({
   const slide = slides[step];
   if (!slide) return null;
 
+  const bg = WRAPPED_BG[kind];
+
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
       <button
         type="button"
-        className="absolute inset-0 bg-[#2a342c]/45"
+        className="absolute inset-0 bg-[#2a2438]/55"
         aria-label="Close wrapped"
         onClick={onClose}
       />
       <div
         role="dialog"
         aria-modal="true"
-        className="relative z-10 flex h-[min(80vh,640px)] w-full max-w-md flex-col overflow-hidden rounded-[1.75rem] border border-[#e4d5c3] bg-[#f7f0e6] shadow-2xl"
+        className="relative z-10 flex h-[min(80vh,640px)] w-full max-w-md flex-col overflow-hidden rounded-[1.75rem] border border-white/20 shadow-2xl"
       >
-        <div className="flex gap-1 px-4 pt-4">
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: `url(${bg})` }}
+          aria-hidden
+        />
+        <div className="absolute inset-0 bg-black/60" aria-hidden />
+
+        <div className="relative z-10 flex gap-1 px-4 pt-4">
           {slides.map((s, i) => (
             <div
               key={s.id}
               className={`h-1 flex-1 rounded-full ${
-                i <= step ? "bg-forest" : "bg-[#e0d1bf]"
+                i <= step ? "bg-white" : "bg-white/25"
               }`}
             />
           ))}
         </div>
-        <div className="flex flex-1 flex-col justify-center px-8 py-10 text-center">
+        <div
+          key={slide.id}
+          className="insights-carousel-slide relative z-10 flex flex-1 flex-col justify-center px-8 py-10 text-center"
+        >
           {slide.eyebrow ? (
-            <p className="text-[0.68rem] font-semibold tracking-[0.14em] text-forest/65 uppercase">
+            <p className="insights-body text-[0.72rem] font-semibold tracking-[0.18em] text-white/70 uppercase">
               {slide.eyebrow}
             </p>
           ) : null}
-          <h2 className="mt-3 font-serif text-2xl font-semibold text-forest">
+          <h2 className="insights-display mt-3 text-[2.35rem] leading-[1.05] tracking-[0.05em] text-white">
             {slide.title}
           </h2>
           {slide.emphasis ? (
-            <p className="mt-4 font-serif text-3xl font-semibold text-forest">
+            <p className="insights-display mt-5 text-[2.8rem] leading-none tracking-[0.04em] text-[#f6e8ff]">
               {slide.emphasis}
             </p>
           ) : null}
           {slide.body ? (
-            <p className="mt-4 text-sm leading-relaxed text-muted">{slide.body}</p>
+            <p className="insights-body mx-auto mt-5 max-w-sm text-base leading-relaxed text-white/85">
+              {slide.body}
+            </p>
           ) : null}
         </div>
-        <div className="flex items-center justify-between gap-2 border-t border-[#e8dccb] px-4 py-3">
+        <div className="relative z-10 flex items-center justify-between gap-2 border-t border-white/15 bg-black/35 px-4 py-3 backdrop-blur-sm">
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full px-3 py-2 text-sm font-semibold text-forest/70"
+            className="rounded-full px-3 py-2 text-sm font-semibold text-white/75"
           >
             Close
           </button>
@@ -1133,7 +1145,7 @@ function WrappedModal({
               type="button"
               disabled={step === 0}
               onClick={() => setStep((s) => s - 1)}
-              className="rounded-full border border-[#e0d1bf] px-3 py-2 text-sm font-semibold text-forest disabled:opacity-40"
+              className="rounded-full border border-white/30 px-3 py-2 text-sm font-semibold text-white disabled:opacity-40"
             >
               Back
             </button>
@@ -1141,7 +1153,7 @@ function WrappedModal({
               <button
                 type="button"
                 onClick={() => setStep((s) => s + 1)}
-                className="rounded-full bg-forest px-4 py-2 text-sm font-semibold text-paper"
+                className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-[#1a1524]"
               >
                 Next
               </button>
@@ -1149,7 +1161,7 @@ function WrappedModal({
               <button
                 type="button"
                 onClick={onShare}
-                className="rounded-full bg-forest px-4 py-2 text-sm font-semibold text-paper"
+                className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-[#1a1524]"
               >
                 Share
               </button>
@@ -1195,21 +1207,21 @@ function ShareModal({
     <div className="fixed inset-0 z-[70] flex items-end justify-center p-4 sm:items-center">
       <button
         type="button"
-        className="absolute inset-0 bg-[#2a342c]/40"
+        className="absolute inset-0 bg-[#2a2438]/40"
         aria-label="Close share"
         onClick={onClose}
       />
       <div
         role="dialog"
         aria-modal="true"
-        className="relative z-10 max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-[1.5rem] border border-[#e4d5c3] bg-[#fbf6ee] p-5 shadow-xl"
+        className="relative z-10 max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-[1.5rem] border border-[#4a425c] bg-[#3a324f] p-5 shadow-xl"
       >
         <div className="flex items-center justify-between">
-          <h2 className="font-serif text-xl font-semibold text-forest">Share</h2>
+          <h2 className="font-serif text-xl font-semibold text-ink">Share</h2>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full px-3 py-1.5 text-sm font-semibold text-forest hover:bg-[#efe4d4]"
+            className="rounded-full px-3 py-1.5 text-sm font-semibold text-ink hover:bg-[#3f3654]"
           >
             Close
           </button>
@@ -1233,7 +1245,7 @@ function ShareModal({
               className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
                 format === id
                   ? "bg-forest text-paper"
-                  : "border border-[#e0d1bf] text-forest"
+                  : "border border-[#564d6a] text-ink"
               }`}
             >
               {label}
@@ -1242,17 +1254,17 @@ function ShareModal({
         </div>
 
         <div
-          className={`mx-auto mt-5 w-full max-w-[220px] overflow-hidden rounded-2xl border border-[#c9a15b]/40 bg-[#f0e4d0] p-4 shadow-inner ${aspect}`}
+          className={`mx-auto mt-5 w-full max-w-[220px] overflow-hidden rounded-2xl border border-[#b08fce]/40 bg-[#342c45] p-4 shadow-inner ${aspect}`}
         >
-          <p className="text-[0.6rem] font-semibold tracking-[0.14em] text-forest/70 uppercase">
+          <p className="text-[0.6rem] font-semibold tracking-[0.14em] text-ink/70 uppercase">
             My August Reader DNA
           </p>
           {privacy.readerDna ? (
             <>
-              <p className="mt-3 font-serif text-lg font-semibold text-forest">
+              <p className="mt-3 font-serif text-lg font-semibold text-ink">
                 {dna.title}
               </p>
-              <ul className="mt-3 space-y-1 text-[0.7rem] text-forest/85">
+              <ul className="mt-3 space-y-1 text-[0.7rem] text-ink/85">
                 {dna.traits.slice(0, 3).map((t) => (
                   <li key={t.id}>
                     {t.value}% {t.label}
@@ -1262,27 +1274,27 @@ function ShareModal({
             </>
           ) : null}
           {privacy.booksRead ? (
-            <p className="mt-3 text-[0.7rem] text-forest">
+            <p className="mt-3 text-[0.7rem] text-ink">
               {snap.booksFinished.value} books finished
             </p>
           ) : null}
           {privacy.minutes ? (
-            <p className="text-[0.7rem] text-forest">
+            <p className="text-[0.7rem] text-ink">
               {snap.minutesRead.value.toLocaleString()} minutes
             </p>
           ) : null}
           {privacy.favoriteBook ? (
-            <p className="mt-2 text-[0.7rem] italic text-forest/80">
+            <p className="mt-2 text-[0.7rem] italic text-ink/80">
               Favorite energy: Hamnet
             </p>
           ) : null}
-          <p className="mt-auto pt-4 font-serif text-sm font-semibold text-forest">
+          <p className="mt-auto pt-4 font-serif text-sm font-semibold text-ink">
             ReadLife
           </p>
         </div>
 
         <div className="mt-5">
-          <p className="text-[0.68rem] font-semibold tracking-[0.12em] text-forest/65 uppercase">
+          <p className="text-[0.68rem] font-semibold tracking-[0.12em] text-ink/65 uppercase">
             Include
           </p>
           <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
@@ -1296,7 +1308,7 @@ function ShareModal({
                 ["goals", "Goal progress"],
               ] as const
             ).map(([key, label]) => (
-              <label key={key} className="flex items-center gap-2 text-forest">
+              <label key={key} className="flex items-center gap-2 text-ink">
                 <input
                   type="checkbox"
                   checked={privacy[key]}
@@ -1332,7 +1344,7 @@ function ShareModal({
                       : `${label} share simulated.`,
                 )
               }
-              className="rounded-full border border-forest/30 py-2.5 text-xs font-semibold text-forest hover:bg-[#efe4d4]"
+              className="rounded-full border border-forest/30 py-2.5 text-xs font-semibold text-ink hover:bg-[#3f3654]"
             >
               {label}
             </button>
@@ -1346,13 +1358,13 @@ function ShareModal({
 function NewUserState() {
   return (
     <div className="mt-12 max-w-lg">
-      <p className="font-serif text-2xl font-semibold text-forest">
+      <p className="font-serif text-2xl font-semibold text-ink">
         Your reading story is just beginning.
       </p>
       <p className="mt-2 text-muted">
         Log books and reading sessions to start uncovering your patterns.
       </p>
-      <p className="mt-4 text-sm font-semibold text-forest/80">
+      <p className="mt-4 text-sm font-semibold text-ink/80">
         Reader DNA is forming · 2 / 5 books logged
       </p>
       <div className="mt-5 flex flex-wrap gap-2">
@@ -1364,13 +1376,13 @@ function NewUserState() {
         </Link>
         <Link
           href="/library"
-          className="rounded-full border border-forest/35 px-5 py-2.5 text-sm font-semibold text-forest"
+          className="rounded-full border border-forest/35 px-5 py-2.5 text-sm font-semibold text-ink"
         >
           Add Past Reads
         </Link>
         <Link
           href="/search"
-          className="rounded-full border border-forest/35 px-5 py-2.5 text-sm font-semibold text-forest"
+          className="rounded-full border border-forest/35 px-5 py-2.5 text-sm font-semibold text-ink"
         >
           Explore Books
         </Link>
@@ -1379,14 +1391,679 @@ function NewUserState() {
   );
 }
 
-function BigStat({ value, label }: { value: string; label: string }) {
+type OverviewSlide = {
+  id: string;
+  eyebrow: string;
+  title: string;
+  body: string;
+  stats: { value: string; label: string }[];
+  tint: string;
+};
+
+type MetricsSlideId =
+  | "activity"
+  | "when"
+  | "format"
+  | "ratings"
+  | "outcomes"
+  | "dnf";
+
+type MetricsSlide = {
+  id: MetricsSlideId;
+  title: string;
+  subtitle?: string;
+  note?: string;
+};
+
+function isTypingTarget(target: EventTarget | null) {
+  if (!(target instanceof HTMLElement)) return false;
+  if (target.isContentEditable) return true;
+  const tag = target.tagName;
+  if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return true;
+  return Boolean(target.closest("input, textarea, select, [contenteditable='true']"));
+}
+
+function MetricsBarCarousel({
+  snap,
+  activityMode,
+  setActivityMode,
+}: {
+  snap: PeriodSnapshot;
+  activityMode: "minutes" | "pages";
+  setActivityMode: (m: "minutes" | "pages") => void;
+}) {
+  const slides = useMemo<MetricsSlide[]>(() => {
+    const list: MetricsSlide[] = [
+      {
+        id: "activity",
+        title: "Reading activity",
+        subtitle: "When the pages actually moved.",
+        note: `Hover a bar for day details. Unit: ${activityMode}.`,
+      },
+      {
+        id: "when",
+        title: "When do you read?",
+        note: `${snap.timeOfDay.evening + snap.timeOfDay.lateNight}% of your reading happens after 5 PM.`,
+      },
+      {
+        id: "format",
+        title: "How you read",
+        subtitle: "By books finished",
+        note: formatTimeInsight(snap),
+      },
+      {
+        id: "ratings",
+        title: "What worked for you",
+        subtitle: `Average rating ${snap.avgRating.value}★`,
+        note: `You gave 5 stars to ${snap.ratingDist[5]} of your finishes in this view.`,
+      },
+      {
+        id: "outcomes",
+        title: "Your reading outcomes",
+        note: `Paused is waiting — not abandoned. You usually return within about ${snap.pauseStats.avgResumeDays} days.`,
+      },
+    ];
+    if (snap.dnfReasons.length) {
+      list.push({
+        id: "dnf",
+        title: "Why you DNF",
+        note: `${snap.dnfReasons[0]?.reason} was your most common DNF reason.`,
+      });
+    }
+    return list;
+  }, [snap, activityMode]);
+
+  const [index, setIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(false);
+  const touchX = useRef<number | null>(null);
+  const autoplayMs = 5500;
+  const indexRef = useRef(index);
+  indexRef.current = index;
+
+  const maxActivity = Math.max(
+    1,
+    ...snap.activityByDay.map((d) =>
+      activityMode === "minutes" ? d.minutes : d.pages,
+    ),
+  );
+
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const sync = () => setReducedMotion(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+
+  useEffect(() => {
+    if (index >= slides.length) setIndex(0);
+  }, [slides.length, index]);
+
+  useEffect(() => {
+    if (paused || reducedMotion || slides.length < 2) return;
+    const id = window.setInterval(() => {
+      setIndex((i) => (i + 1) % slides.length);
+    }, autoplayMs);
+    return () => window.clearInterval(id);
+  }, [paused, reducedMotion, slides.length, index, autoplayMs]);
+
+  const go = (next: number) => {
+    const len = slides.length;
+    setIndex(((next % len) + len) % len);
+  };
+
+  // Arrow keys while Reading Insights is active (skip inputs/modals; yield if already handled)
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+      if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey) return;
+      if (isTypingTarget(e.target)) return;
+      if (document.querySelector('[aria-modal="true"]')) return;
+      e.preventDefault();
+      const i = indexRef.current;
+      go(e.key === "ArrowRight" ? i + 1 : i - 1);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [slides.length]);
+
+  const slide = slides[Math.min(index, slides.length - 1)];
+  const progressKey = `${slide.id}-${index}`;
+
   return (
-    <div>
-      <p className="font-serif text-3xl font-semibold tracking-tight text-forest">
-        {value}
+    <section
+      className="insights-metrics-carousel relative flex h-full min-h-[22rem] flex-col overflow-hidden rounded-[1.35rem] border border-[#4a425c]/90 bg-[#3a324f]/85"
+      tabIndex={0}
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      onFocusCapture={() => setPaused(true)}
+      onBlurCapture={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
+          setPaused(false);
+        }
+      }}
+      onTouchStart={(e) => {
+        touchX.current = e.changedTouches[0]?.clientX ?? null;
+        setPaused(true);
+      }}
+      onTouchEnd={(e) => {
+        const start = touchX.current;
+        const end = e.changedTouches[0]?.clientX;
+        touchX.current = null;
+        setPaused(false);
+        if (start == null || end == null) return;
+        const delta = end - start;
+        if (Math.abs(delta) < 40) return;
+        go(delta < 0 ? index + 1 : index - 1);
+      }}
+      aria-roledescription="carousel"
+      aria-label="Reading metrics"
+    >
+      <div className="relative flex items-start justify-between gap-3 px-4 pt-4 sm:px-5">
+        <div className="min-w-0">
+          <p className="insights-body text-[0.68rem] font-semibold tracking-[0.16em] text-ink/65 uppercase">
+            Metrics
+          </p>
+          <h2 className="insights-display mt-1 text-[1.55rem] leading-none tracking-[0.05em] text-ink sm:text-[1.75rem]">
+            {slide.title}
+          </h2>
+          {slide.subtitle ? (
+            <p className="insights-body mt-1 text-xs text-muted">
+              {slide.subtitle}
+            </p>
+          ) : null}
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          {slide.id === "activity" ? (
+            <div className="mr-1 flex rounded-full border border-[#564d6a] bg-[#2a2438]/55 p-0.5">
+              {(["minutes", "pages"] as const).map((m) => (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => setActivityMode(m)}
+                  className={`rounded-full px-2.5 py-1 text-[0.65rem] font-semibold capitalize ${
+                    activityMode === m
+                      ? "bg-forest text-paper"
+                      : "text-ink/70"
+                  }`}
+                >
+                  {m}
+                </button>
+              ))}
+            </div>
+          ) : null}
+          <button
+            type="button"
+            aria-label="Previous metrics slide"
+            onClick={() => go(index - 1)}
+            className="rounded-full border border-[#564d6a] bg-[#2a2438]/55 px-2.5 py-1 text-sm font-semibold text-ink hover:bg-[#3f3654]"
+          >
+            ←
+          </button>
+          <button
+            type="button"
+            aria-label="Next metrics slide"
+            onClick={() => go(index + 1)}
+            className="rounded-full border border-[#564d6a] bg-[#2a2438]/55 px-2.5 py-1 text-sm font-semibold text-ink hover:bg-[#3f3654]"
+          >
+            →
+          </button>
+        </div>
+      </div>
+
+      <div
+        key={slide.id}
+        className="insights-carousel-slide relative flex flex-1 flex-col px-4 pt-3 sm:px-5"
+      >
+        {slide.id === "activity" ? (
+          <div className="insights-activity-chart flex flex-1 items-end gap-1 rounded-xl border border-[#4a425c]/60 bg-[#2a2438]/40 p-3">
+            {snap.activityByDay.map((d) => {
+              const val = activityMode === "minutes" ? d.minutes : d.pages;
+              const h =
+                val <= 0
+                  ? 0
+                  : Math.max(8, Math.round((val / maxActivity) * 100));
+              return (
+                <div
+                  key={d.date}
+                  className="insights-activity-col group relative flex flex-1 flex-col items-center justify-end"
+                >
+                  <div
+                    className="w-full max-w-[14px] rounded-t-md bg-forest/80 transition group-hover:bg-forest"
+                    style={{ height: h > 0 ? `${h}%` : "0px" }}
+                    title={`${d.date}: ${d.minutes} min · ${d.pages} pages · ${d.sessions} sessions`}
+                  />
+                  <span className="pointer-events-none absolute bottom-full mb-1 hidden rounded-md bg-forest px-2 py-1 text-[0.65rem] whitespace-nowrap text-paper group-hover:block">
+                    {fmtDay(d.date)}
+                    <br />
+                    {d.minutes} min · {d.pages} pages
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="flex flex-1 flex-col justify-center space-y-2.5 py-1">
+            {slide.id === "when"
+              ? (
+                  [
+                    ["Morning", snap.timeOfDay.morning],
+                    ["Afternoon", snap.timeOfDay.afternoon],
+                    ["Evening", snap.timeOfDay.evening],
+                    ["Late Night", snap.timeOfDay.lateNight],
+                  ] as const
+                ).map(([label, pct]) => (
+                  <BarRow key={label} label={label} pct={pct} />
+                ))
+              : null}
+            {slide.id === "format"
+              ? Object.entries(snap.formatByBooks).map(([k, n]) => {
+                  const total =
+                    Object.values(snap.formatByBooks).reduce(
+                      (a, b) => a + b,
+                      0,
+                    ) || 1;
+                  return (
+                    <BarRow
+                      key={k}
+                      label={cap(k)}
+                      pct={Math.round((n / total) * 100)}
+                    />
+                  );
+                })
+              : null}
+            {slide.id === "ratings"
+              ? ([5, 4, 3, 2, 1] as const).map((star) => {
+                  const n = snap.ratingDist[star];
+                  const total =
+                    Object.values(snap.ratingDist).reduce((a, b) => a + b, 0) ||
+                    1;
+                  return (
+                    <BarRow
+                      key={star}
+                      label={"★".repeat(star)}
+                      pct={Math.round((n / total) * 100)}
+                      suffix={`${n}`}
+                    />
+                  );
+                })
+              : null}
+            {slide.id === "outcomes" ? (
+              <>
+                <BarRow label="Finished" pct={snap.outcomes.finished} />
+                <BarRow label="Paused" pct={snap.outcomes.paused} />
+                <BarRow label="DNF" pct={snap.outcomes.dnf} />
+              </>
+            ) : null}
+            {slide.id === "dnf"
+              ? snap.dnfReasons.map((r) => (
+                  <BarRow key={r.reason} label={r.reason} pct={r.share} />
+                ))
+              : null}
+          </div>
+        )}
+        {slide.note ? (
+          <p className="insights-body mt-3 text-xs leading-relaxed text-ink/80">
+            {slide.note}
+          </p>
+        ) : null}
+      </div>
+
+      <div className="relative flex items-center justify-center gap-2 px-4 pb-4 pt-3 sm:px-5">
+        {slides.map((s, i) => {
+          const active = i === index;
+          return (
+            <button
+              key={s.id}
+              type="button"
+              aria-label={`Go to metrics slide ${i + 1}: ${s.title}`}
+              aria-current={active ? "true" : undefined}
+              onClick={() => go(i)}
+              className={`h-2 rounded-full transition-all ${
+                active ? "w-6 bg-forest" : "w-2 bg-[#564d6a] opacity-55 hover:opacity-90"
+              }`}
+              style={{
+                animation:
+                  active && !reducedMotion
+                    ? "insights-pulse-dot 2.4s ease-in-out infinite"
+                    : undefined,
+              }}
+            />
+          );
+        })}
+      </div>
+
+      {!reducedMotion && !paused ? (
+        <div
+          className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#2a2438]/80"
+          aria-hidden
+        >
+          <div
+            key={progressKey}
+            className="insights-carousel-progress h-full bg-forest"
+            style={{ animationDuration: `${autoplayMs}ms` }}
+          />
+        </div>
+      ) : !reducedMotion ? (
+        <div
+          className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#2a2438]/80"
+          aria-hidden
+        />
+      ) : null}
+    </section>
+  );
+}
+
+function OverviewCarousel({
+  snap,
+  dna,
+}: {
+  snap: PeriodSnapshot;
+  dna: ReaderDna;
+}) {
+  const slides = useMemo<OverviewSlide[]>(() => {
+    const topGenre = snap.genreShare[0];
+    const nightShare = snap.timeOfDay.evening + snap.timeOfDay.lateNight;
+    return [
+      {
+        id: "pulse",
+        eyebrow: `Overview · ${snap.label}`,
+        title: "Your reading pulse",
+        body: "Books, pages, and minutes that actually moved this period.",
+        tint: "#b08fce",
+        stats: [
+          { value: String(snap.booksFinished.value), label: "Books finished" },
+          {
+            value: snap.pagesRead.value.toLocaleString(),
+            label: "Pages read",
+          },
+          {
+            value: snap.minutesRead.value.toLocaleString(),
+            label: "Minutes",
+          },
+        ],
+      },
+      {
+        id: "streak",
+        eyebrow: "Habit",
+        title: "Streak & rhythm",
+        body: "Consistency is the quiet plot twist.",
+        tint: "#7dd3c0",
+        stats: [
+          { value: `${snap.streakDays.value}d`, label: "Current streak" },
+          { value: String(snap.readingDays.value), label: "Reading days" },
+          { value: String(snap.sessions.value), label: "Sessions" },
+        ],
+      },
+      {
+        id: "genre",
+        eyebrow: "Taste",
+        title: "Top genre energy",
+        body: topGenre
+          ? `${topGenre.genre} is carrying ${topGenre.share}% of your shelf gravity.`
+          : "Genre signals are still forming.",
+        tint: "#f0a6ca",
+        stats: [
+          {
+            value: topGenre?.genre ?? "—",
+            label: "Most read",
+          },
+          {
+            value: snap.highestRatedGenre
+              ? `${snap.highestRatedGenre.avgRating}★`
+              : "—",
+            label: snap.highestRatedGenre?.genre ?? "Highest rated",
+          },
+          {
+            value: `${nightShare}%`,
+            label: "After 5 PM",
+          },
+        ],
+      },
+      {
+        id: "dna",
+        eyebrow: "Reader DNA",
+        title: dna.title,
+        body: dna.summary,
+        tint: "#7eb8ff",
+        stats: [
+          {
+            value: `${dna.confidencePct}%`,
+            label: "DNA developed",
+          },
+          {
+            value: `${dna.traits[0]?.value ?? 0}%`,
+            label: dna.traits[0]?.label ?? "Trait",
+          },
+          {
+            value: `${snap.avgRating.value}★`,
+            label: "Avg rating",
+          },
+        ],
+      },
+      {
+        id: "goals",
+        eyebrow: "Goals",
+        title: "How close you are",
+        body:
+          snap.goalBooks.current >= snap.goalBooks.target
+            ? "Monthly book goal already cleared — savor it."
+            : `${snap.goalBooks.target - snap.goalBooks.current} books left on the monthly goal.`,
+        tint: "#f0c27a",
+        stats: [
+          {
+            value: `${snap.goalBooks.current}/${snap.goalBooks.target}`,
+            label: "Books",
+          },
+          {
+            value: `${snap.goalMinutes.current}/${snap.goalMinutes.target}`,
+            label: "Minutes",
+          },
+          {
+            value: `${snap.goalDays.current}/${snap.goalDays.target}`,
+            label: "Days",
+          },
+        ],
+      },
+    ];
+  }, [snap, dna]);
+
+  const [index, setIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(false);
+  const touchX = useRef<number | null>(null);
+  const autoplayMs = 4500;
+  const indexRef = useRef(index);
+  indexRef.current = index;
+
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const sync = () => setReducedMotion(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+
+  useEffect(() => {
+    if (paused || reducedMotion || slides.length < 2) return;
+    const id = window.setInterval(() => {
+      setIndex((i) => (i + 1) % slides.length);
+    }, autoplayMs);
+    return () => window.clearInterval(id);
+    // Reset the timer whenever the visible slide changes (manual or auto)
+    // so each slide gets a full interval.
+  }, [paused, reducedMotion, slides.length, index, autoplayMs]);
+
+  const go = (next: number) => {
+    const len = slides.length;
+    setIndex(((next % len) + len) % len);
+  };
+
+  // When hovered/focused, steal arrows (capture) so metrics carousel yields
+  useEffect(() => {
+    if (!paused) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+      if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey) return;
+      if (isTypingTarget(e.target)) return;
+      if (document.querySelector('[aria-modal="true"]')) return;
+      e.preventDefault();
+      const i = indexRef.current;
+      go(e.key === "ArrowRight" ? i + 1 : i - 1);
+    };
+    window.addEventListener("keydown", onKey, true);
+    return () => window.removeEventListener("keydown", onKey, true);
+  }, [paused, slides.length]);
+
+  const slide = slides[index];
+  const progressKey = `${slide.id}-${index}`;
+
+  return (
+    <section
+      className="relative overflow-hidden rounded-[1.6rem] border border-[#4a425c]/90"
+      style={{
+        background: `linear-gradient(135deg, ${slide.tint}22, #342c45 48%, #2a2438)`,
+      }}
+      tabIndex={0}
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      onFocusCapture={() => setPaused(true)}
+      onBlurCapture={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
+          setPaused(false);
+        }
+      }}
+      onTouchStart={(e) => {
+        touchX.current = e.changedTouches[0]?.clientX ?? null;
+        setPaused(true);
+      }}
+      onTouchEnd={(e) => {
+        const start = touchX.current;
+        const end = e.changedTouches[0]?.clientX;
+        touchX.current = null;
+        setPaused(false);
+        if (start == null || end == null) return;
+        const delta = end - start;
+        if (Math.abs(delta) < 40) return;
+        go(delta < 0 ? index + 1 : index - 1);
+      }}
+      aria-roledescription="carousel"
+      aria-label="Insights overview"
+    >
+      <div className="pointer-events-none absolute -right-10 -top-12 h-40 w-40 rounded-full opacity-40 blur-3xl"
+        style={{ background: slide.tint }}
+        aria-hidden
+      />
+
+      <div className="relative flex items-start justify-between gap-3 px-5 pt-5 sm:px-7">
+        <div>
+          <p className="insights-body text-[0.68rem] font-semibold tracking-[0.16em] text-ink/65 uppercase">
+            {slide.eyebrow}
+          </p>
+          <p className="insights-body mt-1 text-xs text-muted">
+            {reducedMotion
+              ? "Arrows or dots to browse · autoplay off"
+              : "Autoplays · pause on hover · arrows & dots work"}
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            aria-label="Previous overview slide"
+            onClick={() => go(index - 1)}
+            className="rounded-full border border-[#564d6a] bg-[#2a2438]/55 px-3 py-1.5 text-sm font-semibold text-ink hover:bg-[#3f3654]"
+          >
+            ←
+          </button>
+          <button
+            type="button"
+            aria-label="Next overview slide"
+            onClick={() => go(index + 1)}
+            className="rounded-full border border-[#564d6a] bg-[#2a2438]/55 px-3 py-1.5 text-sm font-semibold text-ink hover:bg-[#3f3654]"
+          >
+            →
+          </button>
+        </div>
+      </div>
+
+      <div
+        key={slide.id}
+        className="insights-carousel-slide relative px-5 pb-5 pt-4 sm:px-7 sm:pb-6"
+      >
+        <h2 className="insights-display text-[2.15rem] leading-none tracking-[0.05em] text-ink sm:text-[2.55rem]">
+          {slide.title}
+        </h2>
+        <p className="insights-body mt-3 max-w-2xl text-[1.02rem] leading-relaxed text-ink/85">
+          {slide.body}
+        </p>
+        <div className="mt-6 grid gap-3 sm:grid-cols-3">
+          {slide.stats.map((s) => (
+            <div
+              key={`${slide.id}-${s.label}`}
+              className="rounded-2xl border border-white/10 bg-[#2a2438]/55 px-4 py-3 backdrop-blur-[2px]"
+            >
+              <p className="insights-display text-[1.85rem] leading-none tracking-[0.04em] text-ink">
+                {s.value}
+              </p>
+              <p className="insights-body mt-1.5 text-xs text-muted">{s.label}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="relative flex items-center justify-center gap-2 pb-5">
+        {slides.map((s, i) => {
+          const active = i === index;
+          return (
+            <button
+              key={s.id}
+              type="button"
+              aria-label={`Go to slide ${i + 1}: ${s.title}`}
+              aria-current={active ? "true" : undefined}
+              onClick={() => go(i)}
+              className={`h-2 rounded-full transition-all ${
+                active ? "w-7" : "w-2 opacity-55 hover:opacity-90"
+              }`}
+              style={{
+                background: active ? slide.tint : "#564d6a",
+                animation:
+                  active && !reducedMotion
+                    ? "insights-pulse-dot 2.4s ease-in-out infinite"
+                    : undefined,
+              }}
+            />
+          );
+        })}
+      </div>
+
+      {/* Autoplay progress — subtle cue that slides advance */}
+      {!reducedMotion && !paused ? (
+        <div
+          className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#2a2438]/80"
+          aria-hidden
+        >
+          <div
+            key={progressKey}
+            className="insights-carousel-progress h-full"
+            style={{
+              background: slide.tint,
+              animationDuration: `${autoplayMs}ms`,
+            }}
+          />
+        </div>
+      ) : !reducedMotion ? (
+        <div
+          className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#2a2438]/80"
+          aria-hidden
+        />
+      ) : null}
+
+      <p className="insights-body px-5 pb-4 text-[0.7rem] text-muted-soft sm:px-7">
+        Metrics from library history are calculated; session charts use demo
+        logs for August depth.
       </p>
-      <p className="mt-0.5 text-xs font-medium text-muted">{label}</p>
-    </div>
+    </section>
   );
 }
 
@@ -1405,14 +2082,14 @@ function GoalCard({
 }) {
   const pct = Math.min(100, Math.round((current / target) * 100));
   return (
-    <div className="rounded-[1.25rem] border border-[#e4d5c3] bg-[#fbf6ee]/90 p-4">
-      <p className="text-[0.68rem] font-semibold tracking-[0.12em] text-forest/65 uppercase">
+    <div className="rounded-[1.25rem] border border-[#4a425c] bg-[#3a324f]/90 p-4">
+      <p className="text-[0.68rem] font-semibold tracking-[0.12em] text-ink/65 uppercase">
         {title}
       </p>
-      <p className="mt-2 font-serif text-xl font-semibold text-forest">
+      <p className="mt-2 font-serif text-xl font-semibold text-ink">
         {current.toLocaleString()} / {target.toLocaleString()} {unit}
       </p>
-      <div className="mt-2 h-2 overflow-hidden rounded-full bg-[#e8dccb]">
+      <div className="mt-2 h-2 overflow-hidden rounded-full bg-[#564d6a]">
         <div
           className="h-full rounded-full bg-forest-soft"
           style={{ width: `${pct}%` }}
@@ -1435,12 +2112,12 @@ function BarRow({
   return (
     <div>
       <div className="mb-1 flex justify-between gap-2 text-xs">
-        <span className="text-forest/90">{label}</span>
-        <span className="font-semibold text-forest">
+        <span className="text-ink/90">{label}</span>
+        <span className="font-semibold text-ink">
           {suffix ?? `${pct}%`}
         </span>
       </div>
-      <div className="h-2 overflow-hidden rounded-full bg-[#e8dccb]">
+      <div className="h-2 overflow-hidden rounded-full bg-[#564d6a]">
         <div
           className="h-full rounded-full bg-forest"
           style={{ width: `${Math.min(100, pct)}%` }}
@@ -1450,13 +2127,214 @@ function BarRow({
   );
 }
 
-function MiniStat({ label, value }: { label: string; value: string }) {
+const GENRE_TREEMAP_COLORS = [
+  "#FF5C8A", // hot pink
+  "#FFB020", // amber gold
+  "#3DDC97", // mint
+  "#4DA3FF", // sky
+  "#FF7A45", // coral
+  "#C77DFF", // violet (accent only, not whole chart)
+] as const;
+
+type TreemapCell = {
+  genre: string;
+  share: number;
+  color: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+};
+
+function layoutGenreTreemap(
+  items: { genre: string; share: number; color: string }[],
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  horizontal: boolean,
+): TreemapCell[] {
+  if (items.length === 0) return [];
+  if (items.length === 1) {
+    const only = items[0];
+    return [{ ...only, x, y, w, h }];
+  }
+
+  const total = items.reduce((s, n) => s + Math.max(n.share, 1), 0);
+  let acc = 0;
+  let splitIdx = 1;
+  for (let i = 0; i < items.length - 1; i++) {
+    acc += Math.max(items[i].share, 1);
+    splitIdx = i + 1;
+    if (acc >= total / 2) break;
+  }
+
+  const left = items.slice(0, splitIdx);
+  const right = items.slice(splitIdx);
+  const leftShare = left.reduce((s, n) => s + Math.max(n.share, 1), 0);
+  const ratio = leftShare / total;
+
+  if (horizontal) {
+    const leftW = w * ratio;
+    return [
+      ...layoutGenreTreemap(left, x, y, leftW, h, false),
+      ...layoutGenreTreemap(right, x + leftW, y, w - leftW, h, false),
+    ];
+  }
+
+  const leftH = h * ratio;
+  return [
+    ...layoutGenreTreemap(left, x, y, w, leftH, true),
+    ...layoutGenreTreemap(right, x, y + leftH, w, h - leftH, true),
+  ];
+}
+
+function GenreTreemap({
+  genres,
+}: {
+  genres: { genre: string; share: number }[];
+}) {
+  const items = genres.filter((g) => g.share > 0);
+  // Measure the constrained card only (left col of Metrics-aligned grid), not a parent.
+  const wrapRef = useRef<HTMLDivElement>(null);
+  // Initial h matches Metrics carousel min-h (22rem ≈ 352px)
+  const [size, setSize] = useState({ w: 1, h: 352 });
+  const gap = 3;
+
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el) return;
+    const update = () => {
+      // content-box width of the card — matches carousel column after layout
+      const w = Math.max(1, Math.round(el.clientWidth));
+      // Card height matches Metrics (22rem); do not stretch to gold circles column
+      const h = Math.max(1, Math.round(el.clientHeight));
+      setSize((prev) => (prev.w === w && prev.h === h ? prev : { w, h }));
+    };
+    update();
+    const ro = new ResizeObserver(() => {
+      // rAF so we read after grid/flex has applied the constrained width
+      requestAnimationFrame(update);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  if (!items.length) {
+    return (
+      <p className="insights-body text-sm text-muted">
+        Genre mix will appear as you finish more books.
+      </p>
+    );
+  }
+
+  const colored = items.map((g, i) => ({
+    ...g,
+    color: GENRE_TREEMAP_COLORS[i % GENRE_TREEMAP_COLORS.length],
+  }));
+  const cells = layoutGenreTreemap(colored, 0, 0, size.w, size.h, true);
+
   return (
-    <div className="rounded-[1.15rem] border border-[#e4d5c3] bg-[#fbf6ee] px-4 py-3">
-      <p className="text-[0.65rem] font-semibold tracking-wide text-muted uppercase">
+    <div
+      ref={wrapRef}
+      className="insights-genre-treemap-card h-[22rem] min-h-[22rem] w-full max-w-full overflow-hidden rounded-[1.35rem] border border-[#4a425c]/90 bg-[#3a324f]/85"
+    >
+      <svg
+        viewBox={`0 0 ${size.w} ${size.h}`}
+        width="100%"
+        height="100%"
+        preserveAspectRatio="none"
+        className="insights-genre-treemap block h-full w-full max-w-full"
+        role="img"
+        aria-label="Genre share treemap"
+      >
+        {cells.map((c) => {
+          const rx = c.x + gap / 2;
+          const ry = c.y + gap / 2;
+          const rw = Math.max(0, c.w - gap);
+          const rh = Math.max(0, c.h - gap);
+          const showLabel = rw > 72 && rh > 36;
+          const showPctOnly = !showLabel && rw > 40 && rh > 24;
+          const darkText = ["#FFB020", "#3DDC97", "#FF7A45"].includes(c.color);
+          const textFill = darkText ? "#1a1524" : "#f7f2ea";
+          return (
+            <g key={c.genre}>
+              <title>
+                {c.genre}: {c.share}%
+              </title>
+              <rect
+                x={rx}
+                y={ry}
+                width={rw}
+                height={rh}
+                rx={6}
+                fill={c.color}
+                opacity={0.95}
+              />
+              {showLabel ? (
+                <>
+                  <text
+                    x={rx + 10}
+                    y={ry + 20}
+                    fill={textFill}
+                    className="insights-body"
+                    style={{ fontSize: 13, fontWeight: 700 }}
+                  >
+                    {c.genre.length > 16
+                      ? `${c.genre.slice(0, 15)}…`
+                      : c.genre}
+                  </text>
+                  <text
+                    x={rx + 10}
+                    y={ry + 38}
+                    fill={textFill}
+                    opacity={0.9}
+                    className="insights-body"
+                    style={{ fontSize: 14, fontWeight: 600 }}
+                  >
+                    {c.share}%
+                  </text>
+                </>
+              ) : showPctOnly ? (
+                <text
+                  x={rx + rw / 2}
+                  y={ry + rh / 2 + 5}
+                  textAnchor="middle"
+                  fill={textFill}
+                  className="insights-body"
+                  style={{ fontSize: 12, fontWeight: 700 }}
+                >
+                  {c.share}%
+                </text>
+              ) : null}
+            </g>
+          );
+        })}
+      </svg>
+    </div>
+  );
+}
+
+function MiniStat({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: string;
+  tone: string;
+}) {
+  return (
+    <div
+      className="insights-mini-stat flex aspect-square w-[min(36vw,7rem)] shrink-0 flex-col items-center justify-center rounded-full px-2.5 text-center sm:w-[7.5rem] lg:w-[7rem] xl:w-[7.75rem]"
+      style={{ backgroundColor: tone }}
+    >
+      <p className="text-[0.6rem] font-semibold tracking-wide text-[#3a2e0a]/90 uppercase sm:text-[0.65rem]">
         {label}
       </p>
-      <p className="mt-1 font-serif text-lg font-semibold text-forest">{value}</p>
+      <p className="mt-1 font-serif text-sm font-semibold text-[#2a2208] sm:text-base">
+        {value}
+      </p>
     </div>
   );
 }
@@ -1471,11 +2349,11 @@ function Partial({
   cta: string;
 }) {
   return (
-    <div className="mt-3 rounded-2xl border border-dashed border-[#e0d1bf] bg-[#f3ebe0]/60 px-4 py-5">
+    <div className="mt-3 rounded-2xl border border-dashed border-[#564d6a] bg-[#2a2438]/60 px-4 py-5">
       <p className="text-sm text-muted">{text}</p>
       <Link
         href={href}
-        className="mt-3 inline-flex text-sm font-semibold text-forest underline-offset-2 hover:underline"
+        className="mt-3 inline-flex text-sm font-semibold text-ink underline-offset-2 hover:underline"
       >
         {cta} →
       </Link>

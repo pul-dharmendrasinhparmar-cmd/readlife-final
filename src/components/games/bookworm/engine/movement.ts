@@ -23,6 +23,19 @@ export function nextHead(head: Point, dir: Dir): Point {
   return { x: head.x + d.x, y: head.y + d.y };
 }
 
+/**
+ * Classic Snake wrap: leave one edge, enter the opposite.
+ * Grid is square [0..grid-1] for both axes (cols === rows === grid).
+ */
+export function wrapPosition(p: Point, grid: number): Point {
+  let { x, y } = p;
+  if (x < 0) x = grid - 1;
+  else if (x >= grid) x = 0;
+  if (y < 0) y = grid - 1;
+  else if (y >= grid) y = 0;
+  return { x, y };
+}
+
 /** Ignore 180° reverse into the body. */
 export function canTurn(current: Dir, next: Dir): boolean {
   return OPPOSITE[current] !== next;

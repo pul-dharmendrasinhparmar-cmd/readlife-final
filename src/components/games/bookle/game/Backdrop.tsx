@@ -36,8 +36,8 @@ export default function Backdrop({ token, children, fullPage = false }: Props) {
       : { width: "100%", height: "100%" }),
   };
 
-  const silhouetteColor = token.silhouetteColor || "#2f4a36";
-  const overlayColor = token.overlayColor || "#c9a15b";
+  const silhouetteColor = token.silhouetteColor || "#5b4e8c";
+  const overlayColor = token.overlayColor || "#b08fce";
 
   return (
     <div style={skyStyle}>

@@ -1,6 +1,6 @@
 "use client";
 
-export type RoomVibe = "morning" | "afternoon" | "evening" | "rainy";
+export type RoomVibe = "day" | "night" | "rainy" | "snowy";
 
 export type RoomPrefs = {
   vibe: RoomVibe;
@@ -10,15 +10,25 @@ export type RoomPrefs = {
 const KEY = "readlife-room-prefs-v1";
 
 const DEFAULTS: RoomPrefs = {
-  vibe: "afternoon",
+  vibe: "day",
   tutorialCompleted: false,
 };
 
+const VALID_VIBES = new Set<RoomVibe>(["day", "night", "rainy", "snowy"]);
+
+/** Map legacy Morning/Afternoon/Evening prefs onto the new Day/Night set. */
+function migrateVibe(raw: unknown): RoomVibe | null {
+  if (typeof raw !== "string") return null;
+  if (VALID_VIBES.has(raw as RoomVibe)) return raw as RoomVibe;
+  if (raw === "morning" || raw === "afternoon") return "day";
+  if (raw === "evening") return "night";
+  return null;
+}
+
 function hourDefaultVibe(): RoomVibe {
   const h = new Date().getHours();
-  if (h < 12) return "morning";
-  if (h < 17) return "afternoon";
-  return "evening";
+  if (h >= 6 && h < 18) return "day";
+  return "night";
 }
 
 export function loadRoomPrefs(): RoomPrefs {
@@ -30,7 +40,7 @@ export function loadRoomPrefs(): RoomPrefs {
     }
     const parsed = JSON.parse(raw) as Partial<RoomPrefs>;
     return {
-      vibe: parsed.vibe ?? hourDefaultVibe(),
+      vibe: migrateVibe(parsed.vibe) ?? hourDefaultVibe(),
       tutorialCompleted: Boolean(parsed.tutorialCompleted),
     };
   } catch {
@@ -63,8 +73,15 @@ export const VIBE_OPTIONS: {
   label: string;
   blurb: string;
 }[] = [
-  { id: "morning", label: "Morning", blurb: "Soft gold light through the panes" },
-  { id: "afternoon", label: "Afternoon", blurb: "Warm daylight, perfect for chapters" },
-  { id: "evening", label: "Evening", blurb: "Lamp glow and quiet pages" },
+  { id: "day", label: "Day", blurb: "Sunlit panes and a clear view of town" },
+  { id: "night", label: "Night", blurb: "Moonlight, stars, and quiet lamp glow" },
   { id: "rainy", label: "Rainy", blurb: "Soft rain against the glass" },
+  { id: "snowy", label: "Snowy", blurb: "Fresh snowfall and a warm mug" },
 ];
+
+export const VIBE_SCENE: Record<RoomVibe, string> = {
+  day: "/rooms/dashboard-scene-day.png",
+  night: "/rooms/dashboard-scene-night.png",
+  rainy: "/rooms/dashboard-scene-rainy.png",
+  snowy: "/rooms/dashboard-scene-snowy.png",
+};

@@ -98,17 +98,6 @@ export function MailIcon({ className = "h-4 w-4" }: { className?: string }) {
     </svg>
   );
 }
-export function PetIcon({ className = "h-4 w-4" }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className={className} aria-hidden>
-      <circle cx="12" cy="13" r="5" />
-      <circle cx="7" cy="8" r="1.6" />
-      <circle cx="17" cy="8" r="1.6" />
-      <circle cx="5.5" cy="12" r="1.4" />
-      <circle cx="18.5" cy="12" r="1.4" />
-    </svg>
-  );
-}
 export function FlameIcon({ className = "h-4 w-4" }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden>
@@ -132,6 +121,24 @@ export function CloseIcon({ className = "h-4 w-4" }: { className?: string }) {
     </svg>
   );
 }
+export function PencilIcon({ className = "h-4 w-4" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className={className} aria-hidden>
+      <path
+        d="M14.5 5.5 18.5 9.5M4 20l3.8-.8L19 8l-4-4L3.8 15.2 4 20Z"
+        strokeLinejoin="round"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+export function TrashIcon({ className = "h-4 w-4" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className={className} aria-hidden>
+      <path d="M5 7h14M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7M8 7l.6 12h6.8L16 7" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
 
 export function StatRow({
   icon: Icon,
@@ -144,10 +151,10 @@ export function StatRow({
 }) {
   return (
     <div className="flex items-center gap-3">
-      <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#efe4d4] text-forest">
+      <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#3f3654] text-ink">
         <Icon className="h-4 w-4" />
       </span>
-      <p className="text-sm text-forest">
+      <p className="text-sm text-ink">
         <span className="font-serif text-lg font-semibold">{value}</span>{" "}
         <span className="text-muted">{label}</span>
       </p>

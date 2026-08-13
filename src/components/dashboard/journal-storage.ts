@@ -64,3 +64,20 @@ export function addJournalEntry(
   saveJournal(next);
   return next;
 }
+
+export function updateJournalEntry(
+  id: string,
+  input: Omit<JournalEntry, "id" | "createdAt">,
+): JournalEntry[] {
+  const next = loadJournal().map((entry) =>
+    entry.id === id ? { ...entry, ...input } : entry,
+  );
+  saveJournal(next);
+  return next;
+}
+
+export function deleteJournalEntry(id: string): JournalEntry[] {
+  const next = loadJournal().filter((entry) => entry.id !== id);
+  saveJournal(next);
+  return next;
+}

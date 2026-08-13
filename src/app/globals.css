@@ -1,20 +1,23 @@
 @import "tailwindcss";
 
 :root {
-  --cream: #f6eade;
-  --cream-deep: #efe2d2;
-  --cream-card: #f0e4d0;
-  --ink: #2a342c;
-  --forest: #2f4a36;
-  --forest-deep: #243a2b;
-  --forest-soft: #3d5a45;
-  --muted: #6b7468;
-  --muted-soft: #8a9184;
-  --peach: #efd0a8;
-  --peach-text: #9a6b3a;
-  --gold: #c9a15b;
-  --line: #d4c4b0;
-  --white: #fffaf4;
+  /* Ink & Amethyst (dark) — token names kept for app-wide shift */
+  --cream: #2a2438;
+  --cream-deep: #241e30;
+  --cream-card: #342c45;
+  --ink: #f6f3fa;
+  --forest: #b08fce;
+  --forest-deep: #9a78c0;
+  --forest-soft: #c9b0e0;
+  --muted: #a89db8;
+  --muted-soft: #9a92b0;
+  --peach: #5b4e8c;
+  --peach-text: #d4c4e8;
+  --gold: #d4c4e8;
+  --accent: #7ba3c4;
+  --bloom: #c9b0e0;
+  --line: #4a425c;
+  --white: #3a324f;
 }
 
 @theme inline {
@@ -30,9 +33,11 @@
   --color-peach: var(--peach);
   --color-peach-text: var(--peach-text);
   --color-gold: var(--gold);
+  --color-accent: var(--accent);
+  --color-bloom: var(--bloom);
   --color-line: var(--line);
   --color-paper: var(--white);
-  --font-serif: var(--font-fraunces);
+  --font-serif: var(--font-bebas), "Bebas Neue", Impact, sans-serif;
   --font-sans: var(--font-source-sans);
 }
 
@@ -46,8 +51,20 @@ body {
   font-family: var(--font-source-sans), system-ui, sans-serif;
 }
 
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.font-serif {
+  font-family: var(--font-bebas), "Bebas Neue", Impact, sans-serif;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+}
+
 ::selection {
-  background: color-mix(in oklab, var(--forest) 25%, white);
+  background: color-mix(in oklab, var(--forest) 35%, transparent);
 }
 
 @keyframes float-soft {
@@ -89,6 +106,15 @@ body {
   }
   to {
     background-position: 40px 80px;
+  }
+}
+
+@keyframes snow-drift {
+  from {
+    background-position: 0 0, 24px 18px;
+  }
+  to {
+    background-position: 24px 96px, 0 114px;
   }
 }
 
@@ -135,13 +161,13 @@ body {
 
 .page-shell {
   background:
-    radial-gradient(ellipse 80% 50% at 10% 0%, rgba(255, 250, 240, 0.7), transparent 55%),
-    radial-gradient(ellipse 60% 40% at 90% 10%, rgba(239, 208, 168, 0.25), transparent 50%),
-    linear-gradient(180deg, #f8eee3 0%, #f6eade 40%, #f3e4d5 100%);
+    radial-gradient(ellipse 80% 50% at 10% 0%, rgba(58, 50, 79, 0.7), transparent 55%),
+    radial-gradient(ellipse 60% 40% at 90% 10%, rgba(176, 143, 206, 0.16), transparent 50%),
+    linear-gradient(180deg, #342c45 0%, #2a2438 40%, #241e30 100%);
 }
 
 .hero-glow {
   background:
-    radial-gradient(ellipse 70% 80% at 70% 45%, rgba(201, 161, 91, 0.12), transparent 60%),
-    radial-gradient(ellipse 50% 60% at 85% 30%, rgba(47, 74, 54, 0.06), transparent 55%);
+    radial-gradient(ellipse 70% 80% at 70% 45%, rgba(176, 143, 206, 0.18), transparent 60%),
+    radial-gradient(ellipse 50% 60% at 85% 30%, rgba(91, 78, 140, 0.2), transparent 55%);
 }

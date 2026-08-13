@@ -2,7 +2,7 @@ import type { LevelConfig } from "./types";
 
 /**
  * Level 1 — Cozy Shelf
- * Open board (no mid-grid shelves); walls kill; classic snake skills.
+ * Open board (no mid-grid shelves); edges wrap; classic snake skills.
  */
 export const LEVEL_1_COZY_SHELF: LevelConfig = {
   id: "level-1-cozy-shelf",
@@ -29,6 +29,7 @@ export const LEVEL_1_COZY_SHELF: LevelConfig = {
   ],
   // Open playfield — no mid-board bookshelf obstacles
   obstacles: [],
+  wrapEdges: true,
   startSnake: [
     { x: 8, y: 8 },
     { x: 7, y: 8 },

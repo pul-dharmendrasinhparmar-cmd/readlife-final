@@ -17,6 +17,7 @@ import {
   PRIORITY_LABELS,
   SOURCE_OPTIONS,
 } from "@/lib/discovery-storage";
+import { StarRating, formatStarValue } from "@/components/book/star-rating";
 
 type Props = {
   open: boolean;
@@ -69,7 +70,7 @@ export function LibraryDrawer({
     <div className="fixed inset-0 z-[60]">
       <button
         type="button"
-        className="absolute inset-0 bg-[#2a342c]/30"
+        className="absolute inset-0 bg-[#2a2438]/30"
         aria-label="Close book details"
         onClick={onClose}
       />
@@ -77,16 +78,16 @@ export function LibraryDrawer({
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="absolute inset-y-0 right-0 flex w-full max-w-md flex-col overflow-y-auto border-l border-[#e4d5c3] bg-[#fbf6ee] shadow-[-16px_0_48px_rgba(40,30,20,0.18)]"
+        className="absolute inset-y-0 right-0 flex w-full max-w-md flex-col overflow-y-auto border-l border-[#4a425c] bg-[#3a324f] shadow-[-16px_0_48px_rgba(42,36,56,0.18)]"
       >
-        <div className="flex items-center justify-between border-b border-[#e8dccb] px-5 py-4">
-          <p className="text-[0.68rem] font-semibold tracking-[0.14em] text-forest/65 uppercase">
+        <div className="flex items-center justify-between border-b border-[#564d6a] px-5 py-4">
+          <p className="text-[0.68rem] font-semibold tracking-[0.14em] text-ink/65 uppercase">
             Library card
           </p>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full px-3 py-1.5 text-sm font-semibold text-forest hover:bg-[#efe4d4]"
+            className="rounded-full px-3 py-1.5 text-sm font-semibold text-ink hover:bg-[#3f3654]"
           >
             Close
           </button>
@@ -109,7 +110,7 @@ export function LibraryDrawer({
             <div className="min-w-0">
               <h2
                 id={titleId}
-                className="font-serif text-[1.3rem] leading-snug font-semibold text-forest"
+                className="font-serif text-[1.3rem] leading-snug font-semibold text-ink"
               >
                 {book.title}
               </h2>
@@ -119,7 +120,7 @@ export function LibraryDrawer({
                 {book.genres.slice(0, 3).map((g) => (
                   <span
                     key={g}
-                    className="rounded-full bg-[#efe4d4] px-2 py-0.5 text-[0.65rem] font-medium text-forest/80"
+                    className="rounded-full bg-[#3f3654] px-2 py-0.5 text-[0.65rem] font-medium text-ink/80"
                   >
                     {g}
                   </span>
@@ -137,14 +138,14 @@ export function LibraryDrawer({
             <div className="mt-5">
               <div className="mb-1 flex justify-between text-xs text-muted">
                 <span>Progress</span>
-                <span className="font-semibold text-forest">
+                <span className="font-semibold text-ink">
                   {entry.progressPct ?? 0}%
                   {entry.pagesRead != null
                     ? ` · ${entry.pagesRead} / ${book.pageCount} pages`
                     : ""}
                 </span>
               </div>
-              <div className="h-2 overflow-hidden rounded-full bg-[#e8dccb]">
+              <div className="h-2 overflow-hidden rounded-full bg-[#564d6a]">
                 <div
                   className="h-full rounded-full bg-forest"
                   style={{ width: `${entry.progressPct ?? 0}%` }}
@@ -173,15 +174,15 @@ export function LibraryDrawer({
           </div>
 
           {(entry.sourceUser || entry.sourceName || entry.sourceType) && (
-            <div className="mt-4 rounded-2xl border border-[#e4d5c3] bg-[#f3ebe0]/80 px-3.5 py-3 text-sm">
-              <p className="text-[0.65rem] font-semibold tracking-[0.12em] text-forest/65 uppercase">
+            <div className="mt-4 rounded-2xl border border-[#4a425c] bg-[#2a2438]/80 px-3.5 py-3 text-sm">
+              <p className="text-[0.65rem] font-semibold tracking-[0.12em] text-ink/65 uppercase">
                 How you found it
               </p>
               {entry.sourceUser ? (
-                <p className="mt-1 text-forest">Recommended by @{entry.sourceUser}</p>
+                <p className="mt-1 text-ink">Recommended by @{entry.sourceUser}</p>
               ) : null}
               {entry.sourceName ? (
-                <p className="text-forest/80">From “{entry.sourceName}”</p>
+                <p className="text-ink/80">From “{entry.sourceName}”</p>
               ) : null}
               {entry.sourceType ? (
                 <p className="mt-0.5 text-xs text-muted">
@@ -193,7 +194,7 @@ export function LibraryDrawer({
           )}
 
           <label className="mt-5 block">
-            <span className="text-[0.65rem] font-semibold tracking-[0.12em] text-forest/65 uppercase">
+            <span className="text-[0.65rem] font-semibold tracking-[0.12em] text-ink/65 uppercase">
               Why you added this
             </span>
             <textarea
@@ -202,13 +203,13 @@ export function LibraryDrawer({
               onBlur={() => onSave({ note })}
               rows={2}
               placeholder="Remind yourself what made you want to read it..."
-              className="mt-2 w-full resize-none rounded-2xl border border-[#e0d1bf] bg-[#f7f0e6] px-3 py-2.5 text-sm text-forest outline-none focus:border-forest/45"
+              className="mt-2 w-full resize-none rounded-2xl border border-[#564d6a] bg-[#342c45] px-3 py-2.5 text-sm text-ink outline-none focus:border-forest/45"
             />
           </label>
 
           <div className="mt-5">
             <div className="flex items-center justify-between">
-              <p className="text-[0.65rem] font-semibold tracking-[0.12em] text-forest/65 uppercase">
+              <p className="text-[0.65rem] font-semibold tracking-[0.12em] text-ink/65 uppercase">
                 Your rating
               </p>
               <button
@@ -223,25 +224,22 @@ export function LibraryDrawer({
                 {entry.isFavorite ? "♥ Favorite" : "♡ Favorite"}
               </button>
             </div>
-            <div className="mt-2 flex gap-1">
-              {[1, 2, 3, 4, 5].map((n) => (
-                <button
-                  key={n}
-                  type="button"
-                  onClick={() => {
-                    setRating(n);
-                    onSave({ rating: n });
-                  }}
-                  className={`h-9 w-9 rounded-full text-sm font-bold ${
-                    typeof rating === "number" && rating >= n
-                      ? "bg-forest text-paper"
-                      : "bg-[#efe4d4] text-forest/50"
-                  }`}
-                  aria-label={`${n} stars`}
-                >
-                  ★
-                </button>
-              ))}
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <StarRating
+                value={typeof rating === "number" ? rating : 0}
+                interactive
+                size="lg"
+                onChange={(n) => {
+                  setRating(n);
+                  onSave({ rating: n });
+                }}
+                label="Your rating"
+              />
+              {typeof rating === "number" ? (
+                <span className="text-sm font-semibold text-ink">
+                  {formatStarValue(rating)}★
+                </span>
+              ) : null}
               <button
                 type="button"
                 onClick={() => {
@@ -257,19 +255,19 @@ export function LibraryDrawer({
 
           <div className="mt-5">
             <div className="flex items-center justify-between">
-              <p className="text-[0.65rem] font-semibold tracking-[0.12em] text-forest/65 uppercase">
+              <p className="text-[0.65rem] font-semibold tracking-[0.12em] text-ink/65 uppercase">
                 Review
               </p>
               <button
                 type="button"
                 onClick={() => setShowReviewForm((v) => !v)}
-                className="text-xs font-semibold text-forest underline-offset-2 hover:underline"
+                className="text-xs font-semibold text-ink underline-offset-2 hover:underline"
               >
                 {entry.review ? "Edit Review" : "Write Review"}
               </button>
             </div>
             {entry.review && !showReviewForm ? (
-              <p className="mt-2 text-sm leading-relaxed text-forest/85 italic">
+              <p className="mt-2 text-sm leading-relaxed text-ink/85 italic">
                 “{entry.review}”
               </p>
             ) : null}
@@ -280,7 +278,7 @@ export function LibraryDrawer({
                   onChange={(e) => setReview(e.target.value)}
                   rows={4}
                   placeholder="What stayed with you?"
-                  className="w-full resize-none rounded-2xl border border-[#e0d1bf] bg-[#f7f0e6] px-3 py-2.5 text-sm text-forest outline-none focus:border-forest/45"
+                  className="w-full resize-none rounded-2xl border border-[#564d6a] bg-[#342c45] px-3 py-2.5 text-sm text-ink outline-none focus:border-forest/45"
                 />
                 <button
                   type="button"
@@ -301,14 +299,14 @@ export function LibraryDrawer({
 
           {entry.tags && entry.tags.length > 0 ? (
             <div className="mt-5">
-              <p className="text-[0.65rem] font-semibold tracking-[0.12em] text-forest/65 uppercase">
+              <p className="text-[0.65rem] font-semibold tracking-[0.12em] text-ink/65 uppercase">
                 Shelves / tags
               </p>
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {entry.tags.map((t) => (
                   <span
                     key={t}
-                    className="rounded-full border border-[#e0d1bf] px-2.5 py-0.5 text-[0.7rem] text-forest"
+                    className="rounded-full border border-[#564d6a] px-2.5 py-0.5 text-[0.7rem] text-ink"
                   >
                     {t}
                   </span>
@@ -319,12 +317,12 @@ export function LibraryDrawer({
 
           {entry.history && entry.history.length > 0 ? (
             <div className="mt-5">
-              <p className="text-[0.65rem] font-semibold tracking-[0.12em] text-forest/65 uppercase">
+              <p className="text-[0.65rem] font-semibold tracking-[0.12em] text-ink/65 uppercase">
                 Reading journey
               </p>
-              <ol className="mt-2 space-y-2 border-l border-[#e0d1bf] pl-3">
+              <ol className="mt-2 space-y-2 border-l border-[#564d6a] pl-3">
                 {entry.history.map((h, i) => (
-                  <li key={`${h.at}-${i}`} className="text-xs text-forest/85">
+                  <li key={`${h.at}-${i}`} className="text-xs text-ink/85">
                     <span className="text-muted">{fmtDate(h.at)}</span>
                     <br />
                     {h.label}
@@ -335,8 +333,8 @@ export function LibraryDrawer({
           ) : null}
 
           {/* Status actions */}
-          <div className="mt-6 space-y-2 border-t border-[#e8dccb] pt-5">
-            <p className="text-[0.65rem] font-semibold tracking-[0.12em] text-forest/65 uppercase">
+          <div className="mt-6 space-y-2 border-t border-[#564d6a] pt-5">
+            <p className="text-[0.65rem] font-semibold tracking-[0.12em] text-ink/65 uppercase">
               Change status
             </p>
 
@@ -351,7 +349,7 @@ export function LibraryDrawer({
                       className={`rounded-xl border px-2.5 py-2 text-left text-xs font-semibold ${
                         entry.priority === p
                           ? "border-forest bg-forest text-paper"
-                          : "border-[#e0d1bf] text-forest hover:bg-[#efe4d4]"
+                          : "border-[#564d6a] text-ink hover:bg-[#3f3654]"
                       }`}
                     >
                       {PRIORITY_LABELS[p].emoji} {PRIORITY_LABELS[p].label}
@@ -369,12 +367,12 @@ export function LibraryDrawer({
                 <Action onClick={() => onStatus("read", { rating: entry.rating ?? 4 })}>
                   Mark Complete
                 </Action>
-                <div className="rounded-2xl border border-[#e0d1bf] p-3">
-                  <p className="text-xs font-semibold text-forest">Pause</p>
+                <div className="rounded-2xl border border-[#564d6a] p-3">
+                  <p className="text-xs font-semibold text-ink">Pause</p>
                   <select
                     value={pauseReason}
                     onChange={(e) => setPauseReason(e.target.value)}
-                    className="mt-2 w-full rounded-xl border border-[#e0d1bf] bg-[#f7f0e6] px-2 py-2 text-xs"
+                    className="mt-2 w-full rounded-xl border border-[#564d6a] bg-[#342c45] px-2 py-2 text-xs"
                   >
                     {PAUSE_REASONS.map((r) => (
                       <option key={r}>{r}</option>
@@ -385,7 +383,7 @@ export function LibraryDrawer({
                     onClick={() =>
                       onStatus("paused", { pauseReason })
                     }
-                    className="mt-2 w-full rounded-full border border-forest/35 py-2 text-xs font-semibold text-forest"
+                    className="mt-2 w-full rounded-full border border-forest/35 py-2 text-xs font-semibold text-ink"
                   >
                     Pause Reading
                   </button>
@@ -468,7 +466,7 @@ export function LibraryDrawer({
             ) : null}
 
             <label className="mt-2 block text-xs">
-              <span className="font-semibold text-forest/70">Preferred format</span>
+              <span className="font-semibold text-ink/70">Preferred format</span>
               <select
                 value={entry.preferredFormat ?? entry.format ?? "physical"}
                 onChange={(e) =>
@@ -477,7 +475,7 @@ export function LibraryDrawer({
                     format: e.target.value as BookFormat,
                   })
                 }
-                className="mt-1 w-full rounded-xl border border-[#e0d1bf] bg-[#f7f0e6] px-2 py-2"
+                className="mt-1 w-full rounded-xl border border-[#564d6a] bg-[#342c45] px-2 py-2"
               >
                 {(Object.keys(FORMAT_LABELS) as BookFormat[]).map((f) => (
                   <option key={f} value={f}>
@@ -534,14 +532,14 @@ function DnfForm({
 }) {
   return (
     <div className="rounded-2xl border border-[#e0c4b8] bg-[#faf0eb] p-3">
-      <p className="text-xs font-semibold text-forest">Move to DNF?</p>
+      <p className="text-xs font-semibold text-ink">Move to DNF?</p>
       <p className="mt-1 text-[0.7rem] text-muted">
         Stopped around {progress}%. Not every book has to be finished.
       </p>
       <select
         value={reason}
         onChange={(e) => setReason(e.target.value)}
-        className="mt-2 w-full rounded-xl border border-[#e0d1bf] bg-[#fbf6ee] px-2 py-2 text-xs"
+        className="mt-2 w-full rounded-xl border border-[#564d6a] bg-[#3a324f] px-2 py-2 text-xs"
       >
         {DNF_REASONS.map((r) => (
           <option key={r}>{r}</option>
@@ -551,7 +549,7 @@ function DnfForm({
         <button
           type="button"
           onClick={onCancel}
-          className="flex-1 rounded-full py-2 text-xs font-semibold text-forest"
+          className="flex-1 rounded-full py-2 text-xs font-semibold text-ink"
         >
           Cancel
         </button>
@@ -573,7 +571,7 @@ function Meta({ label, value }: { label: string; value: string }) {
       <p className="text-[0.6rem] tracking-wide text-muted-soft uppercase">
         {label}
       </p>
-      <p className="font-medium text-forest">{value}</p>
+      <p className="font-medium text-ink">{value}</p>
     </div>
   );
 }
@@ -585,25 +583,25 @@ export function StatusBadge({ entry }: { entry: LibraryEntry }) {
   > = {
     reading: {
       label: `READING · ${entry.progressPct ?? 0}%`,
-      className: "bg-forest text-paper",
+      className: "bg-forest text-[#2a2438]",
     },
     read: {
       label: entry.rating ? `READ · ${"★".repeat(Math.round(entry.rating))}` : "READ",
-      className: "bg-[#efe4d4] text-forest",
+      className: "bg-[#3f3654] text-ink",
     },
     tbr: {
       label: entry.priority
         ? `TBR · ${PRIORITY_LABELS[entry.priority].label}`
         : "TBR",
-      className: "bg-[#e8f0e6] text-forest",
+      className: "bg-[#e8f0e6] text-[#243528]",
     },
     paused: {
       label: `PAUSED · ${entry.progressPct ?? 0}%`,
-      className: "bg-[#f0e8d8] text-[#7a5a30]",
+      className: "bg-[#f0e8d8] text-[#5c4020]",
     },
     dnf: {
       label: `DNF · stopped at ${entry.progressPct ?? 0}%`,
-      className: "bg-[#f3e4e0] text-[#8a4a3a]",
+      className: "bg-[#f3e4e0] text-[#7a3a30]",
     },
   };
   const s = map[entry.status];

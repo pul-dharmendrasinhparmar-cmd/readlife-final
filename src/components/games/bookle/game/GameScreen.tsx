@@ -121,6 +121,7 @@ export default function GameScreen({
           maxGuesses={maxGuesses}
           shakeRow={shakeRow}
           hinted={hinted}
+          showHintGhosts={status === "playing"}
         />
       </div>
 

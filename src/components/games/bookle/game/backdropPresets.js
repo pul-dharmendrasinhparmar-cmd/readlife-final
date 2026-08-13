@@ -4,10 +4,10 @@ export const PRESETS = {
     silhouetteStyle: {
       height: '42%',
       background: [
-        'radial-gradient(ellipse 70% 100% at 15% 100%, #3d5a45 0%, transparent 60%)',
-        'radial-gradient(ellipse 60% 90% at 55% 100%, #2f4a36 0%, transparent 65%)',
+        'radial-gradient(ellipse 70% 100% at 15% 100%, #c9b0e0 0%, transparent 60%)',
+        'radial-gradient(ellipse 60% 90% at 55% 100%, #5b4e8c 0%, transparent 65%)',
         'radial-gradient(ellipse 65% 100% at 90% 100%, #4a6350 0%, transparent 60%)',
-        'linear-gradient(to top, rgba(47, 74, 54, 0.28) 0%, transparent 100%)',
+        'linear-gradient(to top, rgba(176, 143, 206, 0.28) 0%, transparent 100%)',
       ].join(', '),
     },
     overlayStyle: {
@@ -36,7 +36,7 @@ export const PRESETS = {
     silhouetteHeight: '40%',
     overlayStyle: {
       background:
-        'radial-gradient(circle at 50% 12%, rgba(201, 161, 91, 0.22) 0%, transparent 48%)',
+        'radial-gradient(circle at 50% 12%, rgba(176, 143, 206, 0.22) 0%, transparent 48%)',
     },
   },
 

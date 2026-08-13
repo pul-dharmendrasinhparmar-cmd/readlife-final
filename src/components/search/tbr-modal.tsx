@@ -52,7 +52,7 @@ export function TbrModal({
     <div className="fixed inset-0 z-[70] flex items-end justify-center p-4 sm:items-center">
       <button
         type="button"
-        className="absolute inset-0 bg-[#2a342c]/35 backdrop-blur-[2px]"
+        className="absolute inset-0 bg-[#2a2438]/35 backdrop-blur-[2px]"
         aria-label="Close"
         onClick={onClose}
       />
@@ -60,9 +60,9 @@ export function TbrModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="relative z-10 w-full max-w-md rounded-[1.5rem] border border-[#e4d5c3] bg-[#fbf6ee] p-5 shadow-[0_24px_60px_rgba(40,30,20,0.25)] sm:p-6"
+        className="relative z-10 w-full max-w-md rounded-[1.5rem] border border-[#4a425c] bg-[#3a324f] p-5 shadow-[0_24px_60px_rgba(42,36,56,0.25)] sm:p-6"
       >
-        <h2 id={titleId} className="font-serif text-xl font-semibold text-forest">
+        <h2 id={titleId} className="font-serif text-xl font-semibold text-ink">
           Add to your TBR
         </h2>
 
@@ -74,12 +74,12 @@ export function TbrModal({
             <Image src={book.cover} alt="" fill className="object-cover" sizes="60px" />
           </div>
           <div className="min-w-0">
-            <p className="font-serif text-base font-semibold text-forest">
+            <p className="font-serif text-base font-semibold text-ink">
               {book.title}
             </p>
             <p className="text-sm text-muted">{book.author}</p>
             {(sourceUser || sourceName) && (
-              <p className="mt-1 text-xs text-forest/70">
+              <p className="mt-1 text-xs text-ink/70">
                 {sourceUser ? `Recommended by @${sourceUser}` : null}
                 {sourceUser && sourceName ? " · " : null}
                 {sourceName ? `From “${sourceName}”` : null}
@@ -89,7 +89,7 @@ export function TbrModal({
         </div>
 
         <fieldset className="mt-5">
-          <legend className="text-[0.68rem] font-semibold tracking-[0.12em] text-forest/70 uppercase">
+          <legend className="text-[0.68rem] font-semibold tracking-[0.12em] text-ink/70 uppercase">
             When do you want to read it?
           </legend>
           <div className="mt-2 grid grid-cols-2 gap-2">
@@ -104,7 +104,7 @@ export function TbrModal({
                   className={`rounded-2xl border px-3 py-2.5 text-left transition ${
                     selected
                       ? "border-forest bg-forest text-paper"
-                      : "border-[#e0d1bf] bg-[#f7f0e6] text-forest hover:border-forest/40"
+                      : "border-[#564d6a] bg-[#342c45] text-ink hover:border-forest/40"
                   }`}
                 >
                   <span className="block text-sm font-semibold">
@@ -124,7 +124,7 @@ export function TbrModal({
         </fieldset>
 
         <label className="mt-5 block">
-          <span className="text-[0.68rem] font-semibold tracking-[0.12em] text-forest/70 uppercase">
+          <span className="text-[0.68rem] font-semibold tracking-[0.12em] text-ink/70 uppercase">
             Why did you add this?
           </span>
           <textarea
@@ -132,12 +132,12 @@ export function TbrModal({
             onChange={(e) => setNote(e.target.value)}
             rows={2}
             placeholder="Remind yourself why this caught your attention..."
-            className="mt-2 w-full resize-none rounded-2xl border border-[#e0d1bf] bg-[#f7f0e6] px-3.5 py-2.5 text-sm text-forest outline-none placeholder:text-muted-soft focus:border-forest/45 focus:shadow-[0_0_0_3px_rgba(47,74,54,0.12)]"
+            className="mt-2 w-full resize-none rounded-2xl border border-[#564d6a] bg-[#342c45] px-3.5 py-2.5 text-sm text-ink outline-none placeholder:text-muted-soft focus:border-forest/45 focus:shadow-[0_0_0_3px_rgba(176,143,206,0.12)]"
           />
         </label>
 
         <label className="mt-4 block">
-          <span className="text-[0.68rem] font-semibold tracking-[0.12em] text-forest/70 uppercase">
+          <span className="text-[0.68rem] font-semibold tracking-[0.12em] text-ink/70 uppercase">
             How did you find it?
           </span>
           <select
@@ -145,7 +145,7 @@ export function TbrModal({
             onChange={(e) =>
               setSourceType(e.target.value as DiscoverySourceType)
             }
-            className="mt-2 w-full rounded-2xl border border-[#e0d1bf] bg-[#f7f0e6] px-3.5 py-2.5 text-sm text-forest outline-none focus:border-forest/45"
+            className="mt-2 w-full rounded-2xl border border-[#564d6a] bg-[#342c45] px-3.5 py-2.5 text-sm text-ink outline-none focus:border-forest/45"
           >
             {SOURCE_OPTIONS.map((opt) => (
               <option key={opt.id} value={opt.id}>
@@ -159,7 +159,7 @@ export function TbrModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full px-4 py-2.5 text-sm font-semibold text-forest/80 hover:bg-[#efe4d4]"
+            className="rounded-full px-4 py-2.5 text-sm font-semibold text-ink/80 hover:bg-[#3f3654]"
           >
             Cancel
           </button>

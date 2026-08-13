@@ -1,11 +1,6 @@
 import type { PersonalityAssessment, PersonalityCode } from "@/components/personality/types";
 
-export type ProfileTab =
-  | "overview"
-  | "books"
-  | "lists"
-  | "identity"
-  | "activity";
+export type ProfileTab = "overview" | "lists" | "activity";
 
 export type SocialLinks = {
   instagram?: string;

@@ -1,0 +1,321 @@
+.pcs-root {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 80% 55% at 50% 0%, rgba(176, 143, 206, 0.16), transparent 55%),
+    #342c45;
+}
+
+.pcs-shell {
+  display: flex;
+  width: 100%;
+  max-width: 52rem;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+  margin: 0 auto;
+  padding: 0.65rem 0.9rem 0.9rem;
+}
+
+.pcs-intro,
+.pcs-complete {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding-top: 0.65rem;
+  overflow: auto;
+}
+
+.pcs-kicker {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--forest, #b08fce) 60%, transparent);
+}
+
+.pcs-title {
+  margin-top: 0.35rem;
+  font-family: var(--font-serif, var(--font-bebas), "Bebas Neue", Impact, sans-serif);
+  font-size: 2.15rem;
+  font-weight: 600;
+  color: var(--forest, #b08fce);
+}
+
+.pcs-tagline {
+  margin-top: 0.5rem;
+  max-width: 24rem;
+  color: var(--muted, #a89db8);
+  line-height: 1.45;
+}
+
+.pcs-cta {
+  margin-top: 1.25rem;
+  border-radius: 999px;
+  background: var(--forest, #b08fce);
+  color: var(--paper, #3a324f);
+  font-size: 0.9rem;
+  font-weight: 650;
+  padding: 0.65rem 1.35rem;
+}
+
+.pcs-cta:hover {
+  background: var(--forest-deep, #9a78c0);
+}
+
+.pcs-cta-ghost {
+  margin-top: 0.55rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid #4a425c;
+  background: #3a324f;
+  color: var(--forest, #b08fce);
+  font-size: 0.85rem;
+  font-weight: 650;
+  padding: 0.55rem 1.15rem;
+  text-decoration: none;
+}
+
+.pcs-cta-added {
+  margin-top: 0.55rem;
+  cursor: default;
+  opacity: 0.85;
+}
+
+.pcs-hud {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.15rem 0.15rem 0.55rem;
+}
+
+.pcs-hud p {
+  font-size: 0.78rem;
+  font-weight: 650;
+  color: var(--forest, #b08fce);
+}
+
+.pcs-hud span {
+  color: var(--muted, #a89db8);
+  font-weight: 600;
+}
+
+.pcs-play {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.pcs-board {
+  position: relative;
+  width: min(100%, 22rem, 46svh);
+  margin: 0 auto;
+  aspect-ratio: 3 / 4;
+  border-radius: 0.45rem;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent calc(100% / 7 - 1px),
+      rgb(228 213 195 / 0.55) calc(100% / 7 - 1px),
+      rgb(228 213 195 / 0.55) calc(100% / 7)
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent calc(100% / 5 - 1px),
+      rgb(228 213 195 / 0.55) calc(100% / 5 - 1px),
+      rgb(228 213 195 / 0.55) calc(100% / 5)
+    ),
+    #3f3654;
+  box-shadow:
+    inset 0 0 0 1px #4a425c,
+    0 10px 28px rgb(60 45 30 / 0.08);
+  overflow: visible;
+}
+
+.pcs-board-piece {
+  position: absolute;
+  pointer-events: none;
+  filter: drop-shadow(0.5px 1px 1.2px rgb(40 30 20 / 0.28));
+}
+
+.pcs-tray {
+  display: flex;
+  min-height: 7.5rem;
+  flex: 1;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 0.28rem;
+  overflow: auto;
+  padding: 0.4rem;
+  border-radius: 1rem;
+  border: 1px solid #4a425c;
+  background: #3a324f;
+}
+
+.pcs-thumb {
+  position: relative;
+  display: flex;
+  width: 3.35rem;
+  height: 3.55rem;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.pcs-thumb > div {
+  touch-action: none;
+  cursor: grab;
+}
+
+.pcs-thumb:active > div {
+  cursor: grabbing;
+}
+
+.pcs-drag {
+  position: fixed;
+  z-index: 80;
+  cursor: grabbing;
+  touch-action: none;
+  filter: drop-shadow(2px 6px 8px rgb(40 30 20 / 0.32));
+  pointer-events: none;
+}
+
+.pcs-complete-cover {
+  position: relative;
+  width: min(12.5rem, 58vw);
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  margin-top: 1rem;
+  border-radius: 0.4rem;
+  box-shadow: 0 14px 32px rgb(40 30 20 / 0.18);
+}
+
+.pcs-complete-cover img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pcs-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.55rem;
+  width: min(20rem, 100%);
+  margin-top: 1.1rem;
+}
+
+.pcs-stat {
+  border-radius: 0.9rem;
+  background: #2a2438;
+  padding: 0.7rem 0.8rem;
+  text-align: left;
+}
+
+.pcs-stat p:first-child {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted, #a89db8);
+}
+
+.pcs-stat p:last-child {
+  margin-top: 0.15rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--forest, #b08fce);
+}
+
+.pcs-hud-title {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+  font-size: 0.72rem !important;
+  font-weight: 600 !important;
+  color: var(--muted, #a89db8) !important;
+}
+
+.pcs-selected {
+  margin-top: 0.7rem;
+  max-width: 24rem;
+  font-size: 0.82rem;
+  font-weight: 650;
+  color: var(--forest, #b08fce);
+}
+
+.pcs-selected span {
+  font-weight: 500;
+  color: var(--muted, #a89db8);
+}
+
+.pcs-covers {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.4rem;
+  width: min(22rem, 100%);
+  max-height: 11.5rem;
+  overflow: auto;
+  margin-top: 0.85rem;
+  padding: 0.2rem;
+}
+
+.pcs-cover-opt {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border-radius: 0.38rem;
+  border: 2px solid transparent;
+  background: #3f3654;
+  padding: 0;
+}
+
+.pcs-cover-opt img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pcs-cover-opt:hover {
+  border-color: #564d6a;
+}
+
+.pcs-cover-opt.is-selected {
+  border-color: var(--forest, #b08fce);
+  box-shadow: 0 0 0 1px var(--forest, #b08fce);
+}
+
+.pcs-cover-today {
+  position: absolute;
+  top: 0.22rem;
+  left: 0.22rem;
+  border-radius: 999px;
+  background: var(--forest, #b08fce);
+  color: var(--paper, #3a324f);
+  font-size: 0.52rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.12rem 0.32rem;
+}

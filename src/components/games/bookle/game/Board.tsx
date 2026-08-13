@@ -13,6 +13,8 @@ type Props = {
   shakeRow: boolean;
   /** Letters revealed by hint at correct positions (null = none). */
   hinted?: (string | null)[];
+  /** When false (won/lost), do not draw hint ghosts on the next empty row. */
+  showHintGhosts?: boolean;
 };
 
 function Tile({
@@ -40,6 +42,7 @@ export default function Board({
   maxGuesses,
   shakeRow,
   hinted = [],
+  showHintGhosts = true,
 }: Props) {
   const rows = [];
 
@@ -56,8 +59,9 @@ export default function Board({
     for (let c = 0; c < wordLength; c++) {
       const typed = letters[c] || "";
       const hintLetter = hinted[c] || "";
-      // Show hint ghost on empty cells of the active row only.
-      const showHintGhost = isCurrentRow && !typed && !!hintLetter;
+      // Hint ghosts only while actively guessing (not after win/lose).
+      const showHintGhost =
+        showHintGhosts && isCurrentRow && !typed && !!hintLetter;
       const letter = typed || (showHintGhost ? hintLetter : "");
       const status = guess
         ? guess.result[c]

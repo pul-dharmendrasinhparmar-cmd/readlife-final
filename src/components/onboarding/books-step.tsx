@@ -53,7 +53,7 @@ function BookCover({
       >
         ×
       </button>
-      <p className="mt-2 line-clamp-2 text-center text-[0.78rem] font-semibold text-forest">
+      <p className="mt-2 line-clamp-2 text-center text-[0.78rem] font-semibold text-ink">
         {book.title}
       </p>
     </div>
@@ -87,7 +87,7 @@ function BookSearch({
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Search books…"
-        className="w-full rounded-full border-2 border-line/60 bg-paper py-3.5 pr-4 pl-11 text-base text-forest outline-none placeholder:text-muted-soft focus:border-forest/45"
+        className="w-full rounded-full border-2 border-line/60 bg-paper py-3.5 pr-4 pl-11 text-base text-ink outline-none placeholder:text-muted-soft focus:border-forest/45"
       />
       {results.length > 0 ? (
         <ul className="absolute z-20 mt-2 w-full overflow-hidden rounded-2xl border border-line/60 bg-paper shadow-xl">
@@ -111,7 +111,7 @@ function BookSearch({
                   />
                 </span>
                 <span>
-                  <span className="block text-base font-semibold text-forest">
+                  <span className="block text-base font-semibold text-ink">
                     {book.title}
                   </span>
                   <span className="text-sm text-muted">{book.author}</span>
@@ -150,7 +150,7 @@ function BookRow({
         <button
           type="button"
           onClick={onAddMore}
-          className="flex aspect-[2/3] w-[108px] shrink-0 flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed border-forest/35 bg-[#faf4ea] text-forest sm:w-[120px]"
+          className="flex aspect-[2/3] w-[108px] shrink-0 flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed border-forest/35 bg-[#342c45] text-ink sm:w-[120px]"
         >
           <span className="text-3xl leading-none">+</span>
           <span className="text-sm font-semibold">Add more</span>
@@ -181,7 +181,7 @@ export function BooksStep({ state, onChange }: Props) {
 
   return (
     <div>
-      <h1 className="font-serif text-[2.15rem] leading-tight font-semibold tracking-[-0.025em] text-forest sm:text-[2.55rem]">
+      <h1 className="font-serif text-[2.15rem] leading-tight font-semibold tracking-[-0.025em] text-ink sm:text-[2.55rem]">
         Add some books you love{" "}
         <span className="text-muted-soft">(or don&apos;t)</span>.
       </h1>
@@ -190,7 +190,7 @@ export function BooksStep({ state, onChange }: Props) {
       </p>
 
       <section className="mt-8">
-        <h2 className="font-serif text-[1.45rem] font-semibold text-forest">
+        <h2 className="font-serif text-[1.45rem] font-semibold text-ink">
           Books I love
         </h2>
         <BookRow
@@ -210,7 +210,7 @@ export function BooksStep({ state, onChange }: Props) {
       </section>
 
       <section className="mt-10">
-        <h2 className="font-serif text-[1.45rem] font-semibold text-forest">
+        <h2 className="font-serif text-[1.45rem] font-semibold text-ink">
           Not for me
         </h2>
         <p className="mt-1.5 text-base text-muted">

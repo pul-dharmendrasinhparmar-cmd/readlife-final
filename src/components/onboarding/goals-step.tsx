@@ -29,11 +29,11 @@ function Stepper({
         type="button"
         disabled={disabled}
         onClick={() => onChange(Math.max(1, value - 1))}
-        className="flex h-9 w-9 items-center justify-center rounded-full text-xl font-semibold text-forest hover:bg-cream"
+        className="flex h-9 w-9 items-center justify-center rounded-full text-xl font-semibold text-ink hover:bg-cream"
       >
         −
       </button>
-      <span className="min-w-[4.5rem] text-center font-serif text-xl font-semibold text-forest">
+      <span className="min-w-[4.5rem] text-center font-serif text-xl font-semibold text-ink">
         {value}
         {suffix ? (
           <span className="ml-1 text-sm font-normal text-muted">{suffix}</span>
@@ -43,7 +43,7 @@ function Stepper({
         type="button"
         disabled={disabled}
         onClick={() => onChange(value + 1)}
-        className="flex h-9 w-9 items-center justify-center rounded-full text-xl font-semibold text-forest hover:bg-cream"
+        className="flex h-9 w-9 items-center justify-center rounded-full text-xl font-semibold text-ink hover:bg-cream"
       >
         +
       </button>
@@ -95,7 +95,7 @@ export function GoalsStep({ state, onChange }: Props) {
 
   return (
     <div>
-      <h1 className="font-serif text-[2.15rem] leading-tight font-semibold tracking-[-0.025em] text-forest sm:text-[2.55rem]">
+      <h1 className="font-serif text-[2.15rem] leading-tight font-semibold tracking-[-0.025em] text-ink sm:text-[2.55rem]">
         Set your reading goals
       </h1>
       <p className="mt-2.5 text-lg text-muted">
@@ -117,14 +117,14 @@ export function GoalsStep({ state, onChange }: Props) {
         ).map((card) => (
           <div
             key={card.key}
-            className="rounded-[1.5rem] border border-line/50 bg-[#faf4ea] p-5 shadow-sm"
+            className="rounded-[1.5rem] border border-line/50 bg-[#342c45] p-5 shadow-sm"
           >
             <div className="flex items-start justify-between">
               <div>
                 <span className="text-3xl" aria-hidden>
                   {card.emoji}
                 </span>
-                <h3 className="mt-2 font-serif text-xl font-semibold text-forest">
+                <h3 className="mt-2 font-serif text-xl font-semibold text-ink">
                   {card.title}
                 </h3>
               </div>
@@ -143,13 +143,13 @@ export function GoalsStep({ state, onChange }: Props) {
         ))}
       </div>
 
-      <div className="mt-4 rounded-[1.5rem] border border-line/50 bg-[#faf4ea] p-5 shadow-sm sm:max-w-md">
+      <div className="mt-4 rounded-[1.5rem] border border-line/50 bg-[#342c45] p-5 shadow-sm sm:max-w-md">
         <div className="flex items-start justify-between">
           <div>
             <span className="text-3xl" aria-hidden>
               🔥
             </span>
-            <h3 className="mt-2 font-serif text-xl font-semibold text-forest">
+            <h3 className="mt-2 font-serif text-xl font-semibold text-ink">
               Reading streak
             </h3>
             <p className="text-sm text-muted">Days per week</p>
@@ -169,7 +169,7 @@ export function GoalsStep({ state, onChange }: Props) {
 
       <div className="mt-6 flex items-center justify-between gap-4 rounded-[1.5rem] border border-forest/20 bg-cream-card px-5 py-5">
         <div>
-          <h3 className="font-serif text-xl font-semibold text-forest">
+          <h3 className="font-serif text-xl font-semibold text-ink">
             Just let me read
           </h3>
           <p className="mt-0.5 text-base text-muted">
@@ -182,7 +182,7 @@ export function GoalsStep({ state, onChange }: Props) {
         />
       </div>
 
-      <h2 className="mt-10 font-serif text-[1.45rem] font-semibold text-forest">
+      <h2 className="mt-10 font-serif text-[1.45rem] font-semibold text-ink">
         How do you like reminders?
       </h2>
       <div className="mt-4 flex flex-wrap gap-2.5">
@@ -196,7 +196,7 @@ export function GoalsStep({ state, onChange }: Props) {
               className={`rounded-full border-2 px-5 py-2.5 text-base font-semibold transition ${
                 selected
                   ? "border-forest bg-forest text-paper"
-                  : "border-line/70 bg-paper text-forest hover:border-forest/40"
+                  : "border-line/70 bg-paper text-ink hover:border-forest/40"
               }`}
             >
               {r.label}

@@ -46,7 +46,7 @@ export const STARTER_LOVED: BookItem[] = [
     id: "night-circus",
     title: "The Night Circus",
     author: "Erin Morgenstern",
-    color: "#2f4a36",
+    color: "#5b4e8c",
     cover: "https://covers.openlibrary.org/b/isbn/9780307744432-L.jpg",
   },
   {

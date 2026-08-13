@@ -1,0 +1,59 @@
+.pcs-icon {
+  display: block;
+  overflow: visible;
+  filter: drop-shadow(0 1px 2px rgb(47 74 54 / 0.1));
+}
+
+.pcs-icon-lg {
+  width: 4.15rem;
+  height: 4.15rem;
+  margin-bottom: 0.15rem;
+}
+
+.games-pcs-mini.pcs-icon {
+  width: 2.7rem;
+  height: 2.7rem;
+}
+
+.pcs-icon-p {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.pcs-icon-p4 {
+  transform: translate(6.5px, -5.5px) rotate(14deg);
+  filter: drop-shadow(1px 2px 2px rgb(47 74 54 / 0.16));
+}
+
+.pcs-icon-spark {
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: scale(0.92);
+  opacity: 0.75;
+  transition:
+    transform 0.45s ease,
+    opacity 0.45s ease;
+}
+
+.game-card-pieces:hover .pcs-icon-p4,
+.pcs-intro .pcs-icon-p4 {
+  transform: translate(7.5px, -6.5px) rotate(18deg);
+}
+
+.game-card-pieces:hover .pcs-icon-spark,
+.pcs-intro .pcs-icon-spark {
+  transform: scale(1.12);
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pcs-icon-p,
+  .pcs-icon-spark,
+  .game-card-pieces:hover .pcs-icon-p4,
+  .game-card-pieces:hover .pcs-icon-spark,
+  .pcs-intro .pcs-icon-p4,
+  .pcs-intro .pcs-icon-spark {
+    transition: none;
+  }
+}

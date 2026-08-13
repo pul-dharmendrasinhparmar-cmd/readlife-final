@@ -18,21 +18,33 @@ type Props = {
 
 type Phase = "setup" | "focus" | "done";
 
+const DURATION_PRESETS = [5, 10, 15, 25, 30, 45, 60] as const;
+
+function formatClock(totalSeconds: number) {
+  const mins = Math.floor(totalSeconds / 60);
+  const secs = totalSeconds % 60;
+  return `${mins}:${String(secs).padStart(2, "0")}`;
+}
+
+function suggestedPages(minutes: number) {
+  return Math.max(1, Math.round(minutes * 0.7));
+}
+
 export function SessionFlow({ open, current, onClose, onComplete }: Props) {
   const [phase, setPhase] = useState<Phase>("setup");
   const [minutes, setMinutes] = useState(25);
-  const [pages, setPages] = useState(18);
+  const [pages, setPages] = useState(suggestedPages(25));
   const [remaining, setRemaining] = useState(0);
-  const [reduceMotion, setReduceMotion] = useState(false);
+  const [customOpen, setCustomOpen] = useState(false);
 
   useEffect(() => {
     if (!open) {
       setPhase("setup");
-      return;
+      setMinutes(25);
+      setPages(suggestedPages(25));
+      setRemaining(0);
+      setCustomOpen(false);
     }
-    setReduceMotion(
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches,
-    );
   }, [open]);
 
   useEffect(() => {
@@ -47,12 +59,14 @@ export function SessionFlow({ open, current, onClose, onComplete }: Props) {
 
   if (!current) return null;
 
+  const pickMinutes = (next: number) => {
+    const clamped = Math.min(120, Math.max(1, next));
+    setMinutes(clamped);
+    setPages(suggestedPages(clamped));
+  };
+
   const startFocus = () => {
-    // Prototype: compress long sessions to a short focus timer
-    const demoSeconds = reduceMotion
-      ? 2
-      : Math.min(90, Math.max(12, Math.round(minutes * 0.6)));
-    setRemaining(demoSeconds);
+    setRemaining(minutes * 60);
     setPhase("focus");
   };
 
@@ -64,6 +78,8 @@ export function SessionFlow({ open, current, onClose, onComplete }: Props) {
     });
     onClose();
   };
+
+  const isPreset = (DURATION_PRESETS as readonly number[]).includes(minutes);
 
   return (
     <OverlayShell
@@ -95,78 +111,112 @@ export function SessionFlow({ open, current, onClose, onComplete }: Props) {
               />
             </div>
             <div>
-              <p className="font-semibold text-forest">{current.book.title}</p>
+              <p className="font-semibold text-ink">{current.book.title}</p>
               <p className="text-sm text-muted">
-                At {current.progressPct}% · pick a gentle stretch
+                At {current.progressPct}% · choose how long to read
               </p>
             </div>
           </div>
 
-          <label className="mt-5 block text-sm text-forest">
-            Minutes
-            <input
-              type="range"
-              min={10}
-              max={60}
-              step={5}
-              value={minutes}
-              onChange={(e) => setMinutes(Number(e.target.value))}
-              className="mt-2 w-full"
-            />
-            <span className="mt-1 block font-serif text-lg font-semibold">
-              {minutes} min
-            </span>
-          </label>
+          <div className="mt-5">
+            <p className="text-sm font-medium text-ink">Timer length</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {DURATION_PRESETS.map((preset) => {
+                const selected = minutes === preset && !customOpen;
+                return (
+                  <button
+                    key={preset}
+                    type="button"
+                    onClick={() => {
+                      setCustomOpen(false);
+                      pickMinutes(preset);
+                    }}
+                    className={`rounded-full px-3.5 py-2 text-sm font-semibold transition ${
+                      selected
+                        ? "bg-forest text-[#2a2438] ring-2 ring-forest/40"
+                        : "border border-[#564d6a] bg-[#342c45] text-ink hover:border-forest/60"
+                    }`}
+                  >
+                    {preset} min
+                  </button>
+                );
+              })}
+              <button
+                type="button"
+                onClick={() => setCustomOpen(true)}
+                className={`rounded-full px-3.5 py-2 text-sm font-semibold transition ${
+                  customOpen || !isPreset
+                    ? "bg-forest text-[#2a2438] ring-2 ring-forest/40"
+                    : "border border-[#564d6a] bg-[#342c45] text-ink hover:border-forest/60"
+                }`}
+              >
+                Custom
+              </button>
+            </div>
 
-          <label className="mt-3 block text-sm text-forest">
+            {customOpen || !isPreset ? (
+              <label className="mt-3 block text-sm text-ink">
+                Custom minutes
+                <input
+                  type="number"
+                  min={1}
+                  max={120}
+                  value={minutes}
+                  onChange={(e) => pickMinutes(Number(e.target.value) || 1)}
+                  className="mt-1 w-full rounded-2xl border border-[#564d6a] bg-paper px-3 py-2.5 text-ink"
+                />
+              </label>
+            ) : null}
+
+            <p className="mt-3 font-serif text-lg font-semibold text-ink">
+              Countdown: {formatClock(minutes * 60)}
+            </p>
+          </div>
+
+          <label className="mt-4 block text-sm text-ink">
             Expected pages
             <input
               type="number"
               min={1}
-              max={80}
+              max={200}
               value={pages}
               onChange={(e) => setPages(Number(e.target.value) || 1)}
-              className="mt-1 w-full rounded-2xl border border-[#e0d1bf] bg-white px-3 py-2.5"
+              className="mt-1 w-full rounded-2xl border border-[#564d6a] bg-paper px-3 py-2.5 text-ink"
             />
           </label>
 
           <button
             type="button"
             onClick={startFocus}
-            className="mt-5 inline-flex w-full items-center justify-center rounded-full bg-forest py-3 text-sm font-semibold text-paper transition hover:bg-forest-deep"
+            className="mt-5 inline-flex w-full items-center justify-center rounded-full bg-forest py-3 text-sm font-semibold text-[#2a2438] transition hover:bg-forest-deep"
           >
-            Begin session
+            Begin {minutes}-minute session
           </button>
         </>
       ) : null}
 
       {phase === "focus" ? (
         <div className="flex flex-col items-center py-8 text-center">
-          <p
-            className={`font-serif text-5xl font-semibold text-forest ${
-              reduceMotion ? "" : "transition-all"
-            }`}
-          >
-            {Math.floor(remaining / 60)}:
-            {String(remaining % 60).padStart(2, "0")}
+          <p className="font-serif text-5xl font-semibold text-ink transition-all">
+            {formatClock(remaining)}
           </p>
           <p className="mt-3 max-w-sm text-sm text-muted">
             Soft focus mode — when the timer ends we&apos;ll log{" "}
-            <strong className="text-forest">{minutes} min</strong> and about{" "}
-            <strong className="text-forest">{pages} pages</strong>.
+            <strong className="text-ink">{minutes} min</strong> and about{" "}
+            <strong className="text-ink">{pages} pages</strong>.
           </p>
           <div className="mt-6 flex gap-2">
             <button
               type="button"
               onClick={() => setPhase("done")}
-              className="rounded-full bg-forest px-5 py-2.5 text-sm font-semibold text-paper"
+              className="rounded-full bg-forest px-5 py-2.5 text-sm font-semibold text-[#2a2438]"
             >
               Finish early
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="rounded-full border border-[#dccab4] px-5 py-2.5 text-sm font-semibold text-forest"
+              className="rounded-full border border-[#564d6a] px-5 py-2.5 text-sm font-semibold text-ink"
             >
               Cancel
             </button>
@@ -176,7 +226,7 @@ export function SessionFlow({ open, current, onClose, onComplete }: Props) {
 
       {phase === "done" ? (
         <div className="py-4 text-center">
-          <p className="font-serif text-2xl font-semibold text-forest">
+          <p className="font-serif text-2xl font-semibold text-ink">
             Lovely session.
           </p>
           <p className="mt-2 text-sm text-muted">
@@ -186,7 +236,7 @@ export function SessionFlow({ open, current, onClose, onComplete }: Props) {
           <button
             type="button"
             onClick={finish}
-            className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-forest py-3 text-sm font-semibold text-paper transition hover:bg-forest-deep"
+            className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-forest py-3 text-sm font-semibold text-[#2a2438] transition hover:bg-forest-deep"
           >
             Save progress
           </button>

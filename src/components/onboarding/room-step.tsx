@@ -12,7 +12,7 @@ type Props = {
 export function RoomStep({ state, onChange }: Props) {
   return (
     <div>
-      <h1 className="font-serif text-[2.15rem] leading-tight font-semibold tracking-[-0.025em] text-forest sm:text-[2.55rem]">
+      <h1 className="font-serif text-[2.15rem] leading-tight font-semibold tracking-[-0.025em] text-ink sm:text-[2.55rem]">
         Choose your reading room
       </h1>
       <p className="mt-2.5 text-lg text-muted">
@@ -29,7 +29,7 @@ export function RoomStep({ state, onChange }: Props) {
               onClick={() => onChange({ room: room.id })}
               className={`group relative overflow-hidden rounded-[1.5rem] border-2 text-left transition ${
                 selected
-                  ? "border-forest shadow-[0_0_0_1px_rgba(47,74,54,0.4)]"
+                  ? "border-forest shadow-[0_0_0_1px_rgba(176,143,206,0.4)]"
                   : "border-transparent hover:border-forest/30"
               }`}
             >
@@ -58,7 +58,7 @@ export function RoomStep({ state, onChange }: Props) {
 
       <button
         type="button"
-        className="mt-6 flex w-full items-center justify-center gap-2.5 rounded-[1.25rem] border-2 border-dashed border-forest/40 bg-[#faf4ea] px-4 py-4 text-base font-semibold text-forest transition hover:bg-cream-card"
+        className="mt-6 flex w-full items-center justify-center gap-2.5 rounded-[1.25rem] border-2 border-dashed border-forest/40 bg-[#342c45] px-4 py-4 text-base font-semibold text-ink transition hover:bg-cream-card"
       >
         <span aria-hidden>✏️</span>
         Build my own — Customize everything

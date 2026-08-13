@@ -17,6 +17,9 @@ const KIND_LABEL: Record<MailItem["kind"], string> = {
   list: "List",
   wrapped: "Wrapped",
   party: "Reading party",
+  game: "Games",
+  book: "Books",
+  update: "Update",
 };
 
 export function MailboxPanel({ open, items, onClose, onMarkRead }: Props) {
@@ -32,7 +35,7 @@ export function MailboxPanel({ open, items, onClose, onMarkRead }: Props) {
         <button
           type="button"
           onClick={() => onMarkRead()}
-          className="text-sm font-semibold text-forest underline-offset-2 hover:underline"
+          className="text-sm font-semibold text-ink underline-offset-2 hover:underline"
         >
           Mark all read
         </button>
@@ -45,21 +48,21 @@ export function MailboxPanel({ open, items, onClose, onMarkRead }: Props) {
             const inner = (
               <>
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-[0.68rem] font-semibold tracking-wide text-forest/60 uppercase">
+                  <span className="text-[0.68rem] font-semibold tracking-wide text-ink/60 uppercase">
                     {KIND_LABEL[m.kind]}
                   </span>
                   {m.unread ? (
                     <span className="h-2 w-2 rounded-full bg-[#d45545]" />
                   ) : null}
                 </div>
-                <p className="mt-1 font-semibold text-forest">{m.title}</p>
+                <p className="mt-1 font-semibold text-ink">{m.title}</p>
                 <p className="mt-0.5 text-sm text-muted">{m.body}</p>
               </>
             );
             const className = `block w-full rounded-2xl border px-3.5 py-3 text-left transition ${
               m.unread
-                ? "border-forest/25 bg-[#f0e6d6]"
-                : "border-[#e8dccb] bg-[#f7f0e6]"
+                ? "border-forest/25 bg-[#3f3654]"
+                : "border-[#564d6a] bg-[#342c45]"
             }`;
             return (
               <li key={m.id}>

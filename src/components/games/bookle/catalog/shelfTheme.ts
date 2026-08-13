@@ -263,11 +263,11 @@ type GenreVisual = {
 
 const GENRE_VISUALS: Record<string, GenreVisual> = {
   Fantasy: {
-    accent: "#c9a15b",
+    accent: "#b08fce",
     backdrop: {
       preset: "shire-hills",
-      skyGradient: ["#fbf6ee 0%", "#f3ebe0 38%", "#e8dcc0 70%", "#c9d4b8 100%"],
-      silhouetteColor: "#2f4a36",
+      skyGradient: ["#3a324f 0%", "#2a2438 38%", "#4a425c 70%", "#c9d4b8 100%"],
+      silhouetteColor: "#5b4e8c",
       overlayEffect: "none",
       overlayColor: "#fff6d5",
     },
@@ -276,10 +276,10 @@ const GENRE_VISUALS: Record<string, GenreVisual> = {
     accent: "#8b3a5a",
     backdrop: {
       preset: "generic-gradient",
-      skyGradient: ["#fbf6ee 0%", "#f5e6e0 40%", "#edd4d0 72%", "#e0b8b8 100%"],
+      skyGradient: ["#3a324f 0%", "#f5e6e0 40%", "#edd4d0 72%", "#e0b8b8 100%"],
       silhouetteColor: "#5a2a3a",
       overlayEffect: "mist",
-      overlayColor: "#c9a15b",
+      overlayColor: "#b08fce",
     },
   },
   Mystery: {
@@ -306,10 +306,10 @@ const GENRE_VISUALS: Record<string, GenreVisual> = {
     accent: "#6b5a3a",
     backdrop: {
       preset: "generic-gradient",
-      skyGradient: ["#fbf6ee 0%", "#f3ebe0 45%", "#e4d5c3 100%"],
+      skyGradient: ["#3a324f 0%", "#2a2438 45%", "#4a425c 100%"],
       silhouetteColor: "#3d3228",
       overlayEffect: "none",
-      overlayColor: "#c9a15b",
+      overlayColor: "#b08fce",
     },
   },
   "Sci-Fi": {
@@ -319,49 +319,49 @@ const GENRE_VISUALS: Record<string, GenreVisual> = {
       skyGradient: ["#f0f4f8 0%", "#e0e8f0 40%", "#c8d4e0 75%", "#a8b8c8 100%"],
       silhouetteColor: "#2a3a4a",
       overlayEffect: "stars",
-      overlayColor: "#c9a15b",
+      overlayColor: "#b08fce",
     },
   },
   Adventure: {
-    accent: "#2f4a36",
+    accent: "#5b4e8c",
     backdrop: {
       preset: "treeline",
-      skyGradient: ["#fbf6ee 0%", "#f3ebe0 42%", "#e5e0d0 75%", "#d2d8c4 100%"],
-      silhouetteColor: "#243a2b",
+      skyGradient: ["#3a324f 0%", "#2a2438 42%", "#e5e0d0 75%", "#d2d8c4 100%"],
+      silhouetteColor: "#9a78c0",
       overlayEffect: "fireflies",
-      overlayColor: "#c9a15b",
+      overlayColor: "#b08fce",
     },
   },
   Cozy: {
     accent: "#6b4a2a",
     backdrop: {
       preset: "shire-hills",
-      skyGradient: ["#fbf6ee 0%", "#f5edd8 40%", "#e8dcc0 75%", "#d4c4a0 100%"],
+      skyGradient: ["#3a324f 0%", "#f5edd8 40%", "#4a425c 75%", "#d4c4a0 100%"],
       silhouetteColor: "#4a3a28",
       overlayEffect: "fireflies",
-      overlayColor: "#c9a15b",
+      overlayColor: "#b08fce",
     },
   },
   Historical: {
     accent: "#5a4a3a",
     backdrop: {
       preset: "castle-towers",
-      skyGradient: ["#fbf6ee 0%", "#f0e6d8 40%", "#e4d0c4 72%", "#d4b8a8 100%"],
+      skyGradient: ["#3a324f 0%", "#f0e6d8 40%", "#e4d0c4 72%", "#d4b8a8 100%"],
       silhouetteColor: "#3d2a2a",
       overlayEffect: "mist",
-      overlayColor: "#c9a15b",
+      overlayColor: "#b08fce",
     },
   },
 };
 
 const DEFAULT_VISUAL: GenreVisual = {
-  accent: "#2f4a36",
+  accent: "#5b4e8c",
   backdrop: {
     preset: "treeline",
-    skyGradient: ["#fbf6ee 0%", "#f3ebe0 42%", "#e5e0d0 75%", "#d2d8c4 100%"],
-    silhouetteColor: "#243a2b",
+    skyGradient: ["#3a324f 0%", "#2a2438 42%", "#e5e0d0 75%", "#d2d8c4 100%"],
+    silhouetteColor: "#9a78c0",
     overlayEffect: "none",
-    overlayColor: "#c9a15b",
+    overlayColor: "#b08fce",
   },
 };
 
@@ -569,13 +569,13 @@ export const SHELF_LOCKED_SUMMARY = {
   title: "From Your Shelf",
   author: "Your Library",
   tagline: "Finish a few books to unlock",
-  accent: "#2f4a36",
+  accent: "#5b4e8c",
   schemaVersion: 1,
   backdrop: {
     preset: "treeline",
-    skyGradient: ["#fbf6ee 0%", "#f3ebe0 42%", "#e5e0d0 75%", "#d2d8c4 100%"],
-    silhouetteColor: "#243a2b",
+    skyGradient: ["#3a324f 0%", "#2a2438 42%", "#e5e0d0 75%", "#d2d8c4 100%"],
+    silhouetteColor: "#9a78c0",
     overlayEffect: "none" as const,
-    overlayColor: "#c9a15b",
+    overlayColor: "#b08fce",
   },
 };

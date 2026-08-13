@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getOrderedQuestions } from "./questions";
-import { getPersonality } from "./personalities";
+import { getPersonality, formatPersonalityCode } from "./personalities";
 import { getTieBreaker } from "./tie-breakers";
 import { scoreAnswers } from "./score";
 import {
@@ -211,17 +211,17 @@ export function QuizFlow({
       onClick={onClose}
     >
       <div
-        className="flex max-h-[92vh] w-full max-w-xl flex-col overflow-hidden rounded-[1.75rem] border border-[#e4d5c3] bg-[#fbf6ee] shadow-[0_24px_60px_rgba(40,30,20,0.3)]"
+        className="flex max-h-[92vh] w-full max-w-xl flex-col overflow-hidden rounded-[1.75rem] border border-[#4a425c] bg-[#3a324f] shadow-[0_24px_60px_rgba(42,36,56,0.3)]"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-[#eadfce] px-5 py-3">
-          <p className="text-[0.68rem] font-semibold tracking-[0.14em] text-forest/65 uppercase">
+        <div className="flex items-center justify-between border-b border-[#4a425c] px-5 py-3">
+          <p className="text-[0.68rem] font-semibold tracking-[0.14em] text-ink/65 uppercase">
             Reading Personality
           </p>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full bg-[#efe4d4] px-3 py-1.5 text-sm font-semibold text-forest"
+            className="rounded-full bg-[#3f3654] px-3 py-1.5 text-sm font-semibold text-ink"
           >
             Close
           </button>
@@ -233,14 +233,14 @@ export function QuizFlow({
               <p className="text-4xl" aria-hidden>
                 🌙
               </p>
-              <h2 className="mt-3 font-serif text-3xl font-semibold text-forest">
+              <h2 className="mt-3 font-serif text-3xl font-semibold text-ink">
                 What kind of reader are you?
               </h2>
               <p className="mt-2 text-sm text-muted">
                 Discover the habits, instincts and quirks that shape your reading
                 life.
               </p>
-              <ul className="mt-5 space-y-1 text-sm text-forest/80">
+              <ul className="mt-5 space-y-1 text-sm text-ink/80">
                 <li>32 questions</li>
                 <li>About 5 minutes</li>
                 <li>No right answers</li>
@@ -258,7 +258,7 @@ export function QuizFlow({
               </button>
               <button
                 type="button"
-                className="mt-2 w-full rounded-full px-5 py-2.5 text-sm font-semibold text-forest"
+                className="mt-2 w-full rounded-full px-5 py-2.5 text-sm font-semibold text-ink"
                 onClick={onClose}
               >
                 Maybe Later
@@ -268,7 +268,7 @@ export function QuizFlow({
 
           {phase === "resume" && (
             <div className="text-center">
-              <h2 className="font-serif text-2xl font-semibold text-forest">
+              <h2 className="font-serif text-2xl font-semibold text-ink">
                 Welcome back.
               </h2>
               <p className="mt-2 text-sm text-muted">
@@ -284,7 +284,7 @@ export function QuizFlow({
               </button>
               <button
                 type="button"
-                className="mt-2 w-full rounded-full bg-[#efe4d4] px-5 py-2.5 text-sm font-semibold text-forest"
+                className="mt-2 w-full rounded-full bg-[#3f3654] px-5 py-2.5 text-sm font-semibold text-ink"
                 onClick={resetFresh}
               >
                 Start Over
@@ -301,7 +301,7 @@ export function QuizFlow({
                 <span>{progressPct}%</span>
               </div>
               <div
-                className="mt-2 h-2 overflow-hidden rounded-full bg-[#eadfce]"
+                className="mt-2 h-2 overflow-hidden rounded-full bg-[#4a425c]"
                 role="progressbar"
                 aria-valuenow={progressPct}
                 aria-valuemin={0}
@@ -312,7 +312,7 @@ export function QuizFlow({
                   style={{ width: `${progressPct}%` }}
                 />
               </div>
-              <p className="mt-6 font-serif text-xl font-semibold text-forest">
+              <p className="mt-6 font-serif text-xl font-semibold text-ink">
                 {current.text}
               </p>
               <fieldset className="mt-5 space-y-2">
@@ -327,7 +327,7 @@ export function QuizFlow({
                       className={`flex w-full items-center gap-3 rounded-2xl border px-4 py-3 text-left text-sm transition ${
                         selected
                           ? "border-forest bg-forest text-paper"
-                          : "border-[#e0d1bf] bg-white/70 text-forest hover:border-forest/40"
+                          : "border-[#564d6a] bg-paper/70 text-ink hover:border-forest/40"
                       }`}
                       aria-pressed={selected}
                     >
@@ -350,7 +350,7 @@ export function QuizFlow({
                 <button
                   type="button"
                   onClick={goBack}
-                  className="rounded-full bg-[#efe4d4] px-5 py-2.5 text-sm font-semibold text-forest"
+                  className="rounded-full bg-[#3f3654] px-5 py-2.5 text-sm font-semibold text-ink"
                 >
                   Back
                 </button>
@@ -389,10 +389,10 @@ export function QuizFlow({
                     return (
                       <li
                         key={d.dimension}
-                        className="rounded-2xl border border-[#e4d5c3] bg-white/60 px-3 py-2 text-sm"
+                        className="rounded-2xl border border-[#4a425c] bg-paper/60 px-3 py-2 text-sm"
                       >
                         <div className="flex justify-between gap-2">
-                          <span className="font-semibold text-forest">
+                          <span className="font-semibold text-ink">
                             {def.first.label} {d.firstPolePercentage}%
                           </span>
                           <span className="text-muted">
@@ -416,16 +416,16 @@ export function QuizFlow({
                     name={personality.name}
                     size="reveal"
                   />
-                  <h2 className="mt-4 font-serif text-3xl font-semibold tracking-wide text-forest uppercase">
-                    {personality.name.replace(/^The /, "")}
+                  <h2 className="mt-4 font-serif text-3xl font-semibold tracking-wide text-ink uppercase">
+                    {personality.name.replace(/^The /, "")}{" "}
+                    <span className="font-sans text-base font-semibold tracking-wide text-ink/70 normal-case">
+                      {formatPersonalityCode(personality.code)}
+                    </span>
                   </h2>
-                  <p className="mt-1 text-sm tracking-[0.2em] text-forest/70">
-                    {personality.code}
-                  </p>
                   <p className="mt-2 text-sm text-muted">
                     {personality.poles.join(" · ")}
                   </p>
-                  <p className="mt-4 font-serif text-lg italic text-forest">
+                  <p className="mt-4 font-serif text-lg italic text-ink">
                     &ldquo;{personality.motto}&rdquo;
                   </p>
                 </div>
@@ -497,24 +497,24 @@ function TieBreakStep({
       <p className="text-xs text-muted">
         Tie-breaker {step} of {total}
       </p>
-      <h2 className="mt-2 font-serif text-2xl font-semibold text-forest">
+      <h2 className="mt-2 font-serif text-2xl font-semibold text-ink">
         One more choice
       </h2>
-      <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-forest/90">
+      <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-ink/90">
         {tb.prompt}
       </p>
       <div className="mt-5 space-y-2">
         <button
           type="button"
           onClick={() => onPick(tb.optionA.letter)}
-          className="w-full rounded-2xl border border-[#e0d1bf] bg-white/80 px-4 py-3 text-left text-sm font-semibold text-forest hover:border-forest/50"
+          className="w-full rounded-2xl border border-[#564d6a] bg-paper/80 px-4 py-3 text-left text-sm font-semibold text-ink hover:border-forest/50"
         >
           {tb.optionA.label}
         </button>
         <button
           type="button"
           onClick={() => onPick(tb.optionB.letter)}
-          className="w-full rounded-2xl border border-[#e0d1bf] bg-white/80 px-4 py-3 text-left text-sm font-semibold text-forest hover:border-forest/50"
+          className="w-full rounded-2xl border border-[#564d6a] bg-paper/80 px-4 py-3 text-left text-sm font-semibold text-ink hover:border-forest/50"
         >
           {tb.optionB.label}
         </button>
@@ -542,12 +542,19 @@ function FullResult({
   return (
     <div>
       <div className="text-center">
-        <PersonalityResultCard code={p.code} name={p.name} size="full" />
-        <h2 className="mt-4 font-serif text-3xl font-semibold text-forest">
-          {p.name}
+        <PersonalityResultCard
+          code={p.code}
+          name={p.name}
+          size="full"
+          showDownload
+        />
+        <h2 className="mt-4 font-serif text-3xl font-semibold text-ink">
+          {p.name}{" "}
+          <span className="font-sans text-base font-semibold tracking-wide text-ink/70">
+            {formatPersonalityCode(p.code)}
+          </span>
         </h2>
-        <p className="mt-1 text-sm tracking-[0.18em] text-forest/70">{p.code}</p>
-        <p className="mt-3 font-serif text-lg italic text-forest">
+        <p className="mt-3 font-serif text-lg italic text-ink">
           &ldquo;{p.motto}&rdquo;
         </p>
         <p className="mt-2 text-sm text-muted">{p.poles.join(" · ")}</p>
@@ -561,7 +568,7 @@ function FullResult({
               ? d.firstPolePercentage
               : d.secondPolePercentage;
           return (
-            <li key={d.dimension} className="text-sm text-forest">
+            <li key={d.dimension} className="text-sm text-ink">
               <span className="font-semibold">{d.winnerLabel}</span> {winPct}%
               {d.balanced ? (
                 <span className="text-muted"> · balanced</span>
@@ -571,7 +578,7 @@ function FullResult({
         })}
       </ul>
 
-      <p className="mt-4 text-sm leading-relaxed text-forest/90">{p.summary}</p>
+      <p className="mt-4 text-sm leading-relaxed text-ink/90">{p.summary}</p>
       <div className="mt-4 space-y-3 whitespace-pre-line text-sm leading-relaxed text-muted">
         {p.longExplanation}
       </div>
@@ -581,36 +588,36 @@ function FullResult({
 
       <dl className="mt-4 space-y-3 text-sm">
         <div>
-          <dt className="font-semibold text-forest">Superpower</dt>
+          <dt className="font-semibold text-ink">Superpower</dt>
           <dd className="text-muted">{p.superpower}</dd>
         </div>
         <div>
-          <dt className="font-semibold text-forest">Kryptonite</dt>
+          <dt className="font-semibold text-ink">Kryptonite</dt>
           <dd className="text-muted">{p.kryptonite}</dd>
         </div>
         <div>
-          <dt className="font-semibold text-forest">TBR style</dt>
+          <dt className="font-semibold text-ink">TBR style</dt>
           <dd className="text-muted">{p.tbrStyle}</dd>
         </div>
         <div>
-          <dt className="font-semibold text-forest">Social reading</dt>
+          <dt className="font-semibold text-ink">Social reading</dt>
           <dd className="text-muted">{p.socialReadingStyle}</dd>
         </div>
         <div>
-          <dt className="font-semibold text-forest">Recommendation style</dt>
+          <dt className="font-semibold text-ink">Recommendation style</dt>
           <dd className="text-muted">{p.recommendationStyle}</dd>
         </div>
         <div>
-          <dt className="font-semibold text-forest">Suggested challenge</dt>
+          <dt className="font-semibold text-ink">Suggested challenge</dt>
           <dd className="text-muted">{p.suggestedChallenge}</dd>
         </div>
       </dl>
 
-      <div className="mt-4 rounded-[1.25rem] border border-[#e4d5c3] bg-[#f7f0e6] px-4 py-3">
-        <p className="text-[0.68rem] font-semibold tracking-[0.12em] text-forest/65 uppercase">
+      <div className="mt-4 rounded-[1.25rem] border border-[#4a425c] bg-[#342c45] px-4 py-3">
+        <p className="text-[0.68rem] font-semibold tracking-[0.12em] text-ink/65 uppercase">
           Best ReadLife features
         </p>
-        <ul className="mt-2 space-y-1 text-sm text-forest">
+        <ul className="mt-2 space-y-1 text-sm text-ink">
           {p.suggestedFeatures.map((f) => (
             <li key={f}>
               {f}
@@ -637,28 +644,28 @@ function FullResult({
             Add to Profile
           </button>
         ) : (
-          <p className="sm:col-span-2 text-center text-sm font-semibold text-forest">
+          <p className="sm:col-span-2 text-center text-sm font-semibold text-ink">
             On your profile ✓
           </p>
         )}
         <button
           type="button"
           onClick={onShare}
-          className="rounded-full bg-[#efe4d4] px-4 py-2.5 text-sm font-semibold text-forest"
+          className="rounded-full bg-[#3f3654] px-4 py-2.5 text-sm font-semibold text-ink"
         >
           Share Result
         </button>
         <button
           type="button"
           onClick={onCompare}
-          className="rounded-full bg-[#efe4d4] px-4 py-2.5 text-sm font-semibold text-forest"
+          className="rounded-full bg-[#3f3654] px-4 py-2.5 text-sm font-semibold text-ink"
         >
           Compare With Friends
         </button>
         <button
           type="button"
           onClick={onRetake}
-          className="rounded-full border border-[#e0d1bf] px-4 py-2.5 text-sm font-semibold text-forest sm:col-span-2"
+          className="rounded-full border border-[#564d6a] px-4 py-2.5 text-sm font-semibold text-ink sm:col-span-2"
         >
           Retake Test
         </button>
@@ -670,7 +677,7 @@ function FullResult({
 function ResultBlock({ title, items }: { title: string; items: string[] }) {
   return (
     <div className="mt-4">
-      <p className="text-[0.68rem] font-semibold tracking-[0.12em] text-forest/65 uppercase">
+      <p className="text-[0.68rem] font-semibold tracking-[0.12em] text-ink/65 uppercase">
         {title}
       </p>
       <ul className="mt-1 list-disc space-y-0.5 pl-5 text-sm text-muted">

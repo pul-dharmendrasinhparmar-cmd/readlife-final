@@ -4,7 +4,7 @@ import { sameCell } from "./movement";
 
 export type CollisionKind = "wall" | "obstacle" | "self" | null;
 
-/** True when head would leave the playable grid [0..grid-1]. No wrapping. */
+/** True when head would leave the playable grid [0..grid-1]. */
 export function isOutOfBounds(p: Point, grid: number): boolean {
   return p.x < 0 || p.y < 0 || p.x >= grid || p.y >= grid;
 }
@@ -22,6 +22,7 @@ export function hitsSelf(p: Point, body: Point[]): boolean {
 
 /**
  * Classic Snake collision against the cell the head is moving into.
+ * When wrapEdges is on, walls do not kill (caller should wrap first).
  * When not growing, the tip vacates that frame — exclude it from self-checks
  * so sliding into the departing tail is allowed.
  */
@@ -31,8 +32,9 @@ export function detectCollision(
   grid: number,
   obstacles: Set<string>,
   growing: boolean,
+  wrapEdges = false,
 ): CollisionKind {
-  if (isOutOfBounds(next, grid)) return "wall";
+  if (!wrapEdges && isOutOfBounds(next, grid)) return "wall";
   if (obstacles.size > 0 && hitsObstacle(next, obstacles)) return "obstacle";
 
   // Body is head-first. Tip is last. Tip stays only when growing.

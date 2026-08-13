@@ -157,11 +157,20 @@ export function loadDiscoveryState(): DiscoveryState {
     if (v2) {
       const parsed = JSON.parse(v2) as Partial<DiscoveryState>;
       if (parsed.entries?.length) {
-        return withCompat(
-          parsed.entries,
+        const entries = parsed.entries.map((e) => {
+          const status = (e as { status?: string }).status;
+          if (status === "interested") {
+            return { ...e, status: "tbr" as LibraryStatus, priority: e.priority ?? "someday" };
+          }
+          return e;
+        });
+        const next = withCompat(
+          entries,
           parsed.followingIds ?? [],
           parsed.savedListIds ?? [],
         );
+        saveDiscoveryState(next);
+        return next;
       }
     }
     const v1 = localStorage.getItem(LEGACY_KEY);

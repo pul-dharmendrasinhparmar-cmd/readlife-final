@@ -331,6 +331,11 @@ export function getPersonality(code: PersonalityCode): PersonalityDefinition {
   return PERSONALITIES[code];
 }
 
+/** Format type code with middle dots: EAMS → E·A·M·S */
+export function formatPersonalityCode(code: string): string {
+  return code.split("").join("·");
+}
+
 export function personalityDisplayName(code: PersonalityCode): string {
   const p = PERSONALITIES[code];
   return `${p.emoji} ${p.name}`;

@@ -57,20 +57,20 @@ export function BuddyReadModal({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md rounded-[1.75rem] border border-[#e4d5c3] bg-[#fbf6ee] p-5"
+        className="w-full max-w-md rounded-[1.75rem] border border-[#4a425c] bg-[#3a324f] p-5"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="font-serif text-2xl font-semibold text-forest">
+        <h2 className="font-serif text-2xl font-semibold text-ink">
           Read With Friends
         </h2>
         <p className="mt-1 text-sm text-muted">
           Start a buddy read — invitation is simulated in this prototype.
         </p>
 
-        <label className="mt-4 block text-sm text-forest">
+        <label className="mt-4 block text-sm text-ink">
           Friend
           <select
-            className="mt-1 w-full rounded-2xl border border-[#e0d1bf] bg-white px-3 py-2.5"
+            className="mt-1 w-full rounded-2xl border border-[#564d6a] bg-paper px-3 py-2.5"
             value={friendId}
             onChange={(e) => setFriendId(e.target.value)}
           >
@@ -82,10 +82,10 @@ export function BuddyReadModal({
           </select>
         </label>
 
-        <label className="mt-3 block text-sm text-forest">
+        <label className="mt-3 block text-sm text-ink">
           Book
           <select
-            className="mt-1 w-full rounded-2xl border border-[#e0d1bf] bg-white px-3 py-2.5"
+            className="mt-1 w-full rounded-2xl border border-[#564d6a] bg-paper px-3 py-2.5"
             value={bookId}
             onChange={(e) => setBookId(e.target.value)}
           >
@@ -100,18 +100,18 @@ export function BuddyReadModal({
           </select>
         </label>
 
-        <label className="mt-3 block text-sm text-forest">
+        <label className="mt-3 block text-sm text-ink">
           Optional finish-by
           <input
             type="date"
-            className="mt-1 w-full rounded-2xl border border-[#e0d1bf] bg-white px-3 py-2.5"
+            className="mt-1 w-full rounded-2xl border border-[#564d6a] bg-paper px-3 py-2.5"
             value={targetEndDate}
             onChange={(e) => setTargetEndDate(e.target.value)}
           />
         </label>
 
         <fieldset className="mt-3">
-          <legend className="text-sm text-forest">Reading style</legend>
+          <legend className="text-sm text-ink">Reading style</legend>
           {(
             [
               ["no-pressure", "No pressure"],
@@ -121,7 +121,7 @@ export function BuddyReadModal({
           ).map(([value, label]) => (
             <label
               key={value}
-              className="mt-1 flex items-center gap-2 text-sm text-forest"
+              className="mt-1 flex items-center gap-2 text-sm text-ink"
             >
               <input
                 type="radio"
@@ -155,7 +155,7 @@ export function BuddyReadModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full bg-[#efe4d4] px-4 py-2.5 text-sm font-semibold text-forest"
+            className="rounded-full bg-[#3f3654] px-4 py-2.5 text-sm font-semibold text-ink"
           >
             Cancel
           </button>

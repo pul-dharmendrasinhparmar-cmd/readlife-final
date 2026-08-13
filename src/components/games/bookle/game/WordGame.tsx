@@ -112,7 +112,7 @@ export default function WordGame({
         style={{
           textAlign: "center",
           padding: "80px 20px",
-          color: "#6b7468",
+          color: "#a89db8",
         }}
       >
         Loading...
@@ -215,7 +215,7 @@ function PuzzleProgress({
         padding: "6px 10px",
         borderRadius: 999,
         background: "rgba(251, 246, 238, 0.88)",
-        border: "1px solid #e4d5c3",
+        border: "1px solid #4a425c",
       }}
     >
       {Array.from({ length: total }, (_, i) => {

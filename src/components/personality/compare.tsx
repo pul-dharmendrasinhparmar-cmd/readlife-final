@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { DISCOVER_READERS } from "@/components/search/data";
-import { getPersonality } from "./personalities";
+import { getPersonality, formatPersonalityCode } from "./personalities";
 import { scoreAnswers } from "./score";
 import type { PersonalityAssessment, PersonalityCode } from "./types";
 import { DIMENSIONS } from "./types";
@@ -64,22 +64,22 @@ export function PersonalityCompare({
       onClick={onClose}
     >
       <div
-        className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-[1.75rem] border border-[#e4d5c3] bg-[#fbf6ee] p-5 shadow-[0_24px_60px_rgba(40,30,20,0.28)]"
+        className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-[1.75rem] border border-[#4a425c] bg-[#3a324f] p-5 shadow-[0_24px_60px_rgba(42,36,56,0.28)]"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between gap-3">
           <div>
-            <p className="text-[0.68rem] font-semibold tracking-[0.14em] text-forest/65 uppercase">
+            <p className="text-[0.68rem] font-semibold tracking-[0.14em] text-ink/65 uppercase">
               Compare with friends
             </p>
-            <h2 className="mt-1 font-serif text-2xl font-semibold text-forest">
+            <h2 className="mt-1 font-serif text-2xl font-semibold text-ink">
               Reading personalities
             </h2>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full bg-[#efe4d4] px-3 py-1.5 text-sm font-semibold text-forest"
+            className="rounded-full bg-[#3f3654] px-3 py-1.5 text-sm font-semibold text-ink"
           >
             Close
           </button>
@@ -88,7 +88,7 @@ export function PersonalityCompare({
         <label className="mt-4 block text-sm text-muted">
           Friend
           <select
-            className="mt-1 w-full rounded-2xl border border-[#e0d1bf] bg-white px-3 py-2.5 text-forest outline-none"
+            className="mt-1 w-full rounded-2xl border border-[#564d6a] bg-paper px-3 py-2.5 text-ink outline-none"
             value={friendId}
             onChange={(e) => setFriendId(e.target.value)}
           >
@@ -103,22 +103,26 @@ export function PersonalityCompare({
         </label>
 
         <div className="mt-5 grid grid-cols-2 gap-3">
-          <div className="rounded-[1.25rem] border border-[#e4d5c3] bg-white/70 p-3 text-center">
+          <div className="rounded-[1.25rem] border border-[#4a425c] bg-paper/70 p-3 text-center">
             <p className="text-2xl">{you.emoji}</p>
-            <p className="mt-1 font-serif font-semibold text-forest">You</p>
-            <p className="text-sm text-muted">{you.name}</p>
-            <p className="mt-1 text-xs tracking-widest text-forest/70">
-              {you.code}
+            <p className="mt-1 font-serif font-semibold text-ink">You</p>
+            <p className="text-sm text-muted">
+              {you.name}{" "}
+              <span className="tracking-wide">
+                {formatPersonalityCode(you.code)}
+              </span>
             </p>
           </div>
-          <div className="rounded-[1.25rem] border border-[#e4d5c3] bg-white/70 p-3 text-center">
+          <div className="rounded-[1.25rem] border border-[#4a425c] bg-paper/70 p-3 text-center">
             <p className="text-2xl">{friendP.emoji}</p>
-            <p className="mt-1 font-serif font-semibold text-forest">
+            <p className="mt-1 font-serif font-semibold text-ink">
               {friend.displayName}
             </p>
-            <p className="text-sm text-muted">{friendP.name}</p>
-            <p className="mt-1 text-xs tracking-widest text-forest/70">
-              {friendP.code}
+            <p className="text-sm text-muted">
+              {friendP.name}{" "}
+              <span className="tracking-wide">
+                {formatPersonalityCode(friendP.code)}
+              </span>
             </p>
           </div>
         </div>
@@ -132,12 +136,12 @@ export function PersonalityCompare({
             return (
               <li
                 key={dim.id}
-                className="rounded-[1.1rem] border border-[#e8dccb] bg-[#f7f0e6] px-3.5 py-3"
+                className="rounded-[1.1rem] border border-[#564d6a] bg-[#342c45] px-3.5 py-3"
               >
-                <p className="text-[0.68rem] font-semibold tracking-[0.12em] text-forest/65 uppercase">
+                <p className="text-[0.68rem] font-semibold tracking-[0.12em] text-ink/65 uppercase">
                   {dim.first.label} ↔ {dim.second.label}
                 </p>
-                <p className="mt-1 text-sm text-forest">
+                <p className="mt-1 text-sm text-ink">
                   You: {yours.winnerLabel} {yours.firstPolePercentage}%
                   {yours.winner === dim.second.letter
                     ? ` ${dim.second.label} lean`

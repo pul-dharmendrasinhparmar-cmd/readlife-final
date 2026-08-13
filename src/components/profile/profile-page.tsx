@@ -1,13 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { AppNav } from "@/components/layout/app-nav";
-import {
-  resolveAvatarImage,
-  SHELF_PETS,
-} from "@/components/onboarding/data";
 import { getDashboardState, saveOnboardingState } from "@/lib/onboarding-storage";
 import {
   addToTbr,
@@ -20,27 +15,34 @@ import { getBookById, DISCOVER_LISTS } from "@/components/search/data";
 import { ToastProvider, useToast } from "@/components/search/toast";
 import { buildBadges } from "@/components/insights/badges";
 import { buildPeriodSnapshot } from "@/components/insights/calculate";
-import { generateReaderDna } from "@/components/insights/reader-dna";
+import { loadGameProfile } from "@/components/games/hub/storage";
+import type { GameProfile } from "@/components/games/hub/types";
 import { QuizFlow } from "@/components/personality/quiz-flow";
-import { getPersonality } from "@/components/personality/personalities";
-import { scoreAnswers } from "@/components/personality/score";
+import { getPersonality, formatPersonalityCode } from "@/components/personality/personalities";
+import { PersonalityResultCard } from "@/components/personality/result-card";
 import {
   ensureDemoPersonalitySeed,
   loadActiveAssessment,
-  loadHistory,
   updateActiveVisibility,
 } from "@/components/personality/quiz-storage";
 import type { PersonalityAssessment } from "@/components/personality/types";
-import { DIMENSIONS } from "@/components/personality/types";
 import {
+  buildSelectableBadges,
+  resolveFeaturedBadges,
+} from "./featured-badges";
+import {
+  createOwnerList,
   loadProfileState,
   saveProfileState,
   updateProfile,
 } from "./profile-storage";
 import type { ProfileState, ProfileTab, RecommendedList } from "./types";
+import { CreateListModal } from "./create-list-modal";
 import { EditProfileModal } from "./edit-profile-modal";
+import { FeaturedBadgesModal } from "./featured-badges-modal";
 import { FollowersModal } from "./followers-modal";
 import { BuddyReadModal } from "./buddy-read-modal";
+import { ProfileHero } from "./profile-hero";
 
 export function ProfilePageView() {
   return (
@@ -58,7 +60,6 @@ function ProfilePageInner() {
   const [assessment, setAssessment] = useState<PersonalityAssessment | null>(
     null,
   );
-  const [history, setHistory] = useState<PersonalityAssessment[]>([]);
   const [tab, setTab] = useState<ProfileTab>("overview");
   const [quizOpen, setQuizOpen] = useState(false);
   const [viewAssessment, setViewAssessment] =
@@ -69,12 +70,14 @@ function ProfilePageInner() {
   >(null);
   const [buddyOpen, setBuddyOpen] = useState(false);
   const [listDetail, setListDetail] = useState<RecommendedList | null>(null);
-  const [badgeId, setBadgeId] = useState<string | null>(null);
+  const [createListOpen, setCreateListOpen] = useState(false);
+  const [badgesPickerOpen, setBadgesPickerOpen] = useState(false);
+  const [gameProfile, setGameProfile] = useState<GameProfile | null>(null);
+  const [goalTarget, setGoalTarget] = useState(24);
 
   function refreshIdentity() {
     ensureDemoPersonalitySeed();
     setAssessment(loadActiveAssessment());
-    setHistory(loadHistory());
     const ps = loadProfileState();
     const dash = getDashboardState();
     // Keep avatar/pet aligned with onboarding
@@ -86,6 +89,11 @@ function ProfilePageInner() {
     });
     setProfileState(synced);
     setDiscovery(loadDiscoveryState());
+    setGameProfile(loadGameProfile());
+    const booksGoal = dash.goals.books;
+    setGoalTarget(
+      booksGoal.enabled && booksGoal.value > 0 ? booksGoal.value : 50,
+    );
     setReady(true);
   }
 
@@ -93,24 +101,40 @@ function ProfilePageInner() {
     refreshIdentity();
   }, []);
 
+  const goalYear = 2026;
+
   const snap = useMemo(() => {
     if (!discovery) return null;
     return buildPeriodSnapshot(discovery, "month");
   }, [discovery]);
 
-  const dna = useMemo(() => {
-    if (!discovery || !snap) return null;
-    return generateReaderDna(discovery, snap);
-  }, [discovery, snap]);
+  const yearSnap = useMemo(() => {
+    if (!discovery) return null;
+    return buildPeriodSnapshot(discovery, "year", goalYear);
+  }, [discovery]);
 
   const badges = useMemo(() => {
     if (!discovery || !snap) return [];
     return buildBadges(discovery, snap);
   }, [discovery, snap]);
 
+  const selectableBadges = useMemo(
+    () => buildSelectableBadges(badges, gameProfile),
+    [badges, gameProfile],
+  );
+
+  const featuredBadges = useMemo(
+    () =>
+      resolveFeaturedBadges(
+        profileState?.profile.featuredBadgeIds,
+        selectableBadges,
+      ),
+    [profileState?.profile.featuredBadgeIds, selectableBadges],
+  );
+
   if (!ready || !profileState || !discovery) {
     return (
-      <div className="min-h-screen bg-[#f3ebe0]">
+      <div className="min-h-screen bg-[#2a2438]">
         <AppNav />
         <main className="mx-auto max-w-[1440px] px-4 py-16 text-center text-muted">
           Loading profile…
@@ -120,9 +144,6 @@ function ProfilePageInner() {
   }
 
   const profile = profileState.profile;
-  const avatar = resolveAvatarImage(profile.avatarId);
-  const pet =
-    SHELF_PETS.find((p) => p.id === profile.shelfPetId) ?? SHELF_PETS[5];
   const personality =
     assessment?.addedToProfile && profile.privacy.readingPersonalityPublic
       ? getPersonality(assessment.personalityCode)
@@ -141,121 +162,86 @@ function ProfilePageInner() {
         a.dateFinished ?? a.dateUpdated,
       ),
     )
-    .slice(0, 6);
-  const featuredBadges = badges.filter((b) =>
-    profile.featuredBadgeIds.includes(b.id),
+    .slice(0, 8);
+
+  const goalCurrent = yearSnap?.booksFinished.value ?? 0;
+
+  const topGenre = yearSnap?.genreShare[0] ?? snap?.genreShare[0];
+  const monthsElapsed = Math.max(
+    1,
+    new Date().getMonth() + 1, // 1–12; demo year 2026
   );
+  const pace =
+    Math.round(((yearSnap?.booksFinished.value ?? 0) / monthsElapsed) * 10) /
+    10;
+  const nightOwl = badges.find((b) => b.id === "night-owl");
+  const eraChips = [
+    topGenre ? `${topGenre.genre} ${topGenre.share}%` : "Fantasy 48%",
+    `${pace > 0 ? pace : 2.4} books/mo`,
+    nightOwl?.earned || (snap && snap.timeOfDay.evening + snap.timeOfDay.lateNight >= 50)
+      ? "Night Owl"
+      : "Steady Pace",
+  ];
 
   const tabs: { id: ProfileTab; label: string }[] = [
     { id: "overview", label: "Overview" },
-    { id: "books", label: "Books" },
     { id: "lists", label: "Lists" },
-    { id: "identity", label: "Reading Identity" },
     { id: "activity", label: "Activity" },
   ];
 
   return (
-    <div className="min-h-screen bg-[#f3ebe0] text-ink">
+    <div className="min-h-screen bg-cream text-ink">
       <AppNav />
       <main className="mx-auto max-w-[1440px] px-4 py-6 sm:px-6 lg:px-8">
-        {/* Hero */}
-        <section className="relative overflow-hidden rounded-[1.75rem] border border-[#e4d5c3] bg-gradient-to-br from-[#fbf6ee] via-[#f3ebe0] to-[#e8dcc8] p-5 sm:p-7">
-          <div className="pointer-events-none absolute -right-8 -top-10 h-40 w-40 rounded-full bg-[#2f4a36]/10 blur-2xl" />
-          <div className="flex flex-wrap items-start gap-5">
-            <button
-              type="button"
-              onClick={() => setEditOpen(true)}
-              className="relative h-24 w-24 shrink-0 overflow-hidden rounded-full border-2 border-[#dccab4] shadow-md"
-              aria-label="Edit avatar"
-            >
-              <Image src={avatar} alt="" fill className="object-cover object-top" sizes="96px" />
-            </button>
-            <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <h1 className="font-serif text-3xl font-semibold text-forest sm:text-4xl">
-                  {profile.displayName}
-                </h1>
-                <Image
-                  src={pet.image}
-                  alt={profile.petName}
-                  width={36}
-                  height={36}
-                  className="rounded-full"
-                />
-              </div>
-              <p className="text-muted">@{profile.username}</p>
-              {personality ? (
-                <p className="mt-2 text-sm font-semibold text-forest">
-                  {personality.emoji} {personality.name} · {personality.code}
-                </p>
-              ) : null}
-              {profile.privacy.readingEraPublic ? (
-                <p className="mt-1 text-sm text-muted">
-                  ✨ {profile.readingEra.title}
-                </p>
-              ) : null}
-              <p className="mt-3 max-w-2xl text-sm leading-relaxed text-forest/85">
-                {profile.bio}
-              </p>
-              <div className="mt-3 flex flex-wrap gap-3 text-sm">
-                <button
-                  type="button"
-                  className="font-semibold text-forest underline-offset-2 hover:underline"
-                  onClick={() => setFollowersOpen("followers")}
-                >
-                  {profile.followersCount.toLocaleString()} followers
-                </button>
-                <button
-                  type="button"
-                  className="font-semibold text-forest underline-offset-2 hover:underline"
-                  onClick={() => setFollowersOpen("following")}
-                >
-                  {profile.followingCount.toLocaleString()} following
-                </button>
-              </div>
-              <div className="mt-2 flex flex-wrap gap-3 text-sm text-muted">
-                {profile.socialLinks.instagram ? (
-                  <span>IG @{profile.socialLinks.instagram}</span>
-                ) : null}
-                {profile.socialLinks.goodreads ? (
-                  <span>GR {profile.socialLinks.goodreads}</span>
-                ) : null}
-                {profile.socialLinks.tiktok ? (
-                  <span>TT @{profile.socialLinks.tiktok}</span>
-                ) : null}
-                {profile.socialLinks.youtube ? (
-                  <span>YT {profile.socialLinks.youtube}</span>
-                ) : null}
-              </div>
-              <div className="mt-4 flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={() => setEditOpen(true)}
-                  className="rounded-full bg-forest px-4 py-2 text-sm font-semibold text-paper"
-                >
-                  Edit Profile
-                </button>
-                <Link
-                  href="/home"
-                  className="rounded-full bg-[#efe4d4] px-4 py-2 text-sm font-semibold text-forest"
-                >
-                  Enter Reading Room
-                </Link>
-                <button
-                  type="button"
-                  onClick={() => setBuddyOpen(true)}
-                  className="rounded-full border border-[#e0d1bf] px-4 py-2 text-sm font-semibold text-forest"
-                >
-                  Read With Friends
-                </button>
-              </div>
-            </div>
-          </div>
-        </section>
+        <ProfileHero
+          profile={profile}
+          personality={
+            personality
+              ? {
+                  emoji: personality.emoji,
+                  name: personality.name,
+                  code: personality.code,
+                }
+              : null
+          }
+          goal={{
+            year: goalYear,
+            current: goalCurrent,
+            target: goalTarget,
+          }}
+          readingEra={
+            profile.privacy.readingEraPublic
+              ? {
+                  title: profile.readingEra.title,
+                  blurb: profile.readingEra.blurb,
+                  chips: eraChips,
+                }
+              : null
+          }
+          featuredBadges={featuredBadges}
+          isOwner
+          onEdit={() => setEditOpen(true)}
+          onEditGoal={(target) => {
+            const dash = getDashboardState();
+            saveOnboardingState({
+              ...dash,
+              goals: {
+                ...dash.goals,
+                books: { enabled: true, value: target },
+                noPressure: false,
+              },
+            });
+            setGoalTarget(target);
+            toast({ text: `2026 goal set to ${target} books` });
+          }}
+          onChooseBadges={() => setBadgesPickerOpen(true)}
+          onFollowers={setFollowersOpen}
+          onBuddy={() => setBuddyOpen(true)}
+        />
 
         {/* Tabs */}
         <div
-          className="mt-6 flex gap-1 overflow-x-auto border-b border-[#e4d5c3] pb-px"
+          className="mt-6 flex gap-1 overflow-x-auto border-b border-line"
           role="tablist"
           aria-label="Profile sections"
         >
@@ -266,250 +252,200 @@ function ProfilePageInner() {
               role="tab"
               aria-selected={tab === t.id}
               onClick={() => setTab(t.id)}
-              className={`shrink-0 rounded-t-xl px-4 py-2.5 text-sm font-semibold transition ${
+              className={`relative shrink-0 px-4 py-3 text-sm font-semibold transition ${
                 tab === t.id
-                  ? "bg-[#fbf6ee] text-forest shadow-[0_-1px_0_#fbf6ee]"
-                  : "text-muted hover:text-forest"
+                  ? "text-ink"
+                  : "text-muted hover:text-ink"
               }`}
             >
               {t.label}
+              {tab === t.id ? (
+                <span className="absolute inset-x-3 -bottom-px h-0.5 rounded-full bg-forest" />
+              ) : null}
             </button>
           ))}
         </div>
 
         <div className="mt-6" role="tabpanel">
           {tab === "overview" && (
-            <div className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
-              <div className="space-y-5">
-                <Section title="Currently reading">
+            <div className="space-y-6">
+              <div className="grid gap-5 lg:grid-cols-2">
+                <Section title="Currently reading" eyebrow>
                   {readingBook && readingEntry ? (
-                    <div className="flex gap-3">
-                      <Cover src={readingBook.cover} />
-                      <div>
-                        <p className="font-serif font-semibold text-forest">
+                    <div className="flex items-start gap-4">
+                      <Cover src={readingBook.cover} className="w-20 sm:w-24" />
+                      <div className="min-w-0 flex-1">
+                        <p className="font-serif text-lg font-semibold text-ink">
                           {readingBook.title}
                         </p>
                         <p className="text-sm text-muted">{readingBook.author}</p>
-                        <p className="mt-2 text-sm font-semibold text-forest">
+                        <p className="mt-3 text-sm font-semibold text-ink">
                           {readingEntry.progressPct ?? 0}%
                         </p>
-                        <div className="mt-1 h-2 w-40 overflow-hidden rounded-full bg-[#eadfce]">
+                        <div className="mt-1.5 h-2 max-w-[12rem] overflow-hidden rounded-full bg-line">
                           <div
-                            className="h-full bg-forest"
+                            className="h-full rounded-full bg-forest"
                             style={{
                               width: `${readingEntry.progressPct ?? 0}%`,
                             }}
                           />
                         </div>
+                        <Link
+                          href={`/books/${readingBook.id}`}
+                          className="mt-4 inline-flex text-sm font-semibold text-forest-soft underline-offset-2 hover:underline"
+                        >
+                          Continue reading →
+                        </Link>
                       </div>
                     </div>
                   ) : (
                     <EmptyOwner text="Nothing currently reading — pick up a book from your Library." />
                   )}
+
+                  <div className="mt-6 border-t border-[#4a425c]/80 pt-5">
+                    <div className="mb-3 flex items-end justify-between gap-3">
+                      <h3 className="text-[0.72rem] font-semibold tracking-[0.14em] text-muted uppercase">
+                        Recent reads
+                      </h3>
+                      <Link
+                        href="/library"
+                        className="text-sm font-semibold text-forest-soft underline-offset-2 hover:underline"
+                      >
+                        View all →
+                      </Link>
+                    </div>
+                    <div className="flex items-start gap-3 overflow-x-auto pb-1">
+                      {recentReads.length === 0 ? (
+                        <EmptyOwner text="No finished books yet." />
+                      ) : (
+                        recentReads.map((e) => {
+                          const b = getBookById(e.bookId);
+                          if (!b) return null;
+                          return (
+                            <Link
+                              key={e.bookId}
+                              href={`/books/${b.id}`}
+                              className="flex w-24 shrink-0 flex-col"
+                            >
+                              <Cover src={b.cover} className="w-24" />
+                              <p className="mt-1.5 text-center text-[0.65rem] text-gold">
+                                {e.rating
+                                  ? "★".repeat(e.rating) +
+                                    "☆".repeat(Math.max(0, 5 - e.rating))
+                                  : "—"}
+                              </p>
+                            </Link>
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="mt-5">
+                    <div className="mb-3 flex items-end justify-between gap-3">
+                      <h3 className="text-[0.72rem] font-semibold tracking-[0.14em] text-muted uppercase">
+                        Favorites
+                      </h3>
+                      <Link
+                        href="/library"
+                        className="text-sm font-semibold text-forest-soft underline-offset-2 hover:underline"
+                      >
+                        View all →
+                      </Link>
+                    </div>
+                    <div className="flex items-start gap-3 overflow-x-auto pb-1">
+                      {favorites.length === 0 ? (
+                        <EmptyOwner text="Pin favorites from your library." />
+                      ) : (
+                        favorites.map((b) =>
+                          b ? (
+                            <Link
+                              key={b.id}
+                              href={`/books/${b.id}`}
+                              className="flex w-32 shrink-0 flex-col"
+                            >
+                              <Cover src={b.cover} className="w-32" />
+                              <p className="mt-2 line-clamp-2 text-xs text-muted">
+                                {b.title}
+                              </p>
+                            </Link>
+                          ) : null,
+                        )
+                      )}
+                    </div>
+                  </div>
                 </Section>
 
-                <Section title="Reader identity">
+                <Section title="Reader identity" eyebrow>
                   {personality && assessment ? (
                     <div>
-                      <p className="font-serif text-xl font-semibold text-forest">
-                        {personality.emoji} {personality.name}
+                      <PersonalityResultCard
+                        code={personality.code}
+                        name={personality.name}
+                        size="reveal"
+                        showDownload
+                        tone="light"
+                        className="mb-4"
+                      />
+                      <p className="font-serif text-xl font-semibold text-ink">
+                        <span className="mr-1.5" aria-hidden>
+                          {personality.emoji}
+                        </span>
+                        {personality.name}{" "}
+                        <span className="font-sans text-sm font-semibold tracking-wide text-muted">
+                          {formatPersonalityCode(personality.code)}
+                        </span>
                       </p>
-                      <p className="text-sm text-muted">
-                        {personality.code} · {personality.poles.join(" · ")}
-                      </p>
-                      <p className="mt-2 font-serif italic text-forest">
+                      <p className="mt-3 font-serif text-base italic text-ink/90">
                         &ldquo;{personality.motto}&rdquo;
                       </p>
-                      <button
-                        type="button"
-                        className="mt-3 text-sm font-semibold text-forest underline"
-                        onClick={() => {
-                          setViewAssessment(assessment);
-                          setQuizOpen(true);
-                        }}
-                      >
-                        View Personality
-                      </button>
-                    </div>
-                  ) : (
-                    <InviteQuiz onTake={() => { setViewAssessment(null); setQuizOpen(true); }} />
-                  )}
-                  {profile.privacy.readingEraPublic ? (
-                    <div className="mt-4 border-t border-[#eadfce] pt-4">
-                      <p className="text-[0.68rem] font-semibold tracking-[0.12em] text-forest/65 uppercase">
-                        Current reading era
-                      </p>
-                      <p className="mt-1 font-serif font-semibold text-forest">
-                        ✨ {profile.readingEra.title}
-                      </p>
-                      <p className="text-sm text-muted">{profile.readingEra.blurb}</p>
-                    </div>
-                  ) : null}
-                </Section>
-
-                <Section title="Favorite books">
-                  <div className="flex flex-wrap gap-3">
-                    {favorites.map((b) =>
-                      b ? (
-                        <div key={b.id} className="w-16">
-                          <Cover src={b.cover} />
-                          <p className="mt-1 line-clamp-2 text-[0.65rem] text-muted">
-                            {b.title}
-                          </p>
-                        </div>
-                      ) : null,
-                    )}
-                  </div>
-                </Section>
-
-                <Section title="Recent reads">
-                  <ul className="space-y-2">
-                    {recentReads.map((e) => {
-                      const b = getBookById(e.bookId);
-                      if (!b) return null;
-                      return (
-                        <li key={e.bookId} className="flex items-center gap-3 text-sm">
-                          <Cover src={b.cover} small />
-                          <div>
-                            <p className="font-semibold text-forest">{b.title}</p>
-                            <p className="text-muted">
-                              {e.rating ? `${"★".repeat(e.rating)}` : "Finished"}
-                            </p>
-                          </div>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </Section>
-              </div>
-
-              <div className="space-y-5">
-                <Section title="Lists preview">
-                  <ul className="space-y-3">
-                    {profileState.lists.slice(0, 2).map((list) => (
-                      <li key={list.id}>
+                      <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2">
                         <button
                           type="button"
-                          className="w-full rounded-[1.1rem] border border-[#e4d5c3] bg-white/50 px-3 py-3 text-left hover:border-forest/40"
+                          className="text-sm font-semibold text-forest-soft underline-offset-2 hover:underline"
                           onClick={() => {
-                            setListDetail(list);
-                            setTab("lists");
+                            setViewAssessment(assessment);
+                            setQuizOpen(true);
                           }}
                         >
-                          <p className="font-serif font-semibold text-forest">
-                            {list.title}
-                          </p>
-                          <p className="mt-1 text-xs text-muted">
-                            {list.books.length} books ·{" "}
-                            {list.saveCount.toLocaleString()} saves
-                          </p>
+                          View personality →
                         </button>
-                      </li>
-                    ))}
-                  </ul>
-                </Section>
-
-                <Section title="Badges">
-                  <div className="flex flex-wrap gap-2">
-                    {featuredBadges.map((b) => (
-                      <button
-                        key={b.id}
-                        type="button"
-                        onClick={() => setBadgeId(b.id)}
-                        className="rounded-full bg-[#efe4d4] px-3 py-1.5 text-xs font-semibold text-forest"
+                        <button
+                          type="button"
+                          className="text-sm font-semibold text-muted underline-offset-2 hover:text-ink hover:underline"
+                          onClick={() => {
+                            setViewAssessment(null);
+                            setQuizOpen(true);
+                          }}
+                        >
+                          Retake test
+                        </button>
+                        <Link
+                          href="/insights"
+                          className="text-sm font-semibold text-muted underline-offset-2 hover:text-ink hover:underline"
+                        >
+                          Explore Reader DNA →
+                        </Link>
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      <InviteQuiz
+                        onTake={() => {
+                          setViewAssessment(null);
+                          setQuizOpen(true);
+                        }}
+                      />
+                      <Link
+                        href="/insights"
+                        className="mt-3 inline-flex text-sm font-semibold text-muted underline-offset-2 hover:text-ink hover:underline"
                       >
-                        {b.name}
-                      </button>
-                    ))}
-                  </div>
-                  <Link
-                    href="/insights"
-                    className="mt-3 inline-block text-sm font-semibold text-forest underline"
-                  >
-                    View all badges
-                  </Link>
-                </Section>
-
-                <Section title="Read with friends">
-                  {profile.buddyReads
-                    .filter((b) => b.status === "active")
-                    .map((br) => {
-                      const book = getBookById(br.bookId);
-                      return (
-                        <div key={br.id} className="text-sm">
-                          <p className="font-semibold text-forest">
-                            You + {br.friendName}
-                          </p>
-                          <p className="text-muted">{book?.title}</p>
-                          <p className="mt-1">
-                            You {br.myProgress}% · {br.friendName}{" "}
-                            {br.friendProgress}%
-                          </p>
-                          {br.lockedReactionChapter ? (
-                            <p className="mt-2 rounded-xl bg-[#efe4d4] px-3 py-2 text-xs text-forest">
-                              🔒 {br.friendName} left a reaction at Chapter{" "}
-                              {br.lockedReactionChapter}. Unlock when you reach
-                              it.
-                            </p>
-                          ) : null}
-                        </div>
-                      );
-                    })}
-                  <button
-                    type="button"
-                    onClick={() => setBuddyOpen(true)}
-                    className="mt-3 rounded-full bg-forest px-4 py-2 text-sm font-semibold text-paper"
-                  >
-                    Start Buddy Read
-                  </button>
-                </Section>
-
-                <Section title="Reading Room">
-                  <p className="text-sm text-muted">
-                    Step into your cozy reading space.
-                  </p>
-                  <Link
-                    href="/home"
-                    className="mt-3 inline-flex rounded-full bg-[#efe4d4] px-4 py-2 text-sm font-semibold text-forest"
-                  >
-                    Enter Reading Room →
-                  </Link>
+                        Explore Reader DNA →
+                      </Link>
+                    </div>
+                  )}
                 </Section>
               </div>
-            </div>
-          )}
-
-          {tab === "books" && (
-            <div className="space-y-5">
-              <Section title="Currently reading">
-                {readingBook ? (
-                  <p className="text-sm text-forest">
-                    {readingBook.title} · {readingEntry?.progressPct ?? 0}%
-                  </p>
-                ) : (
-                  <EmptyOwner text="No current read." />
-                )}
-              </Section>
-              <Section title="Favorites">
-                <BookRow ids={profile.favoriteBookIds} />
-              </Section>
-              <Section title="Recently read">
-                <BookRow ids={recentReads.map((e) => e.bookId)} />
-              </Section>
-              <Section title="Highly rated">
-                <BookRow
-                  ids={discovery.entries
-                    .filter((e) => (e.rating ?? 0) >= 5)
-                    .map((e) => e.bookId)
-                    .slice(0, 8)}
-                />
-              </Section>
-              <Link
-                href="/library"
-                className="inline-flex rounded-full bg-forest px-5 py-2.5 text-sm font-semibold text-paper"
-              >
-                View Full Library
-              </Link>
             </div>
           )}
 
@@ -519,6 +455,7 @@ function ProfilePageInner() {
               discovery={discovery}
               detail={listDetail}
               onDetail={setListDetail}
+              onCreateList={() => setCreateListOpen(true)}
               onSave={(list) => {
                 const next = toggleSavedList(discovery, list.id);
                 setDiscovery(next);
@@ -562,33 +499,6 @@ function ProfilePageInner() {
             />
           )}
 
-          {tab === "identity" && (
-            <IdentityTab
-              assessment={assessment}
-              history={history}
-              profile={profile}
-              dna={dna}
-              badges={badges}
-              featuredBadgeIds={profile.featuredBadgeIds}
-              onTakeQuiz={() => {
-                setViewAssessment(null);
-                setQuizOpen(true);
-              }}
-              onView={(a) => {
-                setViewAssessment(a);
-                setQuizOpen(true);
-              }}
-              onTogglePersonalityPublic={(v) => {
-                updateActiveVisibility(v);
-                const next = updateProfile(profileState, {
-                  privacy: { ...profile.privacy, readingPersonalityPublic: v },
-                });
-                setProfileState(next);
-                setAssessment(loadActiveAssessment());
-              }}
-            />
-          )}
-
           {tab === "activity" && (
             <Section title="Activity">
               {profile.privacy.activityPublic ? (
@@ -596,9 +506,9 @@ function ProfilePageInner() {
                   {profileState.activity.map((a) => (
                     <li
                       key={a.id}
-                      className="rounded-[1.1rem] border border-[#e4d5c3] bg-white/50 px-4 py-3"
+                      className="rounded-[1.1rem] border border-[#4a425c] bg-paper/50 px-4 py-3"
                     >
-                      <p className="font-semibold text-forest">{a.text}</p>
+                      <p className="font-semibold text-ink">{a.text}</p>
                       {a.detail ? (
                         <p className="text-sm text-muted">{a.detail}</p>
                       ) : null}
@@ -624,11 +534,9 @@ function ProfilePageInner() {
           setQuizOpen(false);
           setViewAssessment(null);
           setAssessment(loadActiveAssessment());
-          setHistory(loadHistory());
         }}
         onComplete={(a) => {
           setAssessment(a);
-          setHistory(loadHistory());
           toast({ text: `${getPersonality(a.personalityCode).emoji} Added to your profile` });
         }}
         followingIds={discovery.followingIds}
@@ -657,6 +565,33 @@ function ProfilePageInner() {
           }
           toast({ text: "Profile updated" });
           setEditOpen(false);
+        }}
+      />
+
+      <FeaturedBadgesModal
+        open={badgesPickerOpen}
+        options={selectableBadges}
+        selectedIds={profile.featuredBadgeIds}
+        onClose={() => setBadgesPickerOpen(false)}
+        onSave={(ids) => {
+          const next = updateProfile(profileState, { featuredBadgeIds: ids });
+          setProfileState(next);
+          setBadgesPickerOpen(false);
+          toast({ text: "Featured badges updated" });
+        }}
+      />
+
+      <CreateListModal
+        open={createListOpen}
+        onClose={() => setCreateListOpen(false)}
+        onCreate={(input) => {
+          const next = createOwnerList(profileState, input);
+          setProfileState(next);
+          setCreateListOpen(false);
+          setListDetail(next.lists[0] ?? null);
+          toast({
+            text: `Created “${input.title.trim()}”`,
+          });
         }}
       />
 
@@ -701,12 +636,6 @@ function ProfilePageInner() {
         }}
       />
 
-      {badgeId && (
-        <BadgeModal
-          badge={badges.find((b) => b.id === badgeId) ?? null}
-          onClose={() => setBadgeId(null)}
-        />
-      )}
     </div>
   );
 }
@@ -714,44 +643,46 @@ function ProfilePageInner() {
 function Section({
   title,
   children,
+  eyebrow,
 }: {
   title: string;
   children: React.ReactNode;
+  eyebrow?: boolean;
 }) {
   return (
-    <section className="rounded-[1.5rem] border border-[#e4d5c3] bg-[#fbf6ee] p-4 sm:p-5">
-      <h2 className="font-serif text-xl font-semibold text-forest">{title}</h2>
+    <section className="rounded-[1.5rem] border border-line bg-paper p-4 sm:p-5">
+      <h2
+        className={
+          eyebrow
+            ? "text-[0.72rem] font-semibold tracking-[0.14em] text-muted uppercase"
+            : "font-serif text-xl font-semibold text-ink"
+        }
+      >
+        {title}
+      </h2>
       <div className="mt-3">{children}</div>
     </section>
   );
 }
 
-function Cover({ src, small }: { src: string; small?: boolean }) {
-  const size = small ? 40 : 64;
+function Cover({
+  src,
+  className = "w-16",
+}: {
+  src: string;
+  /** Fixed width + aspect-[2/3]; img is absolute so intrinsic ratio cannot stretch the frame. */
+  className?: string;
+}) {
   return (
     <div
-      className="relative shrink-0 overflow-hidden rounded-md border border-[#e4d5c3] bg-[#eadfce]"
-      style={{ width: size, height: size * 1.45 }}
+      className={`relative aspect-[2/3] shrink-0 overflow-hidden rounded-md border border-line bg-line shadow-sm ${className}`}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={src} alt="" className="h-full w-full object-cover" />
-    </div>
-  );
-}
-
-function BookRow({ ids }: { ids: string[] }) {
-  return (
-    <div className="flex flex-wrap gap-3">
-      {ids.map((id) => {
-        const b = getBookById(id);
-        if (!b) return null;
-        return (
-          <div key={id} className="w-16">
-            <Cover src={b.cover} />
-            <p className="mt-1 line-clamp-2 text-[0.65rem] text-muted">{b.title}</p>
-          </div>
-        );
-      })}
+      <img
+        src={src}
+        alt=""
+        className="absolute inset-0 h-full w-full object-cover object-center"
+      />
     </div>
   );
 }
@@ -762,11 +693,11 @@ function EmptyOwner({ text }: { text: string }) {
 
 function InviteQuiz({ onTake }: { onTake: () => void }) {
   return (
-    <div className="rounded-[1.25rem] border border-dashed border-[#dccab4] bg-[#f7f0e6] px-4 py-5 text-center">
-      <p className="text-[0.68rem] font-semibold tracking-[0.14em] text-forest/65 uppercase">
+    <div className="rounded-[1.25rem] border border-dashed border-[#564d6a] bg-[#342c45] px-4 py-5 text-center">
+      <p className="text-[0.68rem] font-semibold tracking-[0.14em] text-ink/65 uppercase">
         Discover your Reading Personality
       </p>
-      <p className="mt-2 font-serif text-xl font-semibold text-forest">
+      <p className="mt-2 font-serif text-xl font-semibold text-ink">
         What kind of reader are you?
       </p>
       <p className="mt-1 text-sm text-muted">32 questions · About 5 minutes</p>
@@ -786,6 +717,7 @@ function ListsTab({
   discovery,
   detail,
   onDetail,
+  onCreateList,
   onSave,
   onAddAll,
   onAddOne,
@@ -794,6 +726,7 @@ function ListsTab({
   discovery: DiscoveryState;
   detail: RecommendedList | null;
   onDetail: (l: RecommendedList | null) => void;
+  onCreateList: () => void;
   onSave: (l: RecommendedList) => void;
   onAddAll: (l: RecommendedList) => void;
   onAddOne: (l: RecommendedList, bookId: string, note: string) => void;
@@ -807,12 +740,12 @@ function ListsTab({
       <div>
         <button
           type="button"
-          className="text-sm font-semibold text-forest underline"
+          className="text-sm font-semibold text-ink underline"
           onClick={() => onDetail(null)}
         >
           ← All lists
         </button>
-        <h2 className="mt-3 font-serif text-2xl font-semibold text-forest">
+        <h2 className="mt-3 font-serif text-2xl font-semibold text-ink">
           {detail.title}
         </h2>
         <p className="mt-1 text-sm text-muted">{detail.description}</p>
@@ -831,7 +764,7 @@ function ListsTab({
           <button
             type="button"
             onClick={() => onAddAll(detail)}
-            className="rounded-full bg-[#efe4d4] px-4 py-2 text-sm font-semibold text-forest"
+            className="rounded-full bg-[#3f3654] px-4 py-2 text-sm font-semibold text-ink"
           >
             Add All to TBR
           </button>
@@ -843,15 +776,15 @@ function ListsTab({
             return (
               <li
                 key={item.bookId}
-                className="flex gap-3 rounded-[1.1rem] border border-[#e4d5c3] bg-[#fbf6ee] p-3"
+                className="flex gap-3 rounded-[1.1rem] border border-[#4a425c] bg-[#3a324f] p-3"
               >
-                <Cover src={book.cover} small />
+                <Cover src={book.cover} className="w-10" />
                 <div className="min-w-0 flex-1">
-                  <p className="font-semibold text-forest">{book.title}</p>
+                  <p className="font-semibold text-ink">{book.title}</p>
                   <p className="text-sm italic text-muted">&ldquo;{item.note}&rdquo;</p>
                   <button
                     type="button"
-                    className="mt-2 text-xs font-semibold text-forest underline"
+                    className="mt-2 text-xs font-semibold text-ink underline"
                     onClick={() => onAddOne(detail, item.bookId, item.note)}
                   >
                     Add to TBR
@@ -868,20 +801,46 @@ function ListsTab({
   const totalSaves = lists.reduce((s, l) => s + l.saveCount, 0);
   return (
     <div>
-      <p className="mb-4 text-sm text-muted">
-        Your lists · {totalSaves.toLocaleString()} total saves ·{" "}
-        {lists.reduce((s, l) => s + l.completionCount, 0)} books completed from
-        your recommendations
-      </p>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <p className="text-sm text-muted">
+          Your lists · {totalSaves.toLocaleString()} total saves ·{" "}
+          {lists.reduce((s, l) => s + l.completionCount, 0)} books completed from
+          your recommendations
+        </p>
+        <button
+          type="button"
+          onClick={onCreateList}
+          className="rounded-full bg-forest px-4 py-2 text-sm font-semibold text-paper hover:bg-forest-deep"
+        >
+          + Create list
+        </button>
+      </div>
       <ul className="grid gap-3 sm:grid-cols-2">
+        <li>
+          <button
+            type="button"
+            onClick={onCreateList}
+            className="flex h-full min-h-[9.5rem] w-full flex-col items-center justify-center rounded-[1.35rem] border border-dashed border-[#6a6280] bg-[#342c45]/80 p-4 text-center transition hover:border-forest/50 hover:bg-[#3a324f]"
+          >
+            <span className="flex h-10 w-10 items-center justify-center rounded-full border border-[#6a6280] text-xl font-semibold text-ink">
+              +
+            </span>
+            <span className="mt-3 font-serif text-lg font-semibold text-ink">
+              Create a new list
+            </span>
+            <span className="mt-1 text-sm text-muted">
+              Title, vibe, and books you want to recommend
+            </span>
+          </button>
+        </li>
         {lists.map((list) => (
           <li key={list.id}>
             <button
               type="button"
               onClick={() => onDetail(list)}
-              className="h-full w-full rounded-[1.35rem] border border-[#e4d5c3] bg-[#fbf6ee] p-4 text-left hover:border-forest/40"
+              className="h-full w-full rounded-[1.35rem] border border-[#4a425c] bg-[#3a324f] p-4 text-left hover:border-forest/40"
             >
-              <p className="font-serif text-lg font-semibold text-forest">
+              <p className="font-serif text-lg font-semibold text-ink">
                 {list.title}
               </p>
               <p className="mt-1 line-clamp-2 text-sm text-muted">
@@ -890,13 +849,14 @@ function ListsTab({
               <p className="mt-3 text-xs text-muted">
                 {list.books.length} books · {list.saveCount.toLocaleString()}{" "}
                 saves
+                {list.visibility === "private" ? " · Private" : ""}
               </p>
             </button>
           </li>
         ))}
       </ul>
       <div className="mt-6">
-        <h3 className="font-serif text-lg font-semibold text-forest">
+        <h3 className="font-serif text-lg font-semibold text-ink">
           From Discover
         </h3>
         <ul className="mt-2 space-y-2">
@@ -906,232 +866,6 @@ function ListsTab({
             </li>
           ))}
         </ul>
-      </div>
-    </div>
-  );
-}
-
-function IdentityTab({
-  assessment,
-  history,
-  profile,
-  dna,
-  badges,
-  featuredBadgeIds,
-  onTakeQuiz,
-  onView,
-  onTogglePersonalityPublic,
-}: {
-  assessment: PersonalityAssessment | null;
-  history: PersonalityAssessment[];
-  profile: ProfileState["profile"];
-  dna: ReturnType<typeof generateReaderDna> | null;
-  badges: ReturnType<typeof buildBadges>;
-  featuredBadgeIds: string[];
-  onTakeQuiz: () => void;
-  onView: (a: PersonalityAssessment) => void;
-  onTogglePersonalityPublic: (v: boolean) => void;
-}) {
-  const personality = assessment?.addedToProfile
-    ? getPersonality(assessment.personalityCode)
-    : null;
-  const scored = assessment
-    ? scoreAnswers(assessment.answers, assessment.tieBreakers)
-    : null;
-
-  return (
-    <div className="space-y-5">
-      <Section title="Reading Personality">
-        {personality && assessment && scored ? (
-          <div>
-            <p className="font-serif text-2xl font-semibold text-forest">
-              {personality.emoji} {personality.name}
-            </p>
-            <p className="text-sm text-muted">{assessment.personalityCode}</p>
-            <ul className="mt-3 space-y-1 text-sm">
-              {scored.dimensions.map((d) => {
-                const def = DIMENSIONS.find((x) => x.id === d.dimension)!;
-                const pct =
-                  d.winner === def.first.letter
-                    ? d.firstPolePercentage
-                    : d.secondPolePercentage;
-                return (
-                  <li key={d.dimension}>
-                    {d.winnerLabel} {pct}%
-                    {d.balanced ? " · balanced" : ""}
-                  </li>
-                );
-              })}
-            </ul>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => onView(assessment)}
-                className="rounded-full bg-forest px-4 py-2 text-sm font-semibold text-paper"
-              >
-                View Personality
-              </button>
-              <button
-                type="button"
-                onClick={onTakeQuiz}
-                className="rounded-full bg-[#efe4d4] px-4 py-2 text-sm font-semibold text-forest"
-              >
-                Retake
-              </button>
-            </div>
-            <label className="mt-4 flex items-center gap-2 text-sm text-forest">
-              <input
-                type="checkbox"
-                checked={profile.privacy.readingPersonalityPublic}
-                onChange={(e) => onTogglePersonalityPublic(e.target.checked)}
-              />
-              Show Reading Personality on Profile
-            </label>
-          </div>
-        ) : (
-          <InviteQuiz onTake={onTakeQuiz} />
-        )}
-      </Section>
-
-      <Section title="Current Reading Era">
-        <p className="font-serif text-xl font-semibold text-forest">
-          ✨ {profile.readingEra.title}
-        </p>
-        <p className="mt-1 text-sm text-muted">{profile.readingEra.blurb}</p>
-        <p className="mt-2 text-xs text-muted-soft">
-          Short-term & informal — distinct from permanent personality and Reader
-          DNA.
-        </p>
-      </Section>
-
-      <Section title="Reader DNA">
-        {dna ? (
-          <div>
-            <p className="font-serif text-xl font-semibold text-forest">
-              {dna.title}
-            </p>
-            <ul className="mt-2 space-y-1 text-sm text-muted">
-              {dna.traits.slice(0, 3).map((t) => (
-                <li key={t.id}>
-                  {t.label} {t.value}%
-                </li>
-              ))}
-            </ul>
-            <Link
-              href="/insights"
-              className="mt-3 inline-block text-sm font-semibold text-forest underline"
-            >
-              Explore Reader DNA
-            </Link>
-          </div>
-        ) : null}
-      </Section>
-
-      {personality && dna && assessment ? (
-        <Section title="Personality vs Reality">
-          <p className="text-sm text-muted">
-            Quiz says you&apos;re a{" "}
-            <span className="font-semibold text-forest">
-              {personality.poles[2]}
-            </span>
-            . Your behavior this month still leans atmospheric and spontaneous —
-            Reader DNA ({dna.title}) agrees more than it argues.
-          </p>
-          <p className="mt-2 text-xs text-muted-soft">
-            They measure different things. Playful comparison only.
-          </p>
-        </Section>
-      ) : null}
-
-      <Section title="Badges">
-        <div className="flex flex-wrap gap-2">
-          {badges
-            .filter((b) => b.earned && featuredBadgeIds.includes(b.id))
-            .map((b) => (
-              <span
-                key={b.id}
-                className="rounded-full bg-[#efe4d4] px-3 py-1.5 text-xs font-semibold text-forest"
-              >
-                {b.name}
-              </span>
-            ))}
-        </div>
-      </Section>
-
-      <Section title="Reading Personality History">
-        {history.length === 0 ? (
-          <p className="text-sm text-muted">No assessments yet.</p>
-        ) : (
-          <ul className="space-y-2">
-            {history.map((h) => {
-              const p = getPersonality(h.personalityCode);
-              return (
-                <li
-                  key={h.id}
-                  className="flex items-center justify-between gap-3 rounded-xl border border-[#eadfce] px-3 py-2 text-sm"
-                >
-                  <span>
-                    {p.emoji} {p.name} · {h.personalityCode}
-                  </span>
-                  <span className="text-xs text-muted">
-                    {new Date(h.completedAt).toLocaleDateString()}
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </Section>
-    </div>
-  );
-}
-
-function BadgeModal({
-  badge,
-  onClose,
-}: {
-  badge: ReturnType<typeof buildBadges>[number] | null;
-  onClose: () => void;
-}) {
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
-  if (!badge) return null;
-  return (
-    <div
-      className="fixed inset-0 z-[80] flex items-center justify-center bg-forest/40 p-4"
-      role="dialog"
-      aria-modal="true"
-      onClick={onClose}
-    >
-      <div
-        className="w-full max-w-sm rounded-[1.5rem] border border-[#e4d5c3] bg-[#fbf6ee] p-5"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h3 className="font-serif text-2xl font-semibold text-forest">
-          {badge.name}
-        </h3>
-        <p className="mt-2 text-sm text-muted">{badge.description}</p>
-        {badge.earnedDate ? (
-          <p className="mt-2 text-xs text-muted">Earned: {badge.earnedDate}</p>
-        ) : null}
-        <Link
-          href="/insights"
-          className="mt-4 inline-block text-sm font-semibold text-forest underline"
-        >
-          View All Badges
-        </Link>
-        <button
-          type="button"
-          onClick={onClose}
-          className="mt-4 block w-full rounded-full bg-[#efe4d4] py-2 text-sm font-semibold text-forest"
-        >
-          Close
-        </button>
       </div>
     </div>
   );

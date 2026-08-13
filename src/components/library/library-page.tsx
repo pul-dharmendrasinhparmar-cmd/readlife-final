@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   useEffect,
   useMemo,
@@ -93,6 +94,7 @@ export function LibraryPage() {
 
 function LibraryPageInner() {
   const { toast } = useToast();
+  const router = useRouter();
   const [state, setState] = useState<DiscoveryState | null>(null);
   const [tab, setTab] = useState<Tab>("all");
   const [query, setQuery] = useState("");
@@ -107,6 +109,8 @@ function LibraryPageInner() {
   const [selectMode, setSelectMode] = useState(false);
   const [selected, setSelected] = useState<string[]>([]);
   const [menuId, setMenuId] = useState<string | null>(null);
+
+  const openBook = (id: string) => router.push(`/books/${id}`);
 
   useEffect(() => {
     setState(loadDiscoveryState());
@@ -299,7 +303,7 @@ function LibraryPageInner() {
 
   if (!state || !counts) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f3ebe0] text-muted">
+      <div className="flex min-h-screen items-center justify-center bg-[#2a2438] text-muted">
         Opening your library…
       </div>
     );
@@ -348,7 +352,7 @@ function LibraryPageInner() {
   const somedayCleanup = state.entries.filter((e) => e.status === "tbr");
 
   return (
-    <div className="min-h-screen bg-[#f3ebe0] text-ink">
+    <div className="min-h-screen bg-[#2a2438] text-ink">
       <AppNav />
 
       <main className="mx-auto max-w-[1440px] px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
@@ -356,13 +360,13 @@ function LibraryPageInner() {
           <div className="pointer-events-none absolute -top-1 left-0 text-gold/70" aria-hidden>
             <LeafIcon className="h-5 w-5" />
           </div>
-          <h1 className="font-serif text-[2.35rem] font-semibold tracking-[-0.03em] text-forest sm:text-[2.75rem]">
+          <h1 className="font-serif text-[2.35rem] font-semibold tracking-[-0.03em] text-ink sm:text-[2.75rem]">
             Library
           </h1>
           <p className="mt-2 text-[1.05rem] text-muted">
             Every book that&apos;s been part of your reading life.
           </p>
-          <p className="mt-1 text-sm font-medium text-forest/70">
+          <p className="mt-1 text-sm font-medium text-ink/70">
             {counts.total} books across your shelves
           </p>
         </header>
@@ -382,7 +386,7 @@ function LibraryPageInner() {
           ).map(([label, n]) => (
             <div
               key={label}
-              className="rounded-full border border-[#e4d5c3] bg-[#fbf6ee]/90 px-3.5 py-1.5 text-sm text-forest"
+              className="rounded-full border border-[#4a425c] bg-[#3a324f]/90 px-3.5 py-1.5 text-sm text-ink"
             >
               <span className="font-semibold">{label}:</span> {n}
             </div>
@@ -422,8 +426,8 @@ function LibraryPageInner() {
                 }}
                 className={`relative shrink-0 rounded-full px-3.5 py-2 text-sm font-semibold transition ${
                   active
-                    ? "text-forest"
-                    : "text-forest/60 hover:bg-[#efe4d4] hover:text-forest"
+                    ? "text-ink"
+                    : "text-ink/60 hover:bg-[#3f3654] hover:text-ink"
                 }`}
               >
                 {label}
@@ -449,14 +453,14 @@ function LibraryPageInner() {
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Search your library..."
-                  className="w-full rounded-full border border-[#e0d1bf] bg-[#fbf6ee] py-2.5 pr-4 pl-10 text-sm text-forest outline-none placeholder:text-muted-soft focus:border-forest/45 focus:shadow-[0_0_0_3px_rgba(47,74,54,0.1)]"
+                  className="w-full rounded-full border border-[#564d6a] bg-[#3a324f] py-2.5 pr-4 pl-10 text-sm text-ink outline-none placeholder:text-muted-soft focus:border-forest/45 focus:shadow-[0_0_0_3px_rgba(176,143,206,0.1)]"
                 />
               </label>
 
               <select
                 value={sort}
                 onChange={(e) => setSort(e.target.value as SortKey)}
-                className="rounded-full border border-[#e0d1bf] bg-[#fbf6ee] px-3.5 py-2.5 text-sm font-semibold text-forest outline-none"
+                className="rounded-full border border-[#564d6a] bg-[#3a324f] px-3.5 py-2.5 text-sm font-semibold text-ink outline-none"
                 aria-label="Sort"
               >
                 {sortOptions.map((o) => (
@@ -469,7 +473,7 @@ function LibraryPageInner() {
               <button
                 type="button"
                 onClick={() => setFilterOpen(true)}
-                className="rounded-full border border-[#e0d1bf] bg-[#fbf6ee] px-4 py-2.5 text-sm font-semibold text-forest hover:bg-[#efe4d4]"
+                className="rounded-full border border-[#564d6a] bg-[#3a324f] px-4 py-2.5 text-sm font-semibold text-ink hover:bg-[#3f3654]"
               >
                 Filters
                 {activeFilterChips.length
@@ -477,7 +481,7 @@ function LibraryPageInner() {
                   : ""}
               </button>
 
-              <div className="flex rounded-full border border-[#e0d1bf] bg-[#fbf6ee] p-1">
+              <div className="flex rounded-full border border-[#564d6a] bg-[#3a324f] p-1">
                 {(
                   [
                     ["grid", "Grid"],
@@ -492,7 +496,7 @@ function LibraryPageInner() {
                     className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
                       view === id
                         ? "bg-forest text-paper"
-                        : "text-forest/70 hover:text-forest"
+                        : "text-ink/70 hover:text-ink"
                     }`}
                   >
                     {label}
@@ -506,7 +510,7 @@ function LibraryPageInner() {
                   setSelectMode((v) => !v);
                   setSelected([]);
                 }}
-                className="rounded-full px-3 py-2 text-sm font-semibold text-forest/70 hover:bg-[#efe4d4]"
+                className="rounded-full px-3 py-2 text-sm font-semibold text-ink/70 hover:bg-[#3f3654]"
               >
                 {selectMode ? "Cancel" : "Select"}
               </button>
@@ -544,7 +548,7 @@ function LibraryPageInner() {
                         }));
                       else setFilters((f) => ({ ...f, minRating: null }));
                     }}
-                    className="rounded-full bg-[#efe4d4] px-3 py-1 text-xs font-semibold text-forest"
+                    className="rounded-full bg-[#3f3654] px-3 py-1 text-xs font-semibold text-ink"
                   >
                     {chip.label} ×
                   </button>
@@ -552,7 +556,7 @@ function LibraryPageInner() {
                 <button
                   type="button"
                   onClick={() => setFilters(EMPTY_FILTERS)}
-                  className="text-xs font-semibold text-forest underline-offset-2 hover:underline"
+                  className="text-xs font-semibold text-ink underline-offset-2 hover:underline"
                 >
                   Clear All Filters
                 </button>
@@ -575,7 +579,7 @@ function LibraryPageInner() {
                     className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
                       readYear === id
                         ? "bg-forest text-paper"
-                        : "bg-[#fbf6ee] text-forest/70"
+                        : "bg-[#3a324f] text-ink/70"
                     }`}
                   >
                     {label}
@@ -593,7 +597,7 @@ function LibraryPageInner() {
                 setSelected={setSelected}
                 menuId={menuId}
                 setMenuId={setMenuId}
-                onOpen={(id) => setActiveBookId(id)}
+                onOpen={openBook}
                 onMove={(bookId, priority) => {
                   persist(moveTbrPriority(state, bookId, priority));
                   toast({
@@ -608,7 +612,7 @@ function LibraryPageInner() {
             ) : tab === "reading" ? (
               <ReadingSection
                 rows={filtered}
-                onOpen={(id) => setActiveBookId(id)}
+                onOpen={openBook}
               />
             ) : (
               <CollectionSection
@@ -620,7 +624,7 @@ function LibraryPageInner() {
                 setSelected={setSelected}
                 menuId={menuId}
                 setMenuId={setMenuId}
-                onOpen={(id) => setActiveBookId(id)}
+                onOpen={openBook}
                 onQuickStatus={(bookId, status) => {
                   persist(setLibraryStatus(state, bookId, status));
                   toast({
@@ -636,8 +640,8 @@ function LibraryPageInner() {
             )}
 
             {selectMode && selected.length > 0 ? (
-              <div className="sticky bottom-4 z-20 mx-auto mt-6 flex max-w-xl flex-wrap items-center justify-center gap-2 rounded-full border border-[#e4d5c3] bg-[#fbf6ee] px-4 py-3 shadow-lg">
-                <span className="text-xs font-semibold text-forest">
+              <div className="sticky bottom-4 z-20 mx-auto mt-6 flex max-w-xl flex-wrap items-center justify-center gap-2 rounded-full border border-[#4a425c] bg-[#3a324f] px-4 py-3 shadow-lg">
+                <span className="text-xs font-semibold text-ink">
                   {selected.length} selected
                 </span>
                 <button
@@ -668,7 +672,7 @@ function LibraryPageInner() {
                     toast({ text: "Moved to Someday ☁️" });
                     setSelected([]);
                   }}
-                  className="rounded-full border border-forest/35 px-3 py-1.5 text-xs font-semibold text-forest"
+                  className="rounded-full border border-forest/35 px-3 py-1.5 text-xs font-semibold text-ink"
                 >
                   Move to Someday
                 </button>
@@ -688,8 +692,8 @@ function LibraryPageInner() {
 
         {/* Based on your library */}
         {tab !== "lists" ? (
-          <section className="mt-14 border-t border-[#e4d5c3]/80 pt-10">
-            <h2 className="font-serif text-xl font-semibold text-forest">
+          <section className="mt-14 border-t border-[#4a425c]/80 pt-10">
+            <h2 className="font-serif text-xl font-semibold text-ink">
               Based on Your Library
             </h2>
             <p className="mt-1 text-sm text-muted">
@@ -699,7 +703,7 @@ function LibraryPageInner() {
               {recommendations.map((book) => (
                 <article
                   key={book.id}
-                  className="rounded-[1.15rem] border border-[#e4d5c3]/80 bg-[#fbf6ee]/90 p-3"
+                  className="rounded-[1.15rem] border border-[#4a425c]/80 bg-[#3a324f]/90 p-3"
                 >
                   <div
                     className="relative mx-auto aspect-[2/3] w-full max-w-[110px] overflow-hidden rounded-lg"
@@ -713,7 +717,7 @@ function LibraryPageInner() {
                       sizes="110px"
                     />
                   </div>
-                  <p className="mt-2 font-serif text-sm font-semibold text-forest">
+                  <p className="mt-2 font-serif text-sm font-semibold text-ink">
                     {book.title}
                   </p>
                   <p className="text-[0.7rem] text-muted">{book.author}</p>
@@ -722,7 +726,7 @@ function LibraryPageInner() {
             </div>
             <Link
               href="/search"
-              className="mt-4 inline-flex text-sm font-semibold text-forest underline-offset-2 hover:underline"
+              className="mt-4 inline-flex text-sm font-semibold text-ink underline-offset-2 hover:underline"
             >
               View More in Search →
             </Link>
@@ -822,14 +826,14 @@ function ReadingSection({
   }
   return (
     <section className="mt-6">
-      <h2 className="font-serif text-xl font-semibold text-forest">
+      <h2 className="font-serif text-xl font-semibold text-ink">
         Currently Reading
       </h2>
       <div className="mt-4 grid gap-4 lg:grid-cols-2">
         {rows.map(({ book, entry }) => (
           <article
             key={book.id}
-            className="flex gap-4 rounded-[1.35rem] border border-[#e4d5c3] bg-[#fbf6ee] p-4"
+            className="flex gap-4 rounded-[1.35rem] border border-[#4a425c] bg-[#3a324f] p-4"
           >
             <button type="button" onClick={() => onOpen(book.id)} className="shrink-0">
               <div
@@ -841,18 +845,18 @@ function ReadingSection({
             </button>
             <div className="min-w-0 flex-1">
               <button type="button" onClick={() => onOpen(book.id)} className="text-left">
-                <h3 className="font-serif text-lg font-semibold text-forest">
+                <h3 className="font-serif text-lg font-semibold text-ink">
                   {book.title}
                 </h3>
                 <p className="text-sm text-muted">{book.author}</p>
               </button>
-              <p className="mt-2 text-sm font-semibold text-forest">
+              <p className="mt-2 text-sm font-semibold text-ink">
                 {entry.progressPct ?? 0}%
                 {entry.pagesRead != null
                   ? ` · ${entry.pagesRead} / ${book.pageCount} pages`
                   : ""}
               </p>
-              <div className="mt-2 h-2 overflow-hidden rounded-full bg-[#e8dccb]">
+              <div className="mt-2 h-2 overflow-hidden rounded-full bg-[#564d6a]">
                 <div
                   className="h-full rounded-full bg-forest"
                   style={{ width: `${entry.progressPct ?? 0}%` }}
@@ -927,7 +931,7 @@ function TbrSection({
     <section className="mt-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 className="font-serif text-xl font-semibold text-forest">
+          <h2 className="font-serif text-xl font-semibold text-ink">
             Your TBR
           </h2>
           <p className="mt-1 text-sm text-muted">
@@ -937,19 +941,19 @@ function TbrSection({
         <button
           type="button"
           onClick={onCleanup}
-          className="rounded-full border border-forest/35 px-4 py-2 text-sm font-semibold text-forest hover:bg-[#efe4d4]"
+          className="rounded-full border border-forest/35 px-4 py-2 text-sm font-semibold text-ink hover:bg-[#3f3654]"
         >
           TBR Cleanup
         </button>
       </div>
 
       {insights.length > 0 ? (
-        <div className="mt-4 space-y-2 rounded-[1.25rem] border border-[#e4d5c3] bg-[#f7f0e6]/90 px-4 py-3">
-          <p className="text-[0.65rem] font-semibold tracking-[0.12em] text-forest/65 uppercase">
+        <div className="mt-4 space-y-2 rounded-[1.25rem] border border-[#4a425c] bg-[#342c45]/90 px-4 py-3">
+          <p className="text-[0.65rem] font-semibold tracking-[0.12em] text-ink/65 uppercase">
             Smart TBR notes
           </p>
           {insights.map((tip) => (
-            <p key={tip} className="text-sm text-forest/85">
+            <p key={tip} className="text-sm text-ink/85">
               {tip}
             </p>
           ))}
@@ -963,7 +967,7 @@ function TbrSection({
           return (
             <div
               key={priority}
-              className="rounded-[1.35rem] border border-[#e4d5c3]/90 bg-[#fbf6ee]/70 p-3"
+              className="rounded-[1.35rem] border border-[#4a425c]/90 bg-[#3a324f]/70 p-3"
               onDragOver={(e) => e.preventDefault()}
               onDrop={(e) => {
                 e.preventDefault();
@@ -972,7 +976,7 @@ function TbrSection({
               }}
             >
               <div className="mb-3 flex items-baseline justify-between px-1">
-                <h3 className="font-serif text-base font-semibold text-forest">
+                <h3 className="font-serif text-base font-semibold text-ink">
                   {meta.emoji} {meta.label}
                 </h3>
                 <span className="text-xs text-muted">{items.length}</span>
@@ -1039,7 +1043,7 @@ function TbrCard({
       onDragStart={(e) => {
         e.dataTransfer.setData("text/book-id", book.id);
       }}
-      className="rounded-2xl border border-[#e8dccb] bg-[#fbf6ee] p-2.5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+      className="rounded-2xl border border-[#564d6a] bg-[#3a324f] p-2.5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
     >
       <div className="flex gap-2.5">
         {selectMode ? (
@@ -1059,12 +1063,12 @@ function TbrCard({
             <Image src={book.cover} alt="" fill className="object-cover" sizes="44px" />
           </div>
           <div className="min-w-0">
-            <p className="truncate font-serif text-sm font-semibold text-forest">
+            <p className="truncate font-serif text-sm font-semibold text-ink">
               {book.title}
             </p>
             <p className="truncate text-[0.7rem] text-muted">{book.author}</p>
             {entry.note ? (
-              <p className="mt-1 line-clamp-2 text-[0.68rem] text-forest/70 italic">
+              <p className="mt-1 line-clamp-2 text-[0.68rem] text-ink/70 italic">
                 {entry.note}
               </p>
             ) : null}
@@ -1081,17 +1085,17 @@ function TbrCard({
             type="button"
             aria-label="Move to…"
             onClick={() => setMenuOpen(!menuOpen)}
-            className="rounded-full px-2 py-1 text-forest/60 hover:bg-[#efe4d4]"
+            className="rounded-full px-2 py-1 text-ink/60 hover:bg-[#3f3654]"
           >
             ···
           </button>
           {menuOpen ? (
-            <div className="absolute top-8 right-0 z-10 w-40 overflow-hidden rounded-xl border border-[#e4d5c3] bg-[#fbf6ee] shadow-lg">
+            <div className="absolute top-8 right-0 z-10 w-40 overflow-hidden rounded-xl border border-[#4a425c] bg-[#3a324f] shadow-lg">
               {(Object.keys(PRIORITY_LABELS) as TbrPriority[]).map((p) => (
                 <button
                   key={p}
                   type="button"
-                  className="block w-full px-3 py-2 text-left text-xs font-semibold text-forest hover:bg-[#efe4d4]"
+                  className="block w-full px-3 py-2 text-left text-xs font-semibold text-ink hover:bg-[#3f3654]"
                   onClick={() => {
                     onMove(book.id, p);
                     setMenuOpen(false);
@@ -1170,7 +1174,7 @@ function CollectionSection({
     <section className="mt-6">
       {head ? (
         <div className="mb-4">
-          <h2 className="font-serif text-xl font-semibold text-forest">
+          <h2 className="font-serif text-xl font-semibold text-ink">
             {head.title}
           </h2>
           {head.subtitle ? (
@@ -1182,13 +1186,13 @@ function CollectionSection({
       {view === "shelf" ? (
         <ShelfView rows={rows} onOpen={onOpen} />
       ) : view === "list" ? (
-        <ul className="divide-y divide-[#e8dccb] overflow-hidden rounded-[1.35rem] border border-[#e4d5c3] bg-[#fbf6ee]">
+        <ul className="divide-y divide-[#564d6a] overflow-hidden rounded-[1.35rem] border border-[#4a425c] bg-[#3a324f]">
           {rows.map(({ book, entry }) => (
             <li key={book.id}>
               <button
                 type="button"
                 onClick={() => onOpen(book.id)}
-                className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-[#f3ebe0]"
+                className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-[#2a2438]"
               >
                 <div
                   className="relative h-12 w-8 shrink-0 overflow-hidden rounded"
@@ -1197,7 +1201,7 @@ function CollectionSection({
                   <Image src={book.cover} alt="" fill className="object-cover" sizes="32px" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-serif font-semibold text-forest">
+                  <p className="truncate font-serif font-semibold text-ink">
                     {book.title}
                   </p>
                   <p className="truncate text-xs text-muted">
@@ -1263,7 +1267,7 @@ function LibraryCard({
   onQuickStatus: (id: string, status: LibraryStatus) => void;
 }) {
   return (
-    <article className="group relative flex flex-col rounded-[1.25rem] border border-[#e4d5c3]/80 bg-[#fbf6ee]/90 p-3 transition hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(60,45,30,0.1)]">
+    <article className="group relative flex flex-col rounded-[1.25rem] border border-[#4a425c]/80 bg-[#3a324f]/90 p-3 transition hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(42,36,56,0.1)]">
       {selectMode ? (
         <input
           type="checkbox"
@@ -1286,12 +1290,12 @@ function LibraryCard({
             sizes="130px"
           />
           {entry.isFavorite ? (
-            <span className="absolute top-2 right-2 rounded-full bg-[#fbf6ee]/95 px-1.5 text-xs text-[#b85a4a]">
+            <span className="absolute top-2 right-2 rounded-full bg-[#3a324f]/95 px-1.5 text-xs text-[#b85a4a]">
               ♥
             </span>
           ) : null}
         </div>
-        <h3 className="mt-3 font-serif text-[0.95rem] leading-snug font-semibold text-forest">
+        <h3 className="mt-3 font-serif text-[0.95rem] leading-snug font-semibold text-ink">
           {book.title}
         </h3>
         <p className="mt-0.5 text-xs text-muted">{book.author}</p>
@@ -1299,7 +1303,7 @@ function LibraryCard({
           <StatusBadge entry={entry} />
         </div>
         {entry.review ? (
-          <p className="mt-2 line-clamp-2 text-[0.7rem] text-forest/70 italic">
+          <p className="mt-2 line-clamp-2 text-[0.7rem] text-ink/70 italic">
             “{entry.review}”
           </p>
         ) : null}
@@ -1312,7 +1316,7 @@ function LibraryCard({
           </p>
         ) : null}
         {entry.timesRead && entry.timesRead > 1 ? (
-          <p className="mt-1 text-[0.68rem] font-semibold text-forest/70">
+          <p className="mt-1 text-[0.68rem] font-semibold text-ink/70">
             Reread ×{entry.timesRead}
           </p>
         ) : null}
@@ -1322,16 +1326,16 @@ function LibraryCard({
           type="button"
           aria-label="Book actions"
           onClick={() => setMenuOpen(!menuOpen)}
-          className="rounded-full px-2 py-1 text-sm text-forest/50 opacity-70 hover:bg-[#efe4d4] group-hover:opacity-100"
+          className="rounded-full px-2 py-1 text-sm text-ink/50 opacity-70 hover:bg-[#3f3654] group-hover:opacity-100"
         >
           ···
         </button>
         {menuOpen ? (
-          <div className="absolute right-0 bottom-8 z-10 w-40 overflow-hidden rounded-xl border border-[#e4d5c3] bg-[#fbf6ee] shadow-lg">
+          <div className="absolute right-0 bottom-8 z-10 w-40 overflow-hidden rounded-xl border border-[#4a425c] bg-[#3a324f] shadow-lg">
             {entry.status !== "reading" ? (
               <button
                 type="button"
-                className="block w-full px-3 py-2 text-left text-xs font-semibold text-forest hover:bg-[#efe4d4]"
+                className="block w-full px-3 py-2 text-left text-xs font-semibold text-ink hover:bg-[#3f3654]"
                 onClick={() => {
                   onQuickStatus(book.id, "reading");
                   setMenuOpen(false);
@@ -1343,7 +1347,7 @@ function LibraryCard({
             {entry.status === "reading" || entry.status === "paused" ? (
               <button
                 type="button"
-                className="block w-full px-3 py-2 text-left text-xs font-semibold text-forest hover:bg-[#efe4d4]"
+                className="block w-full px-3 py-2 text-left text-xs font-semibold text-ink hover:bg-[#3f3654]"
                 onClick={() => {
                   onQuickStatus(book.id, "read");
                   setMenuOpen(false);
@@ -1354,7 +1358,7 @@ function LibraryCard({
             ) : null}
             <button
               type="button"
-              className="block w-full px-3 py-2 text-left text-xs font-semibold text-forest hover:bg-[#efe4d4]"
+              className="block w-full px-3 py-2 text-left text-xs font-semibold text-ink hover:bg-[#3f3654]"
               onClick={() => {
                 onOpen();
                 setMenuOpen(false);
@@ -1437,7 +1441,7 @@ function SavedListsSection({
   }
   return (
     <section className="mt-6">
-      <h2 className="font-serif text-xl font-semibold text-forest">
+      <h2 className="font-serif text-xl font-semibold text-ink">
         Saved Lists
       </h2>
       <p className="mt-1 text-sm text-muted">
@@ -1454,11 +1458,11 @@ function SavedListsSection({
           return (
             <li
               key={list.id}
-              className="rounded-[1.35rem] border border-[#e4d5c3] bg-[#fbf6ee] p-4"
+              className="rounded-[1.35rem] border border-[#4a425c] bg-[#3a324f] p-4"
             >
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <h3 className="font-serif text-lg font-semibold text-forest">
+                  <h3 className="font-serif text-lg font-semibold text-ink">
                     {list.title}
                   </h3>
                   <p className="text-xs text-muted">
@@ -1476,7 +1480,7 @@ function SavedListsSection({
                   <button
                     type="button"
                     onClick={() => onRemove(list.id)}
-                    className="rounded-full border border-forest/30 px-4 py-2 text-xs font-semibold text-forest"
+                    className="rounded-full border border-forest/30 px-4 py-2 text-xs font-semibold text-ink"
                   >
                     Remove Saved List
                   </button>
@@ -1487,9 +1491,9 @@ function SavedListsSection({
                   <span>
                     You&apos;ve read {progress.read} of {progress.total}
                   </span>
-                  <span className="font-semibold text-forest">{pct}%</span>
+                  <span className="font-semibold text-ink">{pct}%</span>
                 </div>
-                <div className="h-2 overflow-hidden rounded-full bg-[#e8dccb]">
+                <div className="h-2 overflow-hidden rounded-full bg-[#564d6a]">
                   <div
                     className="h-full rounded-full bg-forest"
                     style={{ width: `${pct}%` }}
@@ -1521,7 +1525,7 @@ function Empty({
 }) {
   return (
     <div className="mt-10 max-w-md">
-      <p className="font-serif text-xl font-semibold text-forest">{title}</p>
+      <p className="font-serif text-xl font-semibold text-ink">{title}</p>
       <Link
         href={href}
         className="mt-4 inline-flex rounded-full bg-forest px-5 py-2.5 text-sm font-semibold text-paper"
@@ -1568,23 +1572,23 @@ function FilterPanel({
     <div className="fixed inset-0 z-[70]">
       <button
         type="button"
-        className="absolute inset-0 bg-[#2a342c]/30"
+        className="absolute inset-0 bg-[#2a2438]/30"
         aria-label="Close filters"
         onClick={onClose}
       />
       <div
         role="dialog"
         aria-modal="true"
-        className="absolute inset-y-0 right-0 w-full max-w-sm overflow-y-auto border-l border-[#e4d5c3] bg-[#fbf6ee] p-5 shadow-xl"
+        className="absolute inset-y-0 right-0 w-full max-w-sm overflow-y-auto border-l border-[#4a425c] bg-[#3a324f] p-5 shadow-xl"
       >
         <div className="flex items-center justify-between">
-          <h2 className="font-serif text-xl font-semibold text-forest">
+          <h2 className="font-serif text-xl font-semibold text-ink">
             Filters
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full px-3 py-1.5 text-sm font-semibold text-forest hover:bg-[#efe4d4]"
+            className="rounded-full px-3 py-1.5 text-sm font-semibold text-ink hover:bg-[#3f3654]"
           >
             Done
           </button>
@@ -1639,7 +1643,7 @@ function FilterPanel({
         <button
           type="button"
           onClick={() => setFilters(EMPTY_FILTERS)}
-          className="mt-6 w-full rounded-full border border-forest/30 py-2.5 text-sm font-semibold text-forest"
+          className="mt-6 w-full rounded-full border border-forest/30 py-2.5 text-sm font-semibold text-ink"
         >
           Clear All Filters
         </button>
@@ -1657,7 +1661,7 @@ function FilterGroup({
 }) {
   return (
     <div className="mt-6">
-      <p className="text-[0.65rem] font-semibold tracking-[0.12em] text-forest/65 uppercase">
+      <p className="text-[0.65rem] font-semibold tracking-[0.12em] text-ink/65 uppercase">
         {title}
       </p>
       <div className="mt-2 flex flex-wrap gap-2">{children}</div>
@@ -1681,7 +1685,7 @@ function Chip({
       className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
         active
           ? "bg-forest text-paper"
-          : "border border-[#e0d1bf] text-forest hover:bg-[#efe4d4]"
+          : "border border-[#564d6a] text-ink hover:bg-[#3f3654]"
       }`}
     >
       {label}
@@ -1723,9 +1727,9 @@ function CleanupModal({
   if (!entry || !book || index >= entries.length) {
     return (
       <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
-        <button type="button" className="absolute inset-0 bg-[#2a342c]/35" onClick={onClose} aria-label="Close" />
-        <div className="relative z-10 max-w-sm rounded-[1.5rem] border border-[#e4d5c3] bg-[#fbf6ee] p-6 text-center shadow-xl">
-          <p className="font-serif text-xl font-semibold text-forest">
+        <button type="button" className="absolute inset-0 bg-[#2a2438]/35" onClick={onClose} aria-label="Close" />
+        <div className="relative z-10 max-w-sm rounded-[1.5rem] border border-[#4a425c] bg-[#3a324f] p-6 text-center shadow-xl">
+          <p className="font-serif text-xl font-semibold text-ink">
             TBR feels lighter.
           </p>
           <p className="mt-2 text-sm text-muted">
@@ -1745,13 +1749,13 @@ function CleanupModal({
 
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
-      <button type="button" className="absolute inset-0 bg-[#2a342c]/35" onClick={onClose} aria-label="Close" />
+      <button type="button" className="absolute inset-0 bg-[#2a2438]/35" onClick={onClose} aria-label="Close" />
       <div
         role="dialog"
         aria-modal="true"
-        className="relative z-10 w-full max-w-md rounded-[1.5rem] border border-[#e4d5c3] bg-[#fbf6ee] p-6 shadow-xl"
+        className="relative z-10 w-full max-w-md rounded-[1.5rem] border border-[#4a425c] bg-[#3a324f] p-6 shadow-xl"
       >
-        <p className="text-[0.65rem] font-semibold tracking-[0.12em] text-forest/65 uppercase">
+        <p className="text-[0.65rem] font-semibold tracking-[0.12em] text-ink/65 uppercase">
           TBR Cleanup · {index + 1} / {entries.length}
         </p>
         <div className="mt-4 flex gap-3">
@@ -1762,7 +1766,7 @@ function CleanupModal({
             <Image src={book.cover} alt="" fill className="object-cover" sizes="80px" />
           </div>
           <div>
-            <h3 className="font-serif text-lg font-semibold text-forest">
+            <h3 className="font-serif text-lg font-semibold text-ink">
               {book.title}
             </h3>
             <p className="text-sm text-muted">{book.author}</p>
@@ -1773,7 +1777,7 @@ function CleanupModal({
               {tbrAgeDays(entry)} days on TBR
             </p>
             {entry.note ? (
-              <p className="mt-2 text-xs text-forest/75 italic">“{entry.note}”</p>
+              <p className="mt-2 text-xs text-ink/75 italic">“{entry.note}”</p>
             ) : null}
           </div>
         </div>
@@ -1791,7 +1795,7 @@ function CleanupModal({
               onMove("read-soon");
               setCleaned((c) => c + 1);
             }}
-            className="rounded-full border border-forest/35 py-2.5 text-xs font-semibold text-forest"
+            className="rounded-full border border-forest/35 py-2.5 text-xs font-semibold text-ink"
           >
             Read Soon 🌿
           </button>
@@ -1801,7 +1805,7 @@ function CleanupModal({
               onMove("someday");
               setCleaned((c) => c + 1);
             }}
-            className="rounded-full border border-forest/35 py-2.5 text-xs font-semibold text-forest"
+            className="rounded-full border border-forest/35 py-2.5 text-xs font-semibold text-ink"
           >
             Someday ☁️
           </button>

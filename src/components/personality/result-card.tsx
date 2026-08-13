@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useId, useState } from "react";
 import { getPersonalityCardAssets } from "./card-assets";
+import { downloadPersonalityCard } from "./card-download";
 import type { PersonalityCode } from "./types";
 
 type Props = {
@@ -11,6 +12,10 @@ type Props = {
   className?: string;
   /** Compact reveal size vs full result hero */
   size?: "reveal" | "full";
+  /** Show download control under the flip button */
+  showDownload?: boolean;
+  /** Match surrounding surface — quiz uses dark, profile uses light */
+  tone?: "dark" | "light";
 };
 
 export function PersonalityResultCard({
@@ -18,8 +23,11 @@ export function PersonalityResultCard({
   name,
   className = "",
   size = "full",
+  showDownload = false,
+  tone = "dark",
 }: Props) {
   const [showingBack, setShowingBack] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   const statusId = useId();
   const assets = getPersonalityCardAssets(code);
   const label = name.replace(/^The /, "");
@@ -27,6 +35,28 @@ export function PersonalityResultCard({
   const flip = () => setShowingBack((v) => !v);
 
   const maxW = size === "reveal" ? "max-w-[220px]" : "max-w-[280px]";
+
+  async function handleDownload() {
+    if (downloading) return;
+    setDownloading(true);
+    try {
+      await downloadPersonalityCard(code, showingBack ? "back" : "front");
+    } catch {
+      // ignore — local asset fetch failures are rare
+    } finally {
+      setDownloading(false);
+    }
+  }
+
+  const flipBtn =
+    tone === "light"
+      ? "mt-3 w-full rounded-full bg-forest px-4 py-2.5 text-sm font-semibold text-paper transition hover:bg-forest-deep"
+      : "mt-3 w-full rounded-full bg-forest px-4 py-2.5 text-sm font-semibold text-paper transition hover:bg-forest-deep";
+
+  const downloadBtn =
+    tone === "light"
+      ? "mt-2 w-full rounded-full border border-line bg-paper px-4 py-2.5 text-sm font-semibold text-ink transition hover:bg-line/60 disabled:opacity-50"
+      : "mt-2 w-full rounded-full border border-[#564d6a] bg-transparent px-4 py-2.5 text-sm font-semibold text-ink transition hover:bg-[#3f3654] disabled:opacity-50";
 
   return (
     <div className={`mx-auto w-full ${maxW} ${className}`}>
@@ -56,7 +86,7 @@ export function PersonalityResultCard({
 
         {/* Instant swap for prefers-reduced-motion */}
         <div className="absolute inset-0 hidden motion-reduce:block">
-          <div className="relative h-full w-full overflow-hidden rounded-[1.25rem] shadow-[0_16px_40px_rgba(40,30,20,0.22)]">
+          <div className="relative h-full w-full overflow-hidden rounded-[1.25rem] shadow-[0_16px_40px_rgba(42,36,56,0.22)]">
             <Image
               src={showingBack ? assets.back : assets.front}
               alt={
@@ -82,10 +112,23 @@ export function PersonalityResultCard({
         onClick={flip}
         aria-pressed={showingBack}
         aria-describedby={statusId}
-        className="mt-3 w-full rounded-full bg-forest px-4 py-2.5 text-sm font-semibold text-paper transition hover:bg-forest-deep"
+        className={flipBtn}
       >
         {showingBack ? "See the front" : "See the other side"}
       </button>
+
+      {showDownload ? (
+        <button
+          type="button"
+          onClick={() => void handleDownload()}
+          disabled={downloading}
+          className={downloadBtn}
+        >
+          {downloading
+            ? "Downloading…"
+            : `Download ${showingBack ? "back" : "front"}`}
+        </button>
+      ) : null}
     </div>
   );
 }
@@ -103,7 +146,7 @@ function CardFace({
 }) {
   return (
     <div
-      className={`absolute inset-0 overflow-hidden rounded-[1.25rem] shadow-[0_16px_40px_rgba(40,30,20,0.22)] [backface-visibility:hidden] ${
+      className={`absolute inset-0 overflow-hidden rounded-[1.25rem] shadow-[0_16px_40px_rgba(42,36,56,0.22)] [backface-visibility:hidden] ${
         side === "back" ? "[transform:rotateY(180deg)]" : ""
       }`}
     >

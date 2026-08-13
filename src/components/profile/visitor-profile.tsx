@@ -18,7 +18,7 @@ import {
 } from "@/lib/discovery-storage";
 import { ToastProvider, useToast } from "@/components/search/toast";
 import { PersonalityCompare } from "@/components/personality/compare";
-import { getPersonality } from "@/components/personality/personalities";
+import { getPersonality, formatPersonalityCode } from "@/components/personality/personalities";
 import {
   ensureDemoPersonalitySeed,
   loadActiveAssessment,
@@ -68,15 +68,15 @@ function VisitorProfileInner({ username }: Props) {
 
   if (!reader) {
     return (
-      <div className="min-h-screen bg-[#f3ebe0]">
+      <div className="min-h-screen bg-[#2a2438]">
         <AppNav />
         <main className="mx-auto max-w-xl px-4 py-16 text-center">
-          <p className="font-serif text-2xl font-semibold text-forest">
+          <p className="font-serif text-2xl font-semibold text-ink">
             No readers found under that name.
           </p>
           <Link
             href="/search"
-            className="mt-4 inline-block font-semibold text-forest underline"
+            className="mt-4 inline-block font-semibold text-ink underline"
           >
             Back to Discover
           </Link>
@@ -102,46 +102,59 @@ function VisitorProfileInner({ username }: Props) {
   ];
 
   return (
-    <div className="min-h-screen bg-[#f3ebe0] text-ink">
+    <div className="min-h-screen bg-cream text-ink">
       <AppNav />
-      <main className="mx-auto max-w-[960px] px-4 py-8 sm:px-6 lg:px-8">
-        <div className="flex flex-wrap items-start gap-5 rounded-[1.75rem] border border-[#e4d5c3] bg-gradient-to-br from-[#fbf6ee] to-[#efe2d2] p-5 sm:p-7">
-          <div className="relative h-24 w-24 overflow-hidden rounded-full border border-[#dccab4]">
-            <Image
-              src={reader.avatar}
-              alt=""
-              fill
-              className="object-cover"
-              sizes="96px"
-            />
-          </div>
-          <div className="min-w-0 flex-1">
-            <h1 className="font-serif text-3xl font-semibold text-forest">
-              {reader.displayName}
-            </h1>
-            <p className="text-muted">@{reader.username}</p>
-            <p className="mt-2 text-sm font-semibold text-forest">
-              {personality.emoji} {personality.name} · {personality.code}
-            </p>
-            <p className="mt-1 text-sm text-muted">
-              {reader.favoriteGenres.join(" · ")}
-            </p>
-            <p className="mt-2 text-sm text-forest">
-              {reader.readingMatch}% Reading Match · Currently reading{" "}
-              {reader.currentBook}
-            </p>
-            <p className="mt-1 text-xs text-muted">
-              {reader.followers.toLocaleString()} followers · {reader.following}{" "}
-              following
-            </p>
-            <div className="mt-4 flex flex-wrap gap-2">
+      <main className="mx-auto max-w-[1440px] px-4 py-6 sm:px-6 lg:px-8">
+        <section className="relative overflow-hidden rounded-[1.75rem] border border-line bg-gradient-to-br from-paper via-cream to-[#322a45] p-5 sm:p-7">
+          <div className="relative flex flex-col gap-6 lg:flex-row lg:items-stretch lg:justify-between">
+            <div className="flex min-w-0 flex-1 gap-4 sm:gap-5">
+              <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-full border-2 border-line shadow-lg sm:h-32 sm:w-32">
+                <Image
+                  src={reader.avatar}
+                  alt=""
+                  fill
+                  className="object-cover"
+                  sizes="128px"
+                />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h1 className="font-serif text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+                  {reader.displayName}
+                </h1>
+                <p className="mt-0.5 text-muted">@{reader.username}</p>
+                <p className="mt-2.5 inline-flex items-center gap-1.5 rounded-full bg-cream-card px-3 py-1 text-sm font-semibold text-ink">
+                  <span aria-hidden>{personality.emoji}</span>
+                  <span>{personality.name}</span>
+                  <span className="font-sans text-xs font-semibold tracking-wide text-muted">
+                    {formatPersonalityCode(personality.code)}
+                  </span>
+                </p>
+                <p className="mt-3 max-w-xl text-sm leading-relaxed text-ink/85">
+                  {reader.favoriteGenres.join(", ")}. Currently reading{" "}
+                  {reader.currentBook}.
+                </p>
+                <p className="mt-4 text-sm">
+                  <span className="font-semibold text-ink">
+                    {reader.followers.toLocaleString()} followers
+                  </span>
+                  <span className="text-muted-soft"> · </span>
+                  <span className="font-semibold text-ink">
+                    {reader.following} following
+                  </span>
+                  <span className="ml-2 text-muted">
+                    · {reader.readingMatch}% match
+                  </span>
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-wrap items-end justify-end gap-2 lg:w-[260px]">
               {discovery ? (
                 <button
                   type="button"
                   onClick={() => setDiscovery(toggleFollow(discovery, reader.id))}
-                  className={`rounded-full px-5 py-2.5 text-sm font-semibold ${
+                  className={`rounded-full px-5 py-2 text-sm font-semibold transition ${
                     following
-                      ? "bg-[#efe4d4] text-forest"
+                      ? "bg-cream-card text-ink"
                       : "bg-forest text-paper hover:bg-forest-deep"
                   }`}
                 >
@@ -151,41 +164,35 @@ function VisitorProfileInner({ username }: Props) {
               <button
                 type="button"
                 onClick={() => setBuddyOpen(true)}
-                className="rounded-full bg-[#efe4d4] px-4 py-2.5 text-sm font-semibold text-forest"
+                className="rounded-full border border-line px-4 py-2 text-sm font-semibold text-ink hover:bg-cream-card"
               >
-                Read With Me
+                Read with me
               </button>
               {myAssessment?.addedToProfile ? (
                 <button
                   type="button"
                   onClick={() => setCompareOpen(true)}
-                  className="rounded-full border border-[#e0d1bf] px-4 py-2.5 text-sm font-semibold text-forest"
+                  className="rounded-full border border-line px-4 py-2 text-sm font-semibold text-ink hover:bg-cream-card"
                 >
-                  Compare Personality
+                  Compare personality
                 </button>
               ) : null}
-              <Link
-                href="/home"
-                className="rounded-full border border-[#e0d1bf] px-4 py-2.5 text-sm font-semibold text-forest"
-              >
-                Visit Reading Room
-              </Link>
             </div>
           </div>
-        </div>
+        </section>
 
-        <section className="mt-8 rounded-[1.5rem] border border-[#e4d5c3] bg-[#fbf6ee] p-5">
-          <h2 className="font-serif text-xl font-semibold text-forest">
+        <section className="mt-8 rounded-[1.5rem] border border-[#4a425c] bg-[#3a324f] p-5">
+          <h2 className="font-serif text-xl font-semibold text-ink">
             Reading Personality
           </h2>
-          <p className="mt-2 font-serif italic text-forest">
+          <p className="mt-2 font-serif italic text-ink">
             &ldquo;{personality.motto}&rdquo;
           </p>
           <p className="mt-2 text-sm text-muted">{personality.summary}</p>
         </section>
 
         <section className="mt-6">
-          <h2 className="font-serif text-xl font-semibold text-forest">
+          <h2 className="font-serif text-xl font-semibold text-ink">
             Lists by {reader.displayName}
           </h2>
           {lists.length === 0 ? (
@@ -195,9 +202,9 @@ function VisitorProfileInner({ username }: Props) {
               {lists.map((list) => (
                 <li
                   key={list.id}
-                  className="rounded-[1.25rem] border border-[#e4d5c3] bg-[#fbf6ee] px-4 py-3"
+                  className="rounded-[1.25rem] border border-[#4a425c] bg-[#3a324f] px-4 py-3"
                 >
-                  <p className="font-serif font-semibold text-forest">
+                  <p className="font-serif font-semibold text-ink">
                     {list.title}
                   </p>
                   <p className="mt-1 text-sm text-muted">{list.description}</p>
@@ -226,7 +233,7 @@ function VisitorProfileInner({ username }: Props) {
                       </button>
                       <button
                         type="button"
-                        className="rounded-full bg-[#efe4d4] px-3 py-1.5 text-xs font-semibold text-forest"
+                        className="rounded-full bg-[#3f3654] px-3 py-1.5 text-xs font-semibold text-ink"
                         onClick={() => {
                           let next = discovery;
                           list.bookIds.forEach((bookId) => {
@@ -268,8 +275,8 @@ function VisitorProfileInner({ username }: Props) {
         </section>
 
         {following ? (
-          <section className="mt-6 rounded-[1.5rem] border border-[#e4d5c3] bg-[#fbf6ee] p-5">
-            <h2 className="font-serif text-xl font-semibold text-forest">
+          <section className="mt-6 rounded-[1.5rem] border border-[#4a425c] bg-[#3a324f] p-5">
+            <h2 className="font-serif text-xl font-semibold text-ink">
               You two
             </h2>
             <p className="mt-2 text-sm text-muted">

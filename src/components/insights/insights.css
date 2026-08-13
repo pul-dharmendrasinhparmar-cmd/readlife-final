@@ -1,0 +1,153 @@
+/* Insights-only type + motion — does not affect the rest of the app.
+   Glacial Indifference is loaded via <link> in app/insights/layout.tsx */
+.insights-page {
+  --insights-body: "Glacial Indifference", var(--font-source-sans), system-ui,
+    sans-serif;
+  --insights-display: var(--font-bebas), "Bebas Neue", Impact, sans-serif;
+  font-family: var(--insights-body);
+}
+
+.insights-page h1,
+.insights-page h2,
+.insights-page h3,
+.insights-page .font-serif,
+.insights-page .insights-display {
+  font-family: var(--insights-display);
+  font-weight: 400;
+  letter-spacing: 0.04em;
+}
+
+.insights-page .insights-body {
+  font-family: var(--insights-body);
+  letter-spacing: 0.01em;
+}
+
+@keyframes insights-slide-in {
+  from {
+    opacity: 0.55;
+    transform: translateX(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes insights-pulse-dot {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.85;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+}
+
+.insights-carousel-slide {
+  animation: insights-slide-in 0.45s ease-out;
+}
+
+@keyframes insights-carousel-progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.insights-carousel-progress {
+  transform-origin: left center;
+  animation-name: insights-carousel-progress;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+.insights-genre-treemap-card {
+  width: 100%;
+  /* Same footprint as Metrics carousel (min-h-[22rem]) — do not stretch to circles */
+  height: 22rem;
+  min-height: 22rem;
+}
+
+.insights-genre-treemap {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.insights-genre-treemap text {
+  font-family: var(--insights-body);
+  pointer-events: none;
+}
+
+.insights-metrics-carousel {
+  /* Shared with .insights-genre-treemap-card */
+  min-height: 22rem;
+}
+
+/* Definite height so activity bars with height:% actually paint */
+.insights-activity-chart {
+  height: 11.5rem;
+  min-height: 11.5rem;
+}
+
+.insights-activity-chart .insights-activity-col {
+  height: 100%;
+  min-height: 100%;
+}
+
+/* Session mini-stats: gold circles in a compact 2×2 in the calendar column */
+.insights-mini-stats {
+  width: fit-content;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.insights-mini-stat {
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 0;
+}
+
+@keyframes insights-pattern-enter {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.insights-pattern-card {
+  /* backwards only — so hover translate/scale still works after enter */
+  animation: insights-pattern-enter 0.5s ease-out backwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .insights-carousel-slide {
+    animation: none;
+  }
+
+  .insights-carousel-progress {
+    animation: none;
+  }
+
+  .insights-pattern-card {
+    animation: none;
+  }
+
+  .insights-pattern-card,
+  .insights-pattern-card *,
+  .insights-pattern-why {
+    transition: none !important;
+  }
+
+  .insights-pattern-card:hover {
+    transform: none;
+  }
+}

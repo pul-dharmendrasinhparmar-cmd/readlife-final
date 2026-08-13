@@ -38,17 +38,17 @@ export function EditProfileModal({ open, profile, onClose, onSave }: Props) {
       onClick={onClose}
     >
       <div
-        className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-[1.75rem] border border-[#e4d5c3] bg-[#fbf6ee] p-5 shadow-xl"
+        className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-[1.75rem] border border-[#4a425c] bg-[#3a324f] p-5 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="font-serif text-2xl font-semibold text-forest">
+        <h2 className="font-serif text-2xl font-semibold text-ink">
           Edit Profile
         </h2>
 
-        <label className="mt-4 block text-sm text-forest">
+        <label className="mt-4 block text-sm text-ink">
           Display name
           <input
-            className="mt-1 w-full rounded-2xl border border-[#e0d1bf] bg-white px-3 py-2.5 outline-none"
+            className="mt-1 w-full rounded-2xl border border-[#564d6a] bg-paper px-3 py-2.5 outline-none"
             value={draft.displayName}
             onChange={(e) =>
               setDraft({ ...draft, displayName: e.target.value })
@@ -56,10 +56,10 @@ export function EditProfileModal({ open, profile, onClose, onSave }: Props) {
           />
         </label>
 
-        <label className="mt-3 block text-sm text-forest">
+        <label className="mt-3 block text-sm text-ink">
           Username
           <input
-            className="mt-1 w-full rounded-2xl border border-[#e0d1bf] bg-white px-3 py-2.5 outline-none"
+            className="mt-1 w-full rounded-2xl border border-[#564d6a] bg-paper px-3 py-2.5 outline-none"
             value={draft.username}
             onChange={(e) =>
               setDraft({
@@ -70,17 +70,17 @@ export function EditProfileModal({ open, profile, onClose, onSave }: Props) {
           />
         </label>
 
-        <label className="mt-3 block text-sm text-forest">
+        <label className="mt-3 block text-sm text-ink">
           Bio
           <textarea
-            className="mt-1 w-full resize-none rounded-2xl border border-[#e0d1bf] bg-white px-3 py-2.5 outline-none"
+            className="mt-1 w-full resize-none rounded-2xl border border-[#564d6a] bg-paper px-3 py-2.5 outline-none"
             rows={3}
             value={draft.bio}
             onChange={(e) => setDraft({ ...draft, bio: e.target.value })}
           />
         </label>
 
-        <p className="mt-4 text-[0.68rem] font-semibold tracking-[0.12em] text-forest/65 uppercase">
+        <p className="mt-4 text-[0.68rem] font-semibold tracking-[0.12em] text-ink/65 uppercase">
           Avatar
         </p>
         <div className="mt-2 flex gap-2">
@@ -103,7 +103,7 @@ export function EditProfileModal({ open, profile, onClose, onSave }: Props) {
           ))}
         </div>
 
-        <p className="mt-4 text-[0.68rem] font-semibold tracking-[0.12em] text-forest/65 uppercase">
+        <p className="mt-4 text-[0.68rem] font-semibold tracking-[0.12em] text-ink/65 uppercase">
           Shelf pet
         </p>
         <div className="mt-2 flex flex-wrap gap-2">
@@ -114,8 +114,8 @@ export function EditProfileModal({ open, profile, onClose, onSave }: Props) {
               onClick={() => setDraft({ ...draft, shelfPetId: p.id })}
               className={`rounded-xl border px-2 py-1.5 text-xs ${
                 draft.shelfPetId === p.id
-                  ? "border-forest bg-white"
-                  : "border-[#e0d1bf]"
+                  ? "border-forest bg-paper"
+                  : "border-[#564d6a]"
               }`}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -125,24 +125,24 @@ export function EditProfileModal({ open, profile, onClose, onSave }: Props) {
           ))}
         </div>
 
-        <label className="mt-3 block text-sm text-forest">
+        <label className="mt-3 block text-sm text-ink">
           Pet name
           <input
-            className="mt-1 w-full rounded-2xl border border-[#e0d1bf] bg-white px-3 py-2.5 outline-none"
+            className="mt-1 w-full rounded-2xl border border-[#564d6a] bg-paper px-3 py-2.5 outline-none"
             value={draft.petName}
             onChange={(e) => setDraft({ ...draft, petName: e.target.value })}
           />
         </label>
 
-        <p className="mt-4 text-[0.68rem] font-semibold tracking-[0.12em] text-forest/65 uppercase">
+        <p className="mt-4 text-[0.68rem] font-semibold tracking-[0.12em] text-ink/65 uppercase">
           Social links
         </p>
         {(["instagram", "tiktok", "youtube", "goodreads"] as const).map(
           (key) => (
-            <label key={key} className="mt-2 block text-sm capitalize text-forest">
+            <label key={key} className="mt-2 block text-sm capitalize text-ink">
               {key}
               <input
-                className="mt-1 w-full rounded-2xl border border-[#e0d1bf] bg-white px-3 py-2 outline-none"
+                className="mt-1 w-full rounded-2xl border border-[#564d6a] bg-paper px-3 py-2 outline-none"
                 value={draft.socialLinks[key] ?? ""}
                 onChange={(e) =>
                   setDraft({
@@ -158,10 +158,10 @@ export function EditProfileModal({ open, profile, onClose, onSave }: Props) {
           ),
         )}
 
-        <p className="mt-4 text-[0.68rem] font-semibold tracking-[0.12em] text-forest/65 uppercase">
+        <p className="mt-4 text-[0.68rem] font-semibold tracking-[0.12em] text-ink/65 uppercase">
           Privacy
         </p>
-        <div className="mt-2 space-y-2 text-sm text-forest">
+        <div className="mt-2 space-y-2 text-sm text-ink">
           {(
             [
               ["readingPersonalityPublic", "Show Reading Personality"],
@@ -199,7 +199,7 @@ export function EditProfileModal({ open, profile, onClose, onSave }: Props) {
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full bg-[#efe4d4] px-4 py-2.5 text-sm font-semibold text-forest"
+            className="rounded-full bg-[#3f3654] px-4 py-2.5 text-sm font-semibold text-ink"
           >
             Cancel
           </button>

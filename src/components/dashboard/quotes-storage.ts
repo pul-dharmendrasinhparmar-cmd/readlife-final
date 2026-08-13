@@ -71,3 +71,20 @@ export function addQuote(
   saveQuotes(next);
   return next;
 }
+
+export function updateQuote(
+  id: string,
+  input: Omit<FavoriteQuote, "id" | "createdAt">,
+): FavoriteQuote[] {
+  const next = loadQuotes().map((quote) =>
+    quote.id === id ? { ...quote, ...input } : quote,
+  );
+  saveQuotes(next);
+  return next;
+}
+
+export function deleteQuote(id: string): FavoriteQuote[] {
+  const next = loadQuotes().filter((quote) => quote.id !== id);
+  saveQuotes(next);
+  return next;
+}

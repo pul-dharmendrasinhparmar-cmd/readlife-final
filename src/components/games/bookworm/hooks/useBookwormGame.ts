@@ -6,7 +6,12 @@ import {
   expireComboIfNeeded,
 } from "../engine/combo";
 import { detectCollision } from "../engine/collision";
-import { canTurn, nextHead, resolvePendingDir } from "../engine/movement";
+import {
+  canTurn,
+  nextHead,
+  resolvePendingDir,
+  wrapPosition,
+} from "../engine/movement";
 import { randomDeathMessage } from "../engine/results";
 import { computeStars } from "../engine/scoring";
 import { spawnBook } from "../engine/spawn";
@@ -271,7 +276,10 @@ export function useBookwormGame(levelId?: string) {
 
       const body = snakeRef.current;
       const head = body[0];
-      const nxt = nextHead(head, applied);
+      let nxt = nextHead(head, applied);
+      if (level.wrapEdges) {
+        nxt = wrapPosition(nxt, level.grid);
+      }
       const eating =
         bookRef.current !== null &&
         nxt.x === bookRef.current.x &&
@@ -283,6 +291,7 @@ export function useBookwormGame(levelId?: string) {
         level.grid,
         obstacleKeys,
         eating,
+        level.wrapEdges,
       );
       if (hit) {
         finishDeath();

@@ -40,13 +40,13 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         {toasts.map((t) => (
           <div
             key={t.id}
-            className="pointer-events-auto flex items-start justify-between gap-3 rounded-2xl border border-[#e4d5c3] bg-[#fbf6ee] px-4 py-3 text-sm text-forest shadow-[0_12px_32px_rgba(60,45,30,0.14)]"
+            className="pointer-events-auto flex items-start justify-between gap-3 rounded-2xl border border-[#4a425c] bg-[#3a324f] px-4 py-3 text-sm text-ink shadow-[0_12px_32px_rgba(42,36,56,0.14)]"
           >
             <p className="leading-snug">{t.text}</p>
             {t.actionHref && t.actionLabel ? (
               <Link
                 href={t.actionHref}
-                className="shrink-0 font-semibold text-forest underline-offset-2 hover:underline"
+                className="shrink-0 font-semibold text-ink underline-offset-2 hover:underline"
               >
                 {t.actionLabel}
               </Link>

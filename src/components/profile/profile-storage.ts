@@ -260,6 +260,13 @@ export function loadProfileState(): ProfileState {
         },
         buddyReads:
           parsed.profile?.buddyReads ?? base.profile.buddyReads,
+        favoriteBookIds:
+          parsed.profile?.favoriteBookIds ?? base.profile.favoriteBookIds,
+        featuredBadgeIds:
+          parsed.profile?.featuredBadgeIds ?? base.profile.featuredBadgeIds,
+        recommendedListIds:
+          parsed.profile?.recommendedListIds ??
+          base.profile.recommendedListIds,
       },
       lists: parsed.lists?.length ? parsed.lists : base.lists,
       followingPeople: parsed.followingPeople?.length
@@ -321,6 +328,66 @@ export function bumpListSave(state: ProfileState, listId: string): ProfileState 
     ? state.savedListIds
     : [...state.savedListIds, listId];
   const next = { ...state, lists, savedListIds };
+  saveProfileState(next);
+  return next;
+}
+
+export type CreateListInput = {
+  title: string;
+  description: string;
+  visibility: "public" | "private";
+  bookIds: string[];
+};
+
+export function createOwnerList(
+  state: ProfileState,
+  input: CreateListInput,
+): ProfileState {
+  const now = new Date().toISOString();
+  const slug = input.title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 40);
+  const id = `list-${slug || "untitled"}-${Date.now().toString(36)}`;
+
+  const list: RecommendedList = {
+    id,
+    creatorId: state.profile.userId,
+    title: input.title.trim(),
+    description: input.description.trim(),
+    books: input.bookIds.map((bookId, i) => ({
+      bookId,
+      note: "Added from my shelf.",
+      order: i + 1,
+    })),
+    createdAt: now,
+    updatedAt: now,
+    saveCount: 0,
+    completionCount: 0,
+    visibility: input.visibility,
+  };
+
+  const next: ProfileState = {
+    ...state,
+    lists: [list, ...state.lists],
+    profile: {
+      ...state.profile,
+      recommendedListIds: [id, ...state.profile.recommendedListIds],
+    },
+    activity: [
+      {
+        id: `act-list-${Date.now()}`,
+        at: now,
+        text: `Created a new list: “${list.title}”`,
+        detail:
+          list.books.length > 0
+            ? `${list.books.length} books · ${list.visibility}`
+            : list.visibility,
+      },
+      ...state.activity,
+    ],
+  };
   saveProfileState(next);
   return next;
 }
