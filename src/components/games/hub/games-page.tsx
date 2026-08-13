@@ -97,9 +97,9 @@ export function GamesPage() {
 
   if (!profile) {
     return (
-      <div className="games-hub min-h-screen">
+      <div className="games-hub min-h-screen w-full min-w-0 max-w-full">
         <AppNav />
-        <main className="mx-auto max-w-5xl px-4 py-16 text-center text-muted sm:px-6">
+        <main className="mx-auto w-full min-w-0 max-w-5xl px-4 py-16 text-center text-muted sm:px-6">
           Opening the arcade…
         </main>
       </div>
@@ -109,9 +109,9 @@ export function GamesPage() {
   const empty = !profile.hasPlayedAny;
 
   return (
-    <div className="games-hub min-h-screen max-w-[100vw] pb-20">
+    <div className="games-hub min-h-screen w-full min-w-0 max-w-full pb-20">
       <AppNav />
-      <main className="mx-auto w-full max-w-6xl overflow-x-clip px-4 pt-8 sm:px-6 lg:px-8">
+      <main className="mx-auto w-full min-w-0 max-w-6xl px-4 pt-8 sm:px-6 lg:px-8">
         {/* Header */}
         <header className="max-w-2xl">
           <p className="text-[0.7rem] font-semibold tracking-[0.16em] text-ink/55 uppercase">
@@ -240,7 +240,7 @@ export function GamesPage() {
                       See all
                     </button>
                   </div>
-                  <div className="mt-2.5 flex max-w-full gap-1.5 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                  <div className="games-h-scroll mt-2.5 flex gap-1.5 pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                     {LEADERBOARD_GAMES.map(([id, label]) => (
                       <button
                         key={id}
@@ -509,7 +509,7 @@ function BadgesCarousel({
       ) : (
         <ul
           ref={scrollerRef}
-          className="mt-4 flex max-w-full flex-1 gap-2.5 overflow-x-auto overscroll-x-contain pb-1 [-ms-overflow-style:none] [scrollbar-width:none] snap-x snap-mandatory [&::-webkit-scrollbar]:hidden"
+          className="games-h-scroll mt-4 flex min-w-0 flex-1 gap-2.5 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] snap-x snap-mandatory [&::-webkit-scrollbar]:hidden"
         >
           {unlocked.map((a) => {
             const def = getAchievement(a.achievementId);
@@ -517,7 +517,7 @@ function BadgesCarousel({
             return (
               <li
                 key={a.achievementId}
-                className="games-nest flex w-[8.5rem] shrink-0 snap-start flex-col rounded-xl px-3 py-3 sm:w-[9.5rem]"
+                className="games-nest flex w-[min(8.5rem,70%)] shrink-0 snap-start flex-col rounded-xl px-3 py-3 sm:w-[9.5rem]"
               >
                 <AchievementBadgeIcon def={def} size="md" />
                 <p className="mt-2 line-clamp-2 text-sm font-semibold text-ink">
