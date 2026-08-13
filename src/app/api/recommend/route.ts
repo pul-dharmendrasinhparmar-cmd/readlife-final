@@ -1,5 +1,11 @@
 import { NextResponse } from "next/server";
 import { DISCOVER_BOOKS } from "@/components/search/data";
+import {
+  getOpenAIApiKey,
+  missingKeyResponse,
+  openaiChatJson,
+  resolveOpenAIModel,
+} from "@/lib/openai";
 
 export const runtime = "nodejs";
 
@@ -21,7 +27,6 @@ type RecommendItem = {
   explanation: string;
 };
 
-const DEFAULT_MODEL = "gpt-4o-mini";
 const MIN_RECS = 4;
 const MAX_RECS = 6;
 const MAX_BASED_ON = 4;
@@ -227,15 +232,9 @@ function validateAgainstCatalog(
 }
 
 export async function POST(request: Request) {
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = getOpenAIApiKey();
   if (!apiKey) {
-    return NextResponse.json(
-      {
-        error:
-          "OPENAI_API_KEY is not set. Add it to .env.local locally, or to Netlify Environment variables for deploy. Restart the dev server after adding it.",
-      },
-      { status: 503 },
-    );
+    return NextResponse.json(missingKeyResponse(), { status: 503 });
   }
 
   let body: TastePayload = {};
@@ -260,7 +259,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const model = process.env.OPENAI_MODEL?.trim() || DEFAULT_MODEL;
+  const model = resolveOpenAIModel();
   const tasteSummary = {
     recentlyRead: titlesForIds(body.readIds),
     currentlyReading: titlesForIds(body.readingIds),
@@ -289,82 +288,54 @@ ${JSON.stringify(tasteSummary, null, 2)}
 Catalog (only these ids are valid):
 ${JSON.stringify(catalog)}`;
 
-  try {
-    const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model,
-        temperature: 0.7,
-        response_format: { type: "json_object" },
-        messages: [
-          { role: "system", content: system },
-          { role: "user", content: user },
-        ],
-      }),
-    });
+  const chat = await openaiChatJson({
+    apiKey,
+    system,
+    user,
+    temperature: 0.7,
+    model,
+  });
 
-    if (!openaiRes.ok) {
-      const errText = await openaiRes.text().catch(() => "");
-      const status = openaiRes.status === 429 ? 429 : 502;
-      return NextResponse.json(
-        {
-          error:
-            openaiRes.status === 429
-              ? "OpenAI rate limit reached. Try again in a moment."
-              : "OpenAI request failed. Try again shortly.",
-          detail: process.env.NODE_ENV === "development" ? errText.slice(0, 300) : undefined,
-        },
-        { status },
-      );
-    }
-
-    const data = (await openaiRes.json()) as {
-      choices?: { message?: { content?: string } }[];
-    };
-    const content = data.choices?.[0]?.message?.content ?? "";
-    const parsed = parseRecommendations(content);
-    const recommendations = validateAgainstCatalog(
-      parsed,
-      exclude,
-      body,
-      tasteFallback,
-    );
-
-    if (recommendations.length < MIN_RECS) {
-      // Soft fallback: fill from catalog genres if model under-delivered
-      const genreSet = new Set(
-        (body.genres ?? []).map((g) => g.toLowerCase()),
-      );
-      for (const book of DISCOVER_BOOKS) {
-        if (recommendations.length >= MIN_RECS) break;
-        if (exclude.has(book.id)) continue;
-        if (recommendations.some((r) => r.id === book.id)) continue;
-        const genreHit =
-          genreSet.size === 0 ||
-          book.genres.some((g) => genreSet.has(g.toLowerCase()));
-        if (!genreHit && genreSet.size > 0) continue;
-        const basedOn = tasteFallback;
-        recommendations.push({
-          id: book.id,
-          reason: `A catalog match that fits signals like ${basedOn[0] ?? "your shelf"}.`,
-          basedOn,
-          explanation: fallbackExplanation(book.title, body, basedOn),
-        });
-      }
-    }
-
-    return NextResponse.json({
-      recommendations: recommendations.slice(0, MAX_RECS),
-      model,
-    });
-  } catch {
+  if (!chat.ok) {
     return NextResponse.json(
-      { error: "Could not reach OpenAI. Check your network and try again." },
-      { status: 502 },
+      { error: chat.error, detail: chat.detail },
+      { status: chat.status },
     );
   }
+
+  const parsed = parseRecommendations(chat.content);
+  const recommendations = validateAgainstCatalog(
+    parsed,
+    exclude,
+    body,
+    tasteFallback,
+  );
+
+  if (recommendations.length < MIN_RECS) {
+    // Soft fallback: fill from catalog genres if model under-delivered
+    const genreSet = new Set(
+      (body.genres ?? []).map((g) => g.toLowerCase()),
+    );
+    for (const book of DISCOVER_BOOKS) {
+      if (recommendations.length >= MIN_RECS) break;
+      if (exclude.has(book.id)) continue;
+      if (recommendations.some((r) => r.id === book.id)) continue;
+      const genreHit =
+        genreSet.size === 0 ||
+        book.genres.some((g) => genreSet.has(g.toLowerCase()));
+      if (!genreHit && genreSet.size > 0) continue;
+      const basedOn = tasteFallback;
+      recommendations.push({
+        id: book.id,
+        reason: `A catalog match that fits signals like ${basedOn[0] ?? "your shelf"}.`,
+        basedOn,
+        explanation: fallbackExplanation(book.title, body, basedOn),
+      });
+    }
+  }
+
+  return NextResponse.json({
+    recommendations: recommendations.slice(0, MAX_RECS),
+    model: chat.model,
+  });
 }

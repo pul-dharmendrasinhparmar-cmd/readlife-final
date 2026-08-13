@@ -150,7 +150,7 @@ export function OnboardingShell({
             {note ? (
               <div className="relative mt-7 rotate-[-2.5deg] rounded-md border border-[#e2cfa8] bg-[#f7ebc8]/95 px-4 py-4 shadow-[0_8px_18px_rgba(42,36,56,0.1)] backdrop-blur-sm">
                 <div className="absolute -top-2.5 left-1/2 h-5 w-14 -translate-x-1/2 rounded-sm bg-[#d4b896]/85 shadow-sm" />
-                <p className="font-serif text-[1rem] leading-snug text-ink/90 italic">
+                <p className="font-serif text-[1rem] leading-snug text-[#2a2438] italic">
                   {note}
                 </p>
               </div>

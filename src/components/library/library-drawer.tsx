@@ -392,7 +392,7 @@ export function LibraryDrawer({
                   <button
                     type="button"
                     onClick={() => setConfirmDnf(true)}
-                    className="w-full rounded-full py-2 text-xs font-semibold text-[#9a4a3a] hover:bg-[#f5e6e0]"
+                    className="w-full rounded-full py-2 text-xs font-semibold text-[#f0c8c0] hover:bg-[#5a3530]"
                   >
                     DNF…
                   </button>
@@ -488,7 +488,7 @@ export function LibraryDrawer({
             <button
               type="button"
               onClick={onRemove}
-              className="mt-3 w-full rounded-full py-2.5 text-xs font-semibold text-[#9a4a3a] hover:bg-[#f5e6e0]"
+              className="mt-3 w-full rounded-full py-2.5 text-xs font-semibold text-[#f0c8c0] hover:bg-[#5a3530]"
             >
               Remove from Library
             </button>
@@ -531,15 +531,15 @@ function DnfForm({
   onCancel: () => void;
 }) {
   return (
-    <div className="rounded-2xl border border-[#e0c4b8] bg-[#faf0eb] p-3">
-      <p className="text-xs font-semibold text-ink">Move to DNF?</p>
-      <p className="mt-1 text-[0.7rem] text-muted">
+    <div className="rounded-2xl border border-[#8a6058] bg-[#4a3532] p-3">
+      <p className="text-xs font-semibold text-[#f0d0c8]">Move to DNF?</p>
+      <p className="mt-1 text-[0.7rem] text-[#c49488]">
         Stopped around {progress}%. Not every book has to be finished.
       </p>
       <select
         value={reason}
         onChange={(e) => setReason(e.target.value)}
-        className="mt-2 w-full rounded-xl border border-[#564d6a] bg-[#3a324f] px-2 py-2 text-xs"
+        className="mt-2 w-full rounded-xl border border-[#564d6a] bg-[#3a324f] px-2 py-2 text-xs text-ink"
       >
         {DNF_REASONS.map((r) => (
           <option key={r}>{r}</option>
@@ -549,14 +549,14 @@ function DnfForm({
         <button
           type="button"
           onClick={onCancel}
-          className="flex-1 rounded-full py-2 text-xs font-semibold text-ink"
+          className="flex-1 rounded-full py-2 text-xs font-semibold text-[#f0d0c8]/80 hover:bg-[#5a4038]"
         >
           Cancel
         </button>
         <button
           type="button"
           onClick={onConfirm}
-          className="flex-1 rounded-full bg-[#8a4a3a] py-2 text-xs font-semibold text-paper"
+          className="flex-1 rounded-full bg-[#8a4a3a] py-2 text-xs font-semibold text-[#f6f3fa]"
         >
           Confirm DNF
         </button>
@@ -593,15 +593,15 @@ export function StatusBadge({ entry }: { entry: LibraryEntry }) {
       label: entry.priority
         ? `TBR · ${PRIORITY_LABELS[entry.priority].label}`
         : "TBR",
-      className: "bg-[#e8f0e6] text-[#243528]",
+      className: "bg-[#3d4f42] text-[#d5e8d4]",
     },
     paused: {
       label: `PAUSED · ${entry.progressPct ?? 0}%`,
-      className: "bg-[#f0e8d8] text-[#5c4020]",
+      className: "bg-[#4a4032] text-[#f0dfc0]",
     },
     dnf: {
       label: `DNF · stopped at ${entry.progressPct ?? 0}%`,
-      className: "bg-[#f3e4e0] text-[#7a3a30]",
+      className: "bg-[#4a3532] text-[#f0d0c8]",
     },
   };
   const s = map[entry.status];

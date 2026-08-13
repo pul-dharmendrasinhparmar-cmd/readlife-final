@@ -318,7 +318,7 @@ function BookPageInner({ bookId }: Props) {
               onClick={() =>
                 toast({ text: "Read dates coming soon — track start/finish from Library for now." })
               }
-              className="mt-2 w-full rounded-full border border-[#4a425c] bg-[#4a3a48] px-3 py-2 text-sm font-semibold text-ink hover:bg-[#5a4554]"
+              className="mt-2 w-full rounded-full border border-line bg-paper px-3 py-2 text-sm font-semibold text-ink hover:bg-cream-card"
             >
               + Add read dates
             </button>
@@ -354,7 +354,7 @@ function BookPageInner({ bookId }: Props) {
                       <button
                         type="button"
                         onClick={() => setReviewEditing(true)}
-                        className="text-xs font-semibold text-[#3d6b8a] hover:underline"
+                        className="text-xs font-semibold text-accent hover:underline"
                       >
                         Edit
                       </button>
@@ -415,7 +415,7 @@ function BookPageInner({ bookId }: Props) {
                     <button
                       type="button"
                       onClick={() => setReviewEditing(true)}
-                      className="mt-2 text-xs font-semibold text-[#3d6b8a] hover:underline"
+                      className="mt-2 text-xs font-semibold text-accent hover:underline"
                     >
                       Write a review
                     </button>
@@ -469,8 +469,8 @@ function BookPageInner({ bookId }: Props) {
                     }
                     className={`rounded-full border px-3 py-1.5 text-sm font-semibold transition ${
                       activeTrope === trope
-                        ? "border-forest bg-forest text-paper"
-                        : "border-[#c9d6ea] bg-[#e7eef8] text-[#2f4f6a] hover:bg-[#d9e6f4]"
+                        ? "border-forest bg-forest text-[#2a2438]"
+                        : "border-accent/35 bg-accent/15 text-accent hover:bg-accent/25"
                     }`}
                   >
                     {trope}
@@ -574,7 +574,7 @@ function BookPageInner({ bookId }: Props) {
                 </div>
               ) : null}
 
-              <p className="mt-3 text-sm font-semibold text-[#3d6b8a]">
+              <p className="mt-3 text-sm font-semibold text-accent">
                 <button
                   type="button"
                   className="hover:underline"
@@ -611,13 +611,13 @@ function BookPageInner({ bookId }: Props) {
                       onClick={() => setTab(id)}
                       className={`relative shrink-0 rounded-t-xl px-4 py-2.5 text-sm font-semibold transition ${
                         active
-                          ? "bg-[#e8eef8] text-ink"
-                          : "text-muted hover:text-ink"
+                          ? "bg-paper text-ink"
+                          : "text-muted hover:bg-paper/50 hover:text-ink"
                       }`}
                     >
                       {label}
                       {active ? (
-                        <span className="absolute inset-x-3 -bottom-px h-[3px] rounded-full bg-[linear-gradient(90deg,#6b8fc4,#d4a0b8)]" />
+                        <span className="absolute inset-x-3 -bottom-px h-[3px] rounded-full bg-[linear-gradient(90deg,var(--accent),var(--forest))]" />
                       ) : null}
                     </button>
                   );
@@ -776,7 +776,7 @@ function AboutPanel({
         <button
           type="button"
           onClick={onToggle}
-          className="text-sm font-semibold text-[#3d6b8a] hover:underline"
+          className="text-sm font-semibold text-accent hover:underline"
         >
           {expanded ? "Show less ↑" : "Read More ↓"}
         </button>
@@ -789,7 +789,7 @@ function AboutPanel({
         {genres.map((g) => (
           <span
             key={g}
-            className="rounded-full bg-[#d9e6f4] px-3 py-1 text-sm font-medium text-[#2f4f6a]"
+            className="rounded-full bg-accent/15 px-3 py-1 text-sm font-medium text-accent"
           >
             {g}
           </span>
@@ -867,11 +867,11 @@ function ForumPanel({
         />
       </label>
 
-      <div className="rounded-[1.5rem] border border-[#c9d6ea] bg-[#e7eef8] p-4 sm:p-5">
+      <div className="rounded-[1.5rem] border border-line bg-cream-card p-4 sm:p-5">
         <button
           type="button"
           onClick={onToggleCreate}
-          className="rounded-full border border-[#2a2438]/15 bg-paper px-4 py-2 text-sm font-semibold text-ink shadow-sm hover:bg-cream-card"
+          className="rounded-full border border-line bg-paper px-4 py-2 text-sm font-semibold text-ink shadow-sm hover:bg-[#3f3654]"
         >
           {createOpen ? "Close composer" : "Create post"}
         </button>
@@ -927,7 +927,7 @@ function ForumPanel({
           <select
             value={filter}
             onChange={(e) => onFilter(e.target.value as typeof filter)}
-            className="rounded-full border border-[#2a2438]/15 bg-paper px-3 py-1.5 text-sm"
+            className="rounded-full border border-line bg-paper px-3 py-1.5 text-sm text-ink"
           >
             <option value="all">All posts</option>
             <option value="safe">No spoilers</option>
@@ -936,13 +936,13 @@ function ForumPanel({
           <select
             value={sort}
             onChange={(e) => onSort(e.target.value as typeof sort)}
-            className="rounded-full border border-[#2a2438]/15 bg-paper px-3 py-1.5 text-sm"
+            className="rounded-full border border-line bg-paper px-3 py-1.5 text-sm text-ink"
           >
             <option value="progress-asc">% progress - asc</option>
             <option value="progress-desc">% progress - desc</option>
             <option value="top">Top scored</option>
           </select>
-          <label className="inline-flex items-center gap-2 rounded-full border border-[#2a2438]/15 bg-paper px-3 py-1.5 text-sm">
+          <label className="inline-flex items-center gap-2 rounded-full border border-line bg-paper px-3 py-1.5 text-sm text-ink">
             Start at:
             <input
               type="number"
@@ -980,7 +980,7 @@ function ForumPanel({
               <div className="mt-1 flex flex-wrap items-center gap-2">
                 <h3 className="font-semibold text-ink">{post.title}</h3>
                 {post.spoilers ? (
-                  <span className="rounded-full bg-[#cfe8ef] px-2 py-0.5 text-[0.7rem] font-bold tracking-wide text-[#2f5f6a] uppercase">
+                  <span className="rounded-full bg-accent/20 px-2 py-0.5 text-[0.7rem] font-bold tracking-wide text-accent uppercase">
                     spoilers
                   </span>
                 ) : null}
@@ -1006,7 +1006,7 @@ function ForumPanel({
                 </span>
                 <button
                   type="button"
-                  className="font-semibold text-ink hover:underline"
+                  className="font-semibold text-accent hover:underline"
                   onClick={() =>
                     onOpenReply(openReply === post.id ? null : post.id)
                   }
@@ -1108,7 +1108,7 @@ function ReviewsPanel({
               <button
                 type="button"
                 onClick={() => onReviewEditing(true)}
-                className="text-xs font-semibold text-[#3d6b8a] hover:underline"
+                className="text-xs font-semibold text-accent hover:underline"
               >
                 Edit
               </button>
@@ -1160,7 +1160,7 @@ function ReviewsPanel({
         <select
           value={filter}
           onChange={(e) => onFilter(e.target.value as typeof filter)}
-          className="rounded-full border border-[#2a2438]/15 bg-paper px-3 py-1.5 text-sm"
+          className="rounded-full border border-line bg-paper px-3 py-1.5 text-sm text-ink"
         >
           <option value="all">All Ratings</option>
           <option value="5">5 stars</option>
@@ -1172,13 +1172,13 @@ function ReviewsPanel({
         <select
           value={sort}
           onChange={(e) => onSort(e.target.value as typeof sort)}
-          className="rounded-full border border-[#2a2438]/15 bg-paper px-3 py-1.5 text-sm"
+          className="rounded-full border border-line bg-paper px-3 py-1.5 text-sm text-ink"
         >
           <option value="newest">Newest</option>
           <option value="highest">Highest</option>
           <option value="lowest">Lowest</option>
         </select>
-        <label className="inline-flex items-center gap-2 rounded-full bg-paper/70 px-3 py-1.5 text-sm">
+        <label className="inline-flex items-center gap-2 rounded-full border border-line bg-paper px-3 py-1.5 text-sm text-ink">
           <input
             type="checkbox"
             checked={writtenOnly}
@@ -1187,7 +1187,7 @@ function ReviewsPanel({
           />
           Written reviews only
         </label>
-        <label className="inline-flex items-center gap-2 rounded-full bg-paper/70 px-3 py-1.5 text-sm">
+        <label className="inline-flex items-center gap-2 rounded-full border border-line bg-paper px-3 py-1.5 text-sm text-ink">
           <input
             type="checkbox"
             checked={followingOnly}
@@ -1221,7 +1221,7 @@ function ReviewsPanel({
               </div>
               <div className="flex items-center gap-2">
                 {review.spoilers ? (
-                  <span className="rounded-full bg-[#cfe8ef] px-2 py-0.5 text-[0.7rem] font-bold tracking-wide text-[#2f5f6a] uppercase">
+                  <span className="rounded-full bg-accent/20 px-2 py-0.5 text-[0.7rem] font-bold tracking-wide text-accent uppercase">
                     spoilers
                   </span>
                 ) : null}
@@ -1246,7 +1246,7 @@ function ReviewsPanel({
               <span>💬 {review.commentCount}</span>
               <button
                 type="button"
-                className="font-semibold text-ink hover:underline"
+                className="font-semibold text-accent hover:underline"
                 onClick={() =>
                   onOpenReply(openReply === review.id ? null : review.id)
                 }
@@ -1305,12 +1305,12 @@ function FeedPanel({
         {feed.map((item) => (
           <article
             key={item.id}
-            className="rounded-[1.35rem] border border-[#e0d2f0] bg-[#f1e8f8] p-4 shadow-sm"
+            className="rounded-[1.35rem] border border-line bg-cream-card p-4 shadow-sm"
           >
             <div className="mb-3 flex items-start justify-between gap-3">
-              <p className="text-sm text-ink">
-                <span className="font-semibold">{item.username}</span>{" "}
-                {feedVerb(item)}
+              <p className="text-sm text-ink/90">
+                <span className="font-semibold text-ink">{item.username}</span>{" "}
+                <span className="text-muted">{feedVerb(item)}</span>
               </p>
               <span className="text-xs text-muted">{item.timeAgo}</span>
             </div>
@@ -1322,7 +1322,7 @@ function FeedPanel({
                   <div className="min-w-0 flex-1">
                     <p className="font-semibold text-ink">{bookTitle}</p>
                     <p className="text-sm text-muted">{bookAuthor}</p>
-                    <div className="mt-3 h-8 overflow-hidden rounded-full border border-[#2a2438]/15 bg-paper">
+                    <div className="mt-3 h-8 overflow-hidden rounded-full border border-line bg-[#2a2438]">
                       <div
                         className="flex h-full items-center bg-[#f5e28a] px-3 text-xs font-bold text-[#5c4a18]"
                         style={{ width: `${item.progressPct ?? 0}%` }}
@@ -1351,14 +1351,14 @@ function FeedPanel({
               )}
             </div>
 
-            <div className="mt-3 flex items-center gap-3 text-sm text-muted">
-              <span className="inline-flex items-center gap-1 rounded-full border border-[#4a425c] bg-paper px-2.5 py-1">
+            <div className="mt-3 flex items-center gap-3 text-sm">
+              <span className="inline-flex items-center gap-1 rounded-full border border-line bg-paper px-2.5 py-1 text-ink/85">
                 ♡ {item.likes}
               </span>
-              <span className="inline-flex items-center gap-1 rounded-full border border-[#4a425c] bg-paper px-2.5 py-1">
+              <span className="inline-flex items-center gap-1 rounded-full border border-line bg-paper px-2.5 py-1 text-ink/85">
                 💬 {item.commentCount}
               </span>
-              <button type="button" className="font-semibold text-ink">
+              <button type="button" className="font-semibold text-accent hover:underline">
                 Reply
               </button>
             </div>

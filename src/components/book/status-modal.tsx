@@ -4,53 +4,94 @@ import type { LibraryStatus } from "@/components/search/types";
 
 export type StatusChoice = LibraryStatus | "none";
 
+/** Dark-theme status chips — never pair pastels with `text-ink` (light). */
+export const STATUS_PILL: Record<
+  LibraryStatus,
+  { label: string; className: string }
+> = {
+  tbr: {
+    label: "TBR",
+    className: "bg-[#3d4f42] text-[#d5e8d4] border-[#6a8570]",
+  },
+  reading: {
+    label: "Reading",
+    className: "bg-forest text-[#2a2438] border-forest",
+  },
+  read: {
+    label: "Read",
+    className: "bg-[#3f3654] text-ink border-[#4a425c]",
+  },
+  paused: {
+    label: "Paused",
+    className: "bg-[#4a4032] text-[#f0dfc0] border-[#8a7350]",
+  },
+  dnf: {
+    label: "DNF",
+    className: "bg-[#4a3532] text-[#f0d0c8] border-[#8a6058]",
+  },
+};
+
 const OPTIONS: {
   id: StatusChoice;
   label: string;
   blurb: string;
   className: string;
+  labelClass: string;
+  blurbClass: string;
   activeClass: string;
 }[] = [
   {
     id: "tbr",
     label: "TBR",
     blurb: "On your to-be-read shelf",
-    className: "bg-[#e8f0e6] text-ink",
-    activeClass: "ring-2 ring-forest",
+    className: "bg-[#3d4f42] border-[#6a8570]",
+    labelClass: "text-[#d5e8d4]",
+    blurbClass: "text-[#a8c4a6]",
+    activeClass: "ring-2 ring-[#9bb89a]",
   },
   {
     id: "reading",
     label: "Currently Reading",
     blurb: "You're in the middle of this one",
-    className: "bg-forest text-paper",
-    activeClass: "ring-2 ring-[#1a2e20]",
+    className: "bg-forest border-forest",
+    labelClass: "text-[#2a2438]",
+    blurbClass: "text-[#2a2438]/75",
+    activeClass: "ring-2 ring-forest-deep",
   },
   {
     id: "read",
     label: "Read",
     blurb: "Finished",
-    className: "bg-[#3f3654] text-ink",
+    className: "bg-[#3f3654] border-[#4a425c]",
+    labelClass: "text-ink",
+    blurbClass: "text-muted",
     activeClass: "ring-2 ring-forest",
   },
   {
     id: "paused",
     label: "Paused",
     blurb: "Taking a break",
-    className: "bg-[#f0e8d8] text-[#7a5a30]",
-    activeClass: "ring-2 ring-[#7a5a30]",
+    className: "bg-[#4a4032] border-[#8a7350]",
+    labelClass: "text-[#f0dfc0]",
+    blurbClass: "text-[#c4a878]",
+    activeClass: "ring-2 ring-[#c4a878]",
   },
   {
     id: "dnf",
     label: "DNF",
     blurb: "Did not finish",
-    className: "bg-[#f3e4e0] text-[#8a4a3a]",
-    activeClass: "ring-2 ring-[#8a4a3a]",
+    className: "bg-[#4a3532] border-[#8a6058]",
+    labelClass: "text-[#f0d0c8]",
+    blurbClass: "text-[#c49488]",
+    activeClass: "ring-2 ring-[#c49488]",
   },
   {
     id: "none",
     label: "Not in library",
     blurb: "Remove from your shelves",
-    className: "bg-paper text-ink",
+    className: "bg-paper border-[#4a425c]",
+    labelClass: "text-ink",
+    blurbClass: "text-muted",
     activeClass: "ring-2 ring-forest",
   },
 ];
@@ -112,18 +153,14 @@ export function LibraryStatusModal({
                 key={opt.id}
                 type="button"
                 onClick={() => onSave(opt.id)}
-                className={`flex w-full flex-col items-start rounded-2xl border border-[#4a425c] px-4 py-2.5 text-left shadow-sm transition ${opt.className} ${
-                  active ? opt.activeClass : "hover:brightness-[0.98]"
+                className={`flex w-full flex-col items-start rounded-2xl border px-4 py-2.5 text-left shadow-sm transition hover:brightness-110 ${opt.className} ${
+                  active ? opt.activeClass : ""
                 }`}
               >
-                <span className="text-sm font-bold">{opt.label}</span>
-                <span
-                  className={`text-xs ${
-                    opt.id === "reading" ? "text-paper/80" : "opacity-75"
-                  }`}
-                >
-                  {opt.blurb}
+                <span className={`text-sm font-bold ${opt.labelClass}`}>
+                  {opt.label}
                 </span>
+                <span className={`text-xs ${opt.blurbClass}`}>{opt.blurb}</span>
               </button>
             );
           })}
@@ -134,7 +171,7 @@ export function LibraryStatusModal({
             <button
               type="button"
               onClick={onDelete}
-              className="w-full rounded-full border border-[#b33a3a]/30 bg-[#f3e4e0] px-4 py-2.5 text-sm font-bold text-[#8a4a3a] hover:brightness-105"
+              className="w-full rounded-full border border-[#b33a3a]/40 bg-[#5a3530] px-4 py-2.5 text-sm font-bold text-[#f0c8c0] hover:brightness-110"
             >
               Delete from library
             </button>
@@ -144,29 +181,3 @@ export function LibraryStatusModal({
     </div>
   );
 }
-
-export const STATUS_PILL: Record<
-  LibraryStatus,
-  { label: string; className: string }
-> = {
-  tbr: {
-    label: "TBR",
-    className: "bg-[#e8f0e6] text-ink border-forest/20",
-  },
-  reading: {
-    label: "Reading",
-    className: "bg-forest text-paper border-forest",
-  },
-  read: {
-    label: "Read",
-    className: "bg-[#3f3654] text-ink border-[#4a425c]",
-  },
-  paused: {
-    label: "Paused",
-    className: "bg-[#f0e8d8] text-[#7a5a30] border-[#4a425c]",
-  },
-  dnf: {
-    label: "DNF",
-    className: "bg-[#f3e4e0] text-[#8a4a3a] border-[#e0c4bc]",
-  },
-};

@@ -13,8 +13,49 @@ type Props = {
 
 export function EmojiPlotApp({ onChangeMode, onBackToGames }: Props) {
   const g = useEmojiGame();
+  const [aiHint, setAiHint] = useState<string | null>(null);
+  const [aiHintLoading, setAiHintLoading] = useState(false);
+  const [aiHintError, setAiHintError] = useState<string | null>(null);
+  const [aiUsedFor, setAiUsedFor] = useState<string | null>(null);
 
   const puzzle = g.puzzle;
+
+  useEffect(() => {
+    setAiHint(null);
+    setAiHintError(null);
+  }, [puzzle?.id]);
+
+  const fetchAiHint = async () => {
+    if (!puzzle || g.phase !== "playing" || aiHintLoading) return;
+    if (aiUsedFor === puzzle.id) return;
+    setAiHintLoading(true);
+    setAiHintError(null);
+    try {
+      const res = await fetch("/api/games-hint", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          game: "uncovered-emoji",
+          title: puzzle.book.title,
+          author: puzzle.book.author,
+          genre: puzzle.book.genreTags?.[0] ?? "",
+          emojis: puzzle.emojiSequence,
+        }),
+      });
+      const data = (await res.json()) as { hint?: string; error?: string };
+      if (!res.ok || !data.hint) {
+        setAiHintError(data.error ?? "AI hint unavailable.");
+        return;
+      }
+      setAiHint(data.hint);
+      setAiUsedFor(puzzle.id);
+    } catch {
+      setAiHintError("Could not reach AI hint.");
+    } finally {
+      setAiHintLoading(false);
+    }
+  };
+
   if (!puzzle) {
     return (
       <div className="unc-root">
@@ -26,6 +67,8 @@ export function EmojiPlotApp({ onChangeMode, onBackToGames }: Props) {
       </div>
     );
   }
+
+  const aiUsed = aiUsedFor === puzzle.id;
 
   return (
     <div className="unc-root">
@@ -48,6 +91,22 @@ export function EmojiPlotApp({ onChangeMode, onBackToGames }: Props) {
           </p>
           <div className="unc-emoji-prompt-row">
             <p className="unc-prompt">Which book is this plot?</p>
+            <button
+              type="button"
+              className={`unc-hint-btn${aiUsed ? " is-used" : ""}`}
+              onClick={() => void fetchAiHint()}
+              disabled={aiUsed || aiHintLoading || g.phase !== "playing"}
+              aria-label={
+                aiUsed
+                  ? "AI hint used"
+                  : aiHintLoading
+                    ? "Loading AI hint"
+                    : "Get AI vibe hint"
+              }
+              title="Soft genre/era vibe — never names the title"
+            >
+              {aiHintLoading ? "…" : "AI"}
+            </button>
             <button
               type="button"
               className={`unc-hint-btn${g.canUseHint ? "" : " is-used"}`}
@@ -85,8 +144,15 @@ export function EmojiPlotApp({ onChangeMode, onBackToGames }: Props) {
             Opening → conflict → low point → turn → resolution
           </p>
 
-          {g.hints.length > 0 ? (
+          {aiHintError ? (
+            <p className="unc-emoji-hint" role="status">
+              {aiHintError}
+            </p>
+          ) : null}
+
+          {aiHint || g.hints.length > 0 ? (
             <ul className="unc-hint-list">
+              {aiHint ? <li key="ai">{aiHint}</li> : null}
               {g.hints.map((hint, i) => (
                 <li key={`${i}-${hint}`}>{hint}</li>
               ))}

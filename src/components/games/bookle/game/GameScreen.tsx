@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Board from "./Board";
 import Keyboard from "./Keyboard";
 import { useWordle } from "./useWordle";
@@ -9,6 +9,7 @@ type Theme = {
   title: string;
   tagline: string;
   accent: string;
+  author?: string;
 };
 
 type Props = {
@@ -46,6 +47,11 @@ export default function GameScreen({
     wordLength,
   } = useWordle({ answer, validWords });
 
+  const [aiHint, setAiHint] = useState<string | null>(null);
+  const [aiHintLoading, setAiHintLoading] = useState(false);
+  const [aiHintError, setAiHintError] = useState<string | null>(null);
+  const [aiHintUsed, setAiHintUsed] = useState(false);
+
   const reported = useRef(false);
   useEffect(() => {
     if (status !== "playing" && !reported.current && onGameEnd) {
@@ -56,7 +62,40 @@ export default function GameScreen({
 
   const handleNewWord = () => {
     reset();
+    setAiHint(null);
+    setAiHintError(null);
+    setAiHintUsed(false);
     onNewWord();
+  };
+
+  const fetchAiHint = async () => {
+    if (aiHintUsed || aiHintLoading || status !== "playing") return;
+    setAiHintLoading(true);
+    setAiHintError(null);
+    try {
+      const res = await fetch("/api/games-hint", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          game: "bookle",
+          themeTitle: theme.title,
+          themeTagline: theme.tagline,
+          themeAuthor: theme.author ?? "",
+          answer,
+        }),
+      });
+      const data = (await res.json()) as { hint?: string; error?: string };
+      if (!res.ok || !data.hint) {
+        setAiHintError(data.error ?? "AI hint unavailable.");
+        return;
+      }
+      setAiHint(data.hint);
+      setAiHintUsed(true);
+    } catch {
+      setAiHintError("Could not reach AI hint.");
+    } finally {
+      setAiHintLoading(false);
+    }
   };
 
   const hintDisabled = !canUseHint;
@@ -65,6 +104,14 @@ export default function GameScreen({
     : status !== "playing"
       ? "Hint unavailable"
       : "Use hint";
+
+  const aiDisabled =
+    aiHintUsed || aiHintLoading || status !== "playing";
+  const aiButtonLabel = aiHintUsed
+    ? "AI hint used"
+    : aiHintLoading
+      ? "Asking…"
+      : "AI hint";
 
   return (
     <div className="game-panel" style={{ ["--accent" as string]: theme.accent }}>
@@ -77,6 +124,16 @@ export default function GameScreen({
           <p>{theme.tagline}</p>
         </div>
         <div className="header-actions">
+          <button
+            type="button"
+            className={`hint-btn ai-hint-btn${aiHintUsed ? " used" : ""}`}
+            onClick={() => void fetchAiHint()}
+            disabled={aiDisabled}
+            aria-label={aiButtonLabel}
+            title="Soft genre/era vibe — never reveals letters"
+          >
+            {aiButtonLabel}
+          </button>
           <button
             type="button"
             className={`hint-btn${hintUsed ? " used" : ""}`}
@@ -105,6 +162,10 @@ export default function GameScreen({
           </div>
         ) : message ? (
           <div className="toast">{message}</div>
+        ) : aiHintError ? (
+          <div className="toast">{aiHintError}</div>
+        ) : aiHint ? (
+          <div className="hint-reveal ai-hint-reveal">{aiHint}</div>
         ) : hintLabel ? (
           <div className="hint-reveal">
             Letter {hintLabel.index + 1} is{" "}

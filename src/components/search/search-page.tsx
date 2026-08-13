@@ -54,6 +54,9 @@ import type {
 
 type Tab = "books" | "readers" | "lists";
 type ResultFilter = "all" | "books" | "readers" | "lists";
+type SearchMode = "keyword" | "vibe";
+
+type NlHit = { book: DiscoverBook; reason: string };
 
 export function SearchPage() {
   return (
@@ -70,6 +73,11 @@ function SearchPageInner() {
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [debounced, setDebounced] = useState("");
+  const [searchMode, setSearchMode] = useState<SearchMode>("keyword");
+  const [nlHits, setNlHits] = useState<NlHit[] | null>(null);
+  const [nlQuery, setNlQuery] = useState("");
+  const [nlLoading, setNlLoading] = useState(false);
+  const [nlError, setNlError] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("books");
   const [resultFilter, setResultFilter] = useState<ResultFilter>("all");
   const [mood, setMood] = useState<string | null>(null);
@@ -102,9 +110,10 @@ function SearchPageInner() {
   }, []);
 
   useEffect(() => {
+    if (searchMode !== "keyword") return;
     const t = window.setTimeout(() => setDebounced(query.trim()), 180);
     return () => window.clearTimeout(t);
-  }, [query]);
+  }, [query, searchMode]);
 
   useEffect(() => {
     const onKey = (e: globalThis.KeyboardEvent) => {
@@ -117,11 +126,68 @@ function SearchPageInner() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  const activeSearch = debounced.length >= 2;
+  const runNlSearch = useCallback(async (raw: string) => {
+    const q = raw.trim();
+    if (q.length < 8 || nlLoading) return;
+    setNlLoading(true);
+    setNlError(null);
+    setShowSuggest(false);
+    try {
+      const res = await fetch("/api/search-nl", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: q }),
+      });
+      const data = (await res.json()) as {
+        results?: { id: string; reason: string }[];
+        error?: string;
+      };
+      if (!res.ok) {
+        setNlHits([]);
+        setNlQuery(q);
+        setNlError(data.error ?? "Could not search by vibe.");
+        return;
+      }
+      const hits = (data.results ?? [])
+        .map((item) => {
+          const book = getBookById(item.id);
+          if (!book) return null;
+          return {
+            book: {
+              ...book,
+              recommendationReason: item.reason,
+            },
+            reason: item.reason,
+          };
+        })
+        .filter(Boolean) as NlHit[];
+      setNlHits(hits);
+      setNlQuery(q);
+      if (hits.length === 0) {
+        setNlError("No catalog matches for that vibe. Try another phrasing.");
+      }
+    } catch {
+      setNlHits([]);
+      setNlQuery(q);
+      setNlError("Network error while searching. Try again.");
+    } finally {
+      setNlLoading(false);
+    }
+  }, [nlLoading]);
+
+  const clearNlSearch = useCallback(() => {
+    setNlHits(null);
+    setNlQuery("");
+    setNlError(null);
+  }, []);
+
+  const activeKeywordSearch = searchMode === "keyword" && debounced.length >= 2;
+  const activeNlSearch =
+    searchMode === "vibe" && (nlHits !== null || nlLoading || !!nlError);
   const results = useMemo(() => searchAll(debounced), [debounced]);
   const suggestions = useMemo(
-    () => autocompleteSuggestions(query),
-    [query],
+    () => (searchMode === "keyword" ? autocompleteSuggestions(query) : { books: [], authors: [], lists: [] }),
+    [query, searchMode],
   );
 
   const flatSuggestions = useMemo(() => {
@@ -185,6 +251,15 @@ function SearchPageInner() {
   );
 
   const onSearchKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (searchMode === "vibe") {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        void runNlSearch(query);
+      } else if (e.key === "Escape") {
+        setShowSuggest(false);
+      }
+      return;
+    }
     if (!showSuggest || flatSuggestions.length === 0) {
       if (e.key === "Escape") setShowSuggest(false);
       return;
@@ -235,34 +310,100 @@ function SearchPageInner() {
 
         {/* Search bar */}
         <div className="relative mt-7 max-w-3xl">
+          <div
+            className="mb-3 flex gap-1 overflow-x-auto"
+            role="tablist"
+            aria-label="Search mode"
+          >
+            {(
+              [
+                ["keyword", "Search"],
+                ["vibe", "Describe a vibe"],
+              ] as const
+            ).map(([id, label]) => {
+              const active = searchMode === id;
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  onClick={() => {
+                    setSearchMode(id);
+                    setShowSuggest(false);
+                    setSuggestIndex(-1);
+                    if (id === "keyword") clearNlSearch();
+                    else {
+                      setDebounced("");
+                    }
+                  }}
+                  className={`shrink-0 rounded-full px-3.5 py-1.5 text-sm font-semibold transition ${
+                    active
+                      ? "bg-forest text-paper"
+                      : "text-ink/65 hover:bg-[#3f3654] hover:text-ink"
+                  }`}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
           <label className="sr-only" htmlFor="discover-search">
-            Search books, authors, readers, or reading lists
+            {searchMode === "vibe"
+              ? "Describe the kind of book you want"
+              : "Search books, authors, readers, or reading lists"}
           </label>
-          <span className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-muted-soft">
-            <SearchIcon className="h-[1.15rem] w-[1.15rem]" />
-          </span>
-          <input
-            ref={inputRef}
-            id="discover-search"
-            type="search"
-            value={query}
-            onChange={(e) => {
-              setQuery(e.target.value);
-              setShowSuggest(true);
-              setSuggestIndex(-1);
-            }}
-            onFocus={() => setShowSuggest(true)}
-            onBlur={() => window.setTimeout(() => setShowSuggest(false), 140)}
-            onKeyDown={onSearchKeyDown}
-            placeholder="Search books, authors, readers, or reading lists..."
-            className="w-full rounded-full border border-[#564d6a] bg-[#3a324f] py-3.5 pr-16 pl-12 text-[0.98rem] text-ink shadow-[0_6px_20px_rgba(42,36,56,0.05)] outline-none placeholder:text-muted-soft transition focus:border-forest/50 focus:shadow-[0_0_0_4px_rgba(176,143,206,0.12)]"
-            autoComplete="off"
-          />
-          <kbd className="pointer-events-none absolute top-1/2 right-4 hidden -translate-y-1/2 rounded-md border border-[#564d6a] bg-[#2a2438] px-1.5 py-0.5 text-[0.65rem] font-semibold text-muted-soft sm:inline">
-            ⌘ K
-          </kbd>
+          <div className="relative flex gap-2">
+            <span className="pointer-events-none absolute top-1/2 left-4 z-[1] -translate-y-1/2 text-muted-soft">
+              <SearchIcon className="h-[1.15rem] w-[1.15rem]" />
+            </span>
+            <input
+              ref={inputRef}
+              id="discover-search"
+              type="search"
+              value={query}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                if (searchMode === "keyword") {
+                  setShowSuggest(true);
+                  setSuggestIndex(-1);
+                }
+              }}
+              onFocus={() => {
+                if (searchMode === "keyword") setShowSuggest(true);
+              }}
+              onBlur={() => window.setTimeout(() => setShowSuggest(false), 140)}
+              onKeyDown={onSearchKeyDown}
+              placeholder={
+                searchMode === "vibe"
+                  ? "cozy fantasy with found family, not too dark…"
+                  : "Search books, authors, readers, or reading lists..."
+              }
+              className={`w-full rounded-full border border-[#564d6a] bg-[#3a324f] py-3.5 pl-12 text-[0.98rem] text-ink shadow-[0_6px_20px_rgba(42,36,56,0.05)] outline-none placeholder:text-muted-soft transition focus:border-forest/50 focus:shadow-[0_0_0_4px_rgba(176,143,206,0.12)] ${
+                searchMode === "vibe" ? "pr-28 sm:pr-32" : "pr-16"
+              }`}
+              autoComplete="off"
+            />
+            {searchMode === "vibe" ? (
+              <button
+                type="button"
+                onClick={() => void runNlSearch(query)}
+                disabled={nlLoading || query.trim().length < 8}
+                className="absolute top-1/2 right-2 z-[1] -translate-y-1/2 rounded-full bg-forest px-3.5 py-2 text-xs font-semibold text-paper transition hover:bg-forest-deep disabled:cursor-not-allowed disabled:opacity-55 sm:text-sm"
+              >
+                {nlLoading ? "Matching…" : "Find matches"}
+              </button>
+            ) : (
+              <kbd className="pointer-events-none absolute top-1/2 right-4 hidden -translate-y-1/2 rounded-md border border-[#564d6a] bg-[#2a2438] px-1.5 py-0.5 text-[0.65rem] font-semibold text-muted-soft sm:inline">
+                ⌘ K
+              </kbd>
+            )}
+          </div>
 
-          {showSuggest && query.trim().length >= 2 && flatSuggestions.length > 0 ? (
+          {searchMode === "keyword" &&
+          showSuggest &&
+          query.trim().length >= 2 &&
+          flatSuggestions.length > 0 ? (
             <div
               className="absolute z-30 mt-2 w-full overflow-hidden rounded-2xl border border-[#4a425c] bg-[#3a324f] shadow-[0_16px_40px_rgba(42,36,56,0.14)]"
               role="listbox"
@@ -290,11 +431,31 @@ function SearchPageInner() {
               ))}
             </div>
           ) : null}
+          {searchMode === "vibe" ? (
+            <p className="mt-2 text-xs text-muted">
+              Natural-language match against the Discover catalog — try tropes,
+              mood, or soft “not too…” filters.
+            </p>
+          ) : null}
         </div>
 
         {loading ? (
           <LoadingSkeleton />
-        ) : activeSearch ? (
+        ) : activeNlSearch ? (
+          <NlSearchResults
+            query={nlQuery || query.trim()}
+            hits={nlHits ?? []}
+            loading={nlLoading}
+            error={nlError}
+            onClear={() => {
+              setQuery("");
+              clearNlSearch();
+            }}
+            onOpenBook={openBook}
+            onAddTbr={(b) => openTbr(b, { sourceType: "search" })}
+            onRetry={() => void runNlSearch(query || nlQuery)}
+          />
+        ) : activeKeywordSearch ? (
           <SearchResults
             query={debounced}
             results={results}
@@ -1549,6 +1710,102 @@ function ListsDiscover({
           </section>
         );
       })}
+    </div>
+  );
+}
+
+function NlSearchResults({
+  query,
+  hits,
+  loading,
+  error,
+  onClear,
+  onOpenBook,
+  onAddTbr,
+  onRetry,
+}: {
+  query: string;
+  hits: NlHit[];
+  loading: boolean;
+  error: string | null;
+  onClear: () => void;
+  onOpenBook: (b: DiscoverBook) => void;
+  onAddTbr: (b: DiscoverBook) => void;
+  onRetry: () => void;
+}) {
+  return (
+    <div className="mt-8">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h2 className="font-serif text-2xl font-semibold text-ink">
+            Vibe matches
+            {query ? (
+              <>
+                {" "}
+                for &ldquo;{query}&rdquo;
+              </>
+            ) : null}
+          </h2>
+          <p className="mt-1 text-sm text-muted">
+            {loading
+              ? "Asking the catalog…"
+              : hits.length > 0
+                ? `${hits.length} ranked match${hits.length === 1 ? "" : "es"}`
+                : "No matches yet"}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={onClear}
+          className="text-sm font-semibold text-ink underline-offset-2 hover:underline"
+        >
+          Clear
+        </button>
+      </div>
+
+      {error ? (
+        <p className="mt-4 rounded-xl border border-[#564d6a] bg-[#3a324f]/70 px-3 py-2 text-sm text-muted">
+          {error}{" "}
+          <button
+            type="button"
+            onClick={onRetry}
+            className="font-semibold text-ink underline-offset-2 hover:underline"
+          >
+            Retry
+          </button>
+        </p>
+      ) : null}
+
+      {loading && hits.length === 0 ? (
+        <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div
+              key={i}
+              className="h-[22rem] animate-pulse rounded-[1.25rem] bg-[#3a324f]/80"
+            />
+          ))}
+        </div>
+      ) : hits.length > 0 ? (
+        <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+          {hits.map(({ book }) => (
+            <BookCard
+              key={book.id}
+              book={book}
+              onOpen={() => onOpenBook(book)}
+              onAddTbr={() => onAddTbr(book)}
+            />
+          ))}
+        </div>
+      ) : !loading && !error ? (
+        <div className="mt-12 max-w-md">
+          <p className="font-serif text-2xl font-semibold text-ink">
+            No vibe matches yet.
+          </p>
+          <p className="mt-2 text-muted">
+            Try a longer description — mood, tropes, or what you want to avoid.
+          </p>
+        </div>
+      ) : null}
     </div>
   );
 }

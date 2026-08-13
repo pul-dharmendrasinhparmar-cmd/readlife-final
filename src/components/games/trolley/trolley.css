@@ -776,7 +776,7 @@
 
 .trolley-root .lede {
   margin: 0;
-  color: #4a3a28;
+  color: #d4c4e8;
   font-size: 0.92rem;
 }
 
@@ -786,7 +786,7 @@
   text-align: left;
   display: grid;
   gap: 0.4rem;
-  color: #4a3a28;
+  color: #d4c4e8;
   font-size: 0.88rem;
 }
 
@@ -834,10 +834,10 @@
   row-gap: 0.12rem;
   text-align: left;
   padding: 0.75rem 0.85rem;
-  border: 2px solid rgba(26, 111, 104, 0.25);
+  border: 2px solid rgba(154, 120, 192, 0.35);
   border-radius: 0.95rem;
-  background: rgba(255, 255, 255, 0.5);
-  color: var(--ink);
+  background: rgba(42, 36, 56, 0.65);
+  color: #f6f3fa;
   transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
 }
 
@@ -883,7 +883,7 @@
 .trolley-root .choice span {
   grid-column: 2;
   font-size: 0.8rem;
-  color: #4a3a28;
+  color: #a89db8;
 }
 .trolley-root .choice-go {
   grid-column: 2;
@@ -914,7 +914,7 @@
 .trolley-root .fine {
   margin: 0;
   font-size: 0.72rem;
-  color: #6a5640;
+  color: #a89db8;
 }
 
 .trolley-root .score-line {
@@ -975,7 +975,7 @@
 .trolley-root .reco p {
   margin: 0;
   font-size: 0.82rem;
-  color: #4a3a28;
+  color: #d4c4e8;
 }
 
 .trolley-root .result-actions {
@@ -1160,6 +1160,18 @@
   box-shadow:
     0 0 0 2px #9a78c0,
     0 18px 40px rgba(42, 36, 56, 0.35);
+  color: #f6f3fa;
+}
+
+.trolley-root .panel h2,
+.trolley-root .reader-title {
+  color: #f6f3fa;
+}
+
+.trolley-root .panel-kicker,
+.trolley-root .reader-label,
+.trolley-root .choice-go {
+  color: #c9b0e0;
 }
 
 .trolley-root .reco-link {

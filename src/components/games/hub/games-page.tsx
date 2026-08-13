@@ -176,16 +176,16 @@ export function GamesPage() {
                       let label = "Upcoming day";
                       let mark = "·";
                       let cls =
-                        "border-[#d8d4e0] bg-[#ebe8f2] text-muted-soft";
+                        "border-[#d8d4e0] bg-[#ebe8f2] text-[#5c5f6a]";
                       if (done) {
                         label = "Completed";
                         mark = "✓";
-                        cls = "border-forest/40 bg-forest text-paper";
+                        cls = "border-forest/40 bg-forest text-[#2a2438]";
                       } else if (isToday && !done) {
                         label = "Today — not yet completed";
                         mark = "●";
                         cls =
-                          "border-gold bg-[#ebe6f4] text-ink ring-2 ring-inset ring-gold/50";
+                          "border-gold bg-[#ebe6f4] text-[#2a2438] ring-2 ring-inset ring-gold/50";
                       } else if (missed) {
                         label = "Missed";
                         mark = "–";

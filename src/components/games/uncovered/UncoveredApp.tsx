@@ -206,10 +206,52 @@ function PlayScreen({
   const showOptions = g.phase === "guessing";
   const round = g.results[g.index];
   const playRef = useRef<HTMLDivElement>(null);
+  const [aiHint, setAiHint] = useState<string | null>(null);
+  const [aiHintLoading, setAiHintLoading] = useState(false);
+  const [aiHintError, setAiHintError] = useState<string | null>(null);
+  const [aiHintUsedFor, setAiHintUsedFor] = useState<string | null>(null);
 
   useEffect(() => {
     playRef.current?.scrollTo({ top: 0, behavior: "smooth" });
   }, [g.phase, g.index]);
+
+  useEffect(() => {
+    setAiHint(null);
+    setAiHintError(null);
+  }, [q.id]);
+
+  const fetchAiHint = async () => {
+    if (aiHintLoading || g.phase !== "guessing") return;
+    if (aiHintUsedFor === q.id) return;
+    setAiHintLoading(true);
+    setAiHintError(null);
+    try {
+      const res = await fetch("/api/games-hint", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          game: "uncovered-cover",
+          title: q.title,
+          author: q.author,
+          genre: q.genre ?? "",
+          difficulty: q.difficulty,
+        }),
+      });
+      const data = (await res.json()) as { hint?: string; error?: string };
+      if (!res.ok || !data.hint) {
+        setAiHintError(data.error ?? "AI hint unavailable.");
+        return;
+      }
+      setAiHint(data.hint);
+      setAiHintUsedFor(q.id);
+    } catch {
+      setAiHintError("Could not reach AI hint.");
+    } finally {
+      setAiHintLoading(false);
+    }
+  };
+
+  const aiUsed = aiHintUsedFor === q.id;
 
   return (
     <div className="unc-root">
@@ -256,9 +298,40 @@ function PlayScreen({
             correct={g.results[g.index]?.correct ?? null}
           />
 
-          <p className="unc-prompt">
-            {revealed ? q.title : "What book is this?"}
-          </p>
+          <div className="unc-emoji-prompt-row">
+            <p className="unc-prompt">
+              {revealed ? q.title : "What book is this?"}
+            </p>
+            {showOptions ? (
+              <button
+                type="button"
+                className={`unc-hint-btn${aiUsed ? " is-used" : ""}`}
+                onClick={() => void fetchAiHint()}
+                disabled={aiUsed || aiHintLoading}
+                aria-label={
+                  aiUsed
+                    ? "AI hint used"
+                    : aiHintLoading
+                      ? "Loading AI hint"
+                      : "Get AI vibe hint"
+                }
+                title="Soft genre/era vibe — never names the title"
+              >
+                {aiHintLoading ? "…" : "AI"}
+              </button>
+            ) : null}
+          </div>
+
+          {aiHintError ? (
+            <p className="unc-emoji-hint" role="status">
+              {aiHintError}
+            </p>
+          ) : null}
+          {aiHint ? (
+            <ul className="unc-hint-list">
+              <li>{aiHint}</li>
+            </ul>
+          ) : null}
 
           {showOptions ? (
             <div className="unc-options">

@@ -601,7 +601,8 @@
 
 .unc-hint-btn:hover:not(:disabled) {
   border-color: color-mix(in oklab, var(--gold, #d4c4e8) 70%, #4a425c);
-  background: #fff6e4;
+  background: #3f3654;
+  color: var(--forest-soft, #c9b0e0);
   transform: translateY(-1px);
 }
 

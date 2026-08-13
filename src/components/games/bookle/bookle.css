@@ -269,6 +269,16 @@
     font-size: 12px;
   }
 
+  .bookle-root .header-actions {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    max-width: 11.5rem;
+  }
+
+  .bookle-root .ai-hint-btn {
+    order: -1;
+  }
+
   .bookle-root .tile {
     --tile: min(48px, 11.2vw, 7.2svh);
   }
@@ -545,6 +555,10 @@
   border-style: dashed;
 }
 
+.bookle-root .ai-hint-btn {
+  border-color: color-mix(in srgb, var(--accent, var(--forest)) 40%, #564d6a);
+}
+
 .bookle-root .hint-reveal {
   flex-shrink: 0;
   padding: 6px 14px;
@@ -554,6 +568,14 @@
   color: var(--correct);
   background: rgba(176, 143, 206, 0.1);
   border: 1px solid color-mix(in srgb, var(--correct) 35%, #4a425c);
+}
+
+.bookle-root .ai-hint-reveal {
+  max-width: min(36rem, 100%);
+  border-radius: 14px;
+  line-height: 1.35;
+  text-align: center;
+  font-weight: 550;
 }
 
 .bookle-root .hint-reveal .hint-letter {

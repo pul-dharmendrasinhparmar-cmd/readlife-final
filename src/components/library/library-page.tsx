@@ -1815,7 +1815,7 @@ function CleanupModal({
               onRemove();
               setCleaned((c) => c + 1);
             }}
-            className="rounded-full py-2.5 text-xs font-semibold text-[#9a4a3a] hover:bg-[#f5e6e0]"
+            className="rounded-full py-2.5 text-xs font-semibold text-[#f0c8c0] hover:bg-[#5a3530]"
           >
             Remove
           </button>

@@ -199,6 +199,7 @@ export function InsightsPage() {
         ) : (
           <ReaderDnaPanel
             dna={dna}
+            snap={snap}
             traitId={traitId}
             setTraitId={setTraitId}
             onShare={() => setShareOpen(true)}
@@ -767,15 +768,90 @@ function ReadingInsights({
 
 function ReaderDnaPanel({
   dna,
+  snap,
   traitId,
   setTraitId,
   onShare,
 }: {
   dna: ReaderDna;
+  snap: PeriodSnapshot;
   traitId: string | null;
   setTraitId: (id: string | null) => void;
   onShare: () => void;
 }) {
+  const [aiTitle, setAiTitle] = useState<string | null>(null);
+  const [aiSummary, setAiSummary] = useState<string | null>(null);
+  const [aiWhy, setAiWhy] = useState<string | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+  const [aiFetched, setAiFetched] = useState(false);
+  const autoTried = useRef(false);
+
+  const loadAiStory = async () => {
+    if (aiLoading) return;
+    setAiLoading(true);
+    setAiError(null);
+    try {
+      const res = await fetch("/api/insights-story", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          titleHint: dna.title,
+          summaryFallback: dna.summary,
+          personality: dna.quizPersonality,
+          stats: {
+            booksFinished: snap.booksFinished.value,
+            streakDays: snap.streakDays.value,
+            avgRating: snap.avgRating.value,
+            minutesRead: snap.minutesRead.value,
+            sessions: snap.sessions.value,
+            topGenres: snap.genreShare.slice(0, 5).map((g) => ({
+              genre: g.genre,
+              share: g.share,
+            })),
+            timeOfDay: snap.timeOfDay,
+            traits: dna.traits.map((t) => ({
+              label: t.label,
+              value: t.value,
+            })),
+            confidencePct: dna.confidencePct,
+          },
+        }),
+      });
+      const data = (await res.json()) as {
+        title?: string;
+        summary?: string;
+        why?: string;
+        error?: string;
+      };
+      if (!res.ok || !data.summary) {
+        setAiError(data.error ?? "AI story unavailable — showing your template DNA.");
+        setAiFetched(true);
+        return;
+      }
+      setAiTitle(data.title ?? null);
+      setAiSummary(data.summary);
+      setAiWhy(data.why ?? null);
+      setAiFetched(true);
+    } catch {
+      setAiError("Network error — showing your template DNA.");
+      setAiFetched(true);
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (autoTried.current) return;
+    autoTried.current = true;
+    void loadAiStory();
+    // Auto-load once when the DNA panel mounts.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const displayTitle = aiTitle ?? dna.title;
+  const displaySummary = aiSummary ?? dna.summary;
+
   return (
     <div className="mt-8 space-y-10">
       <section className="max-w-3xl">
@@ -783,13 +859,28 @@ function ReaderDnaPanel({
           Your Reader DNA
         </p>
         <h2 className="mt-2 font-serif text-[2rem] font-semibold text-ink">
-          {dna.title}
+          {aiLoading && !aiSummary ? (
+            <span className="inline-block min-h-[2.4rem] w-[min(18rem,90%)] animate-pulse rounded-lg bg-[#3a324f]/90" />
+          ) : (
+            displayTitle
+          )}
         </h2>
         <p className="mt-3 text-[1.05rem] leading-relaxed text-ink/90">
-          {dna.summary}
+          {aiLoading && !aiSummary
+            ? "Writing your AI reader narrative…"
+            : displaySummary}
         </p>
+        {aiWhy && aiSummary ? (
+          <p className="mt-2 text-xs text-muted">
+            Why this summary: {aiWhy}
+          </p>
+        ) : null}
+        {aiError ? (
+          <p className="mt-2 text-xs text-muted">{aiError}</p>
+        ) : null}
         <p className="mt-3 text-sm text-muted">
           Last updated: {dna.generatedAt} · {dna.dataPoints}
+          {aiFetched && aiSummary ? " · AI narrative" : ""}
         </p>
         <p className="mt-1 text-xs font-semibold text-ink/70">
           {dna.confidence === "high"
@@ -800,6 +891,18 @@ function ReaderDnaPanel({
           · {dna.confidencePct}% developed
         </p>
         <div className="mt-5 flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => void loadAiStory()}
+            disabled={aiLoading}
+            className="rounded-full border border-forest/40 bg-[#2a2438] px-5 py-2.5 text-sm font-semibold text-ink transition hover:border-forest/60 hover:bg-[#342c45] disabled:cursor-wait disabled:opacity-70"
+          >
+            {aiLoading
+              ? "Refreshing…"
+              : aiSummary
+                ? "Refresh AI story"
+                : "Generate AI story"}
+          </button>
           <button
             type="button"
             onClick={onShare}
