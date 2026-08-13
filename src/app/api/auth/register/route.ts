@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { registerSchema } from "@/lib/auth-schemas";
+import { usernameFromIdentity } from "@/lib/social-username";
 
 export async function POST(request: Request) {
   try {
@@ -28,13 +29,23 @@ export async function POST(request: Request) {
         ? parsed.data.name.trim()
         : email.split("@")[0] || "Reader";
 
+    let username = usernameFromIdentity(name, email);
+    const taken = await prisma.user.findUnique({ where: { username } });
+    if (taken) {
+      username = `${username}${Math.floor(Math.random() * 900 + 100)}`.slice(
+        0,
+        24,
+      );
+    }
+
     const user = await prisma.user.create({
       data: {
         email,
         name,
+        username,
         password: passwordHash,
       },
-      select: { id: true, email: true, name: true },
+      select: { id: true, email: true, name: true, username: true },
     });
 
     return NextResponse.json({ user }, { status: 201 });

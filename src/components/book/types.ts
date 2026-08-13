@@ -32,6 +32,15 @@ export type ForumPost = {
   commentCount: number;
 };
 
+export type ForumComment = {
+  id: string;
+  username: string;
+  body: string;
+  atLabel: string;
+  score?: number;
+  spoilers?: boolean;
+};
+
 export type CommunityReview = {
   id: string;
   username: string;

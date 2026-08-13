@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AppNav } from "@/components/layout/app-nav";
 import { LeafIcon } from "@/components/icons";
@@ -16,7 +17,14 @@ import type {
   SharePrivacy,
   WrappedSlide,
 } from "./types";
-import { buildMonthlyWrapped, buildYearlyWrapped } from "./wrapped";
+import { HabitCoachCard } from "@/components/ai/habit-coach";
+import { aiFetch } from "@/lib/ai/client";
+import { getBookById } from "@/components/search/data";
+import {
+  buildMonthlyWrapped,
+  buildYearlyWrapped,
+  mergeWrappedSlides,
+} from "./wrapped";
 
 const WRAPPED_BG = {
   month: "/rooms/dashboard-scene-clean.png",
@@ -52,6 +60,8 @@ function patternBackground(id: string, index: number): string {
 type MainTab = "insights" | "dna";
 
 export function InsightsPage() {
+  const searchParams = useSearchParams();
+  const aiParam = searchParams.get("ai");
   const [state, setState] = useState<DiscoveryState | null>(null);
   const [mainTab, setMainTab] = useState<MainTab>("insights");
   const [period, setPeriod] = useState<InsightPeriod>("month");
@@ -63,6 +73,10 @@ export function InsightsPage() {
   const [traitId, setTraitId] = useState<string | null>(null);
   const [wrappedOpen, setWrappedOpen] = useState<"month" | "year" | null>(null);
   const [wrappedStep, setWrappedStep] = useState(0);
+  const [aiWrappedSlides, setAiWrappedSlides] = useState<WrappedSlide[] | null>(
+    null,
+  );
+  const [wrappedAiLoading, setWrappedAiLoading] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [shareFormat, setShareFormat] = useState<
     "story" | "post" | "square"
@@ -80,6 +94,15 @@ export function InsightsPage() {
   useEffect(() => {
     setState(loadDiscoveryState());
   }, []);
+
+  useEffect(() => {
+    if (aiParam !== "habit") return;
+    window.setTimeout(() => {
+      document
+        .getElementById("ai-habit-coach")
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 200);
+  }, [aiParam]);
 
   const year = 2026;
   const month = 7 - monthOffset; // Aug=7, July=6 when offset 1
@@ -103,10 +126,68 @@ export function InsightsPage() {
 
   const wrappedSlides = useMemo(() => {
     if (!snap || !dna) return [];
-    return wrappedOpen === "year"
-      ? buildYearlyWrapped(snap)
-      : buildMonthlyWrapped(snap, dna);
-  }, [snap, dna, wrappedOpen]);
+    const base =
+      wrappedOpen === "year"
+        ? buildYearlyWrapped(snap)
+        : buildMonthlyWrapped(snap, dna);
+    return mergeWrappedSlides(base, aiWrappedSlides ?? []);
+  }, [snap, dna, wrappedOpen, aiWrappedSlides]);
+
+  useEffect(() => {
+    if (!wrappedOpen || !snap || !dna || !state) return;
+    const cacheKey = `readlife-wrapped-ai-${wrappedOpen}-${snap.year}-${snap.month}`;
+    try {
+      const cached = sessionStorage.getItem(cacheKey);
+      if (cached) {
+        const parsed = JSON.parse(cached) as WrappedSlide[];
+        if (Array.isArray(parsed) && parsed.length) {
+          setAiWrappedSlides(parsed);
+          return;
+        }
+      }
+    } catch {
+      // ignore
+    }
+
+    const allowedTitles = state.entries
+      .filter((e) => e.status === "read" || (e.rating ?? 0) >= 4)
+      .map((e) => getBookById(e.bookId)?.title)
+      .filter(Boolean)
+      .slice(0, 20) as string[];
+
+    void (async () => {
+      setWrappedAiLoading(true);
+      const res = await aiFetch<{ slides: WrappedSlide[] }>("wrapped", {
+        kind: wrappedOpen,
+        label: snap.label,
+        dnaTitle: dna.title,
+        allowedTitles,
+        stats: {
+          booksFinished: snap.booksFinished.value,
+          minutesRead: snap.minutesRead.value,
+          streakDays: snap.streakDays.value,
+          avgRating: snap.avgRating.value,
+          sessions: snap.sessions.value,
+          topGenres: snap.genreShare.slice(0, 5),
+          timeOfDay: snap.timeOfDay,
+          sourcePerformance: snap.sourcePerformance.slice(0, 3),
+          narrativeFallback: snap.monthlyNarrative,
+        },
+      });
+      setWrappedAiLoading(false);
+      if (!res.ok) {
+        setAiWrappedSlides(null);
+        return;
+      }
+      const slides = res.data.slides ?? [];
+      setAiWrappedSlides(slides);
+      try {
+        sessionStorage.setItem(cacheKey, JSON.stringify(slides));
+      } catch {
+        // ignore
+      }
+    })();
+  }, [wrappedOpen, snap, dna, state]);
 
   if (!state || !snap || !dna) {
     return (
@@ -193,6 +274,7 @@ export function InsightsPage() {
             badges={badges}
             onOpenWrapped={(kind) => {
               setWrappedStep(0);
+              setAiWrappedSlides(null);
               setWrappedOpen(kind);
             }}
           />
@@ -213,6 +295,7 @@ export function InsightsPage() {
           slides={wrappedSlides}
           step={wrappedStep}
           setStep={setWrappedStep}
+          aiLoading={wrappedAiLoading}
           onClose={() => setWrappedOpen(null)}
           onShare={() => {
             setWrappedOpen(null);
@@ -399,6 +482,10 @@ function ReadingInsights({
           />
         </div>
       </section>
+
+      <div id="ai-habit-coach">
+        <HabitCoachCard snap={snap} />
+      </div>
 
       {/* Metrics bar carousel + reading calendar */}
       <div className="grid gap-8 lg:grid-cols-2 lg:items-stretch">
@@ -1148,6 +1235,7 @@ function WrappedModal({
   setStep,
   onClose,
   onShare,
+  aiLoading,
 }: {
   kind: "month" | "year";
   slides: WrappedSlide[];
@@ -1155,6 +1243,7 @@ function WrappedModal({
   setStep: (n: number | ((p: number) => number)) => void;
   onClose: () => void;
   onShare: () => void;
+  aiLoading?: boolean;
 }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -1212,6 +1301,15 @@ function WrappedModal({
             />
           ))}
         </div>
+        {aiLoading ? (
+          <p className="relative z-10 px-4 pt-2 text-center text-xs text-white/70">
+            Writing your Wrapped with AI…
+          </p>
+        ) : (
+          <p className="relative z-10 px-4 pt-2 text-center text-[0.65rem] text-white/50">
+            Generated · may be wrong
+          </p>
+        )}
         <div
           key={slide.id}
           className="insights-carousel-slide relative z-10 flex flex-1 flex-col justify-center px-8 py-10 text-center"

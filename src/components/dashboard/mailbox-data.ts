@@ -16,6 +16,42 @@ const KEY = "readlife-mailbox-v1";
 
 const SEED: MailItem[] = [
   {
+    id: "m-ai-4",
+    kind: "book",
+    title: "Describe a vibe is live",
+    body: "On Discover, ask AI for mood matches — each pick explains why, with Add to TBR.",
+    at: "2026-08-13T11:00:00.000Z",
+    unread: true,
+    href: "/search",
+  },
+  {
+    id: "m-ai-1",
+    kind: "update",
+    title: "Your AI reading tools are ready",
+    body: "Polish reviews, coach your TBR, chat spoiler-safe, vibe search, and AI Wrapped from Insights.",
+    at: "2026-08-13T10:00:00.000Z",
+    unread: true,
+    href: "/insights",
+  },
+  {
+    id: "m-ai-2",
+    kind: "game",
+    title: "Daily AI book challenge",
+    body: "Guess today’s emoji riddle on the Games hub — one try per day.",
+    at: "2026-08-13T09:30:00.000Z",
+    unread: true,
+    href: "/games",
+  },
+  {
+    id: "m-ai-3",
+    kind: "book",
+    title: "Gift picks & list curator",
+    body: "On Discover, ask AI for friend gifts or a named reading list from the catalog.",
+    at: "2026-08-13T09:00:00.000Z",
+    unread: true,
+    href: "/search",
+  },
+  {
     id: "m-game-1",
     kind: "game",
     title: "Daily Bookle is ready",

@@ -15,6 +15,15 @@ export type BookFormat = "physical" | "ebook" | "audiobook" | "manga" | "mixed";
 
 export type LibraryStatus = "reading" | "read" | "tbr" | "paused" | "dnf";
 
+/** Per-aspect ratings; overall is the average of set dimensions. */
+export type UserRatingBreakdown = {
+  enjoyment?: number;
+  quality?: number;
+  characters?: number;
+  plot?: number;
+  audiobook?: number;
+};
+
 export type HistoryEvent = {
   at: string;
   label: string;
@@ -41,6 +50,8 @@ export type LibraryEntry = {
   pauseReason?: string;
   dnfReason?: string;
   rating?: number;
+  /** When set, overall `rating` is derived from these aspects. */
+  ratingBreakdown?: UserRatingBreakdown;
   isFavorite?: boolean;
   review?: string;
   reviewDate?: string;

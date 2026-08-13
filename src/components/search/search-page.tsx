@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   useCallback,
   useEffect,
@@ -14,7 +14,9 @@ import {
   type ReactNode,
 } from "react";
 import { AppNav } from "@/components/layout/app-nav";
+import { DiscoverAiTools } from "@/components/ai/discover-ai-tools";
 import { LeafIcon } from "@/components/icons";
+import { syncFollowingPeopleFromDiscovery } from "@/components/profile/profile-storage";
 import { SearchIcon } from "@/components/layout/nav-icons";
 import {
   addToTbr,
@@ -69,6 +71,8 @@ export function SearchPage() {
 function SearchPageInner() {
   const { toast } = useToast();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const aiParam = searchParams.get("ai");
   const [discovery, setDiscovery] = useState<DiscoveryState | null>(null);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
@@ -83,6 +87,9 @@ function SearchPageInner() {
   const [mood, setMood] = useState<string | null>(null);
   const [showSuggest, setShowSuggest] = useState(false);
   const [suggestIndex, setSuggestIndex] = useState(-1);
+  const [aiToolsTab, setAiToolsTab] = useState<
+    "twins" | "gift" | "list" | "people" | null
+  >(null);
 
   const [tbrBook, setTbrBook] = useState<DiscoverBook | null>(null);
   const [tbrMeta, setTbrMeta] = useState<{
@@ -110,6 +117,27 @@ function SearchPageInner() {
   }, []);
 
   useEffect(() => {
+    if (!aiParam) return;
+    setTab("books");
+    if (aiParam === "vibe") {
+      setSearchMode("vibe");
+      window.setTimeout(() => inputRef.current?.focus(), 80);
+      return;
+    }
+    setSearchMode("keyword");
+    if (aiParam === "tools") setAiToolsTab("twins");
+    if (aiParam === "foryou" || aiParam === "tools") {
+      window.setTimeout(() => {
+        document
+          .getElementById(
+            aiParam === "foryou" ? "ai-for-you" : "ai-discover-tools",
+          )
+          ?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 200);
+    }
+  }, [aiParam]);
+
+  useEffect(() => {
     if (searchMode !== "keyword") return;
     const t = window.setTimeout(() => setDebounced(query.trim()), 180);
     return () => window.clearTimeout(t);
@@ -128,18 +156,25 @@ function SearchPageInner() {
 
   const runNlSearch = useCallback(async (raw: string) => {
     const q = raw.trim();
-    if (q.length < 8 || nlLoading) return;
+    if (q.length < 5 || nlLoading) return;
     setNlLoading(true);
     setNlError(null);
     setShowSuggest(false);
     try {
+      const discoveryState = discovery ?? loadDiscoveryState();
+      const excludeIds = (discoveryState.entries ?? []).map((e) => e.bookId);
       const res = await fetch("/api/search-nl", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: q }),
+        body: JSON.stringify({ query: q, excludeIds }),
       });
       const data = (await res.json()) as {
-        results?: { id: string; reason: string }[];
+        results?: {
+          id: string;
+          reason: string;
+          explanation?: string;
+          vibeTags?: string[];
+        }[];
         error?: string;
       };
       if (!res.ok) {
@@ -156,6 +191,9 @@ function SearchPageInner() {
             book: {
               ...book,
               recommendationReason: item.reason,
+              recommendationExplanation:
+                item.explanation?.trim() || item.reason,
+              recommendationBasedOn: (item.vibeTags ?? []).slice(0, 4),
             },
             reason: item.reason,
           };
@@ -173,7 +211,7 @@ function SearchPageInner() {
     } finally {
       setNlLoading(false);
     }
-  }, [nlLoading]);
+  }, [nlLoading, discovery]);
 
   const clearNlSearch = useCallback(() => {
     setNlHits(null);
@@ -388,10 +426,10 @@ function SearchPageInner() {
               <button
                 type="button"
                 onClick={() => void runNlSearch(query)}
-                disabled={nlLoading || query.trim().length < 8}
+                disabled={nlLoading || query.trim().length < 5}
                 className="absolute top-1/2 right-2 z-[1] -translate-y-1/2 rounded-full bg-forest px-3.5 py-2 text-xs font-semibold text-paper transition hover:bg-forest-deep disabled:cursor-not-allowed disabled:opacity-55 sm:text-sm"
               >
-                {nlLoading ? "Matching…" : "Find matches"}
+                {nlLoading ? "Asking AI…" : "Get AI picks"}
               </button>
             ) : (
               <kbd className="pointer-events-none absolute top-1/2 right-4 hidden -translate-y-1/2 rounded-md border border-[#564d6a] bg-[#2a2438] px-1.5 py-0.5 text-[0.65rem] font-semibold text-muted-soft sm:inline">
@@ -433,8 +471,8 @@ function SearchPageInner() {
           ) : null}
           {searchMode === "vibe" ? (
             <p className="mt-2 text-xs text-muted">
-              Natural-language match against the Discover catalog — try tropes,
-              mood, or soft “not too…” filters.
+              AI recommends catalog books for your mood — each pick includes why
+              it fits, plus Add to TBR.
             </p>
           ) : null}
         </div>
@@ -452,7 +490,12 @@ function SearchPageInner() {
               clearNlSearch();
             }}
             onOpenBook={openBook}
-            onAddTbr={(b) => openTbr(b, { sourceType: "search" })}
+            onAddTbr={(b) =>
+              openTbr(b, {
+                sourceType: "recommendation",
+                sourceName: "Vibe search",
+              })
+            }
             onRetry={() => void runNlSearch(query || nlQuery)}
           />
         ) : activeKeywordSearch ? (
@@ -485,6 +528,7 @@ function SearchPageInner() {
               const reader = getReaderById(id);
               const next = toggleFollow(discovery, id);
               setDiscovery(next);
+              syncFollowingPeopleFromDiscovery(next.followingIds);
               const nowFollowing = next.followingIds.includes(id);
               toast({
                 text: nowFollowing
@@ -540,6 +584,19 @@ function SearchPageInner() {
                   onAddTbr={(b) =>
                     openTbr(b, { sourceType: "recommendation" })
                   }
+                  aiToolsTab={aiToolsTab}
+                  onToggleFollow={(id) => {
+                    const reader = getReaderById(id);
+                    const next = toggleFollow(discovery, id);
+                    setDiscovery(next);
+                    syncFollowingPeopleFromDiscovery(next.followingIds);
+                    const nowFollowing = next.followingIds.includes(id);
+                    toast({
+                      text: nowFollowing
+                        ? `You're now following ${reader?.displayName ?? "them"}.`
+                        : `Unfollowed ${reader?.displayName ?? "them"}.`,
+                    });
+                  }}
                 />
               ) : null}
               {tab === "readers" ? (
@@ -549,6 +606,7 @@ function SearchPageInner() {
                     const reader = getReaderById(id);
                     const next = toggleFollow(discovery, id);
                     setDiscovery(next);
+                    syncFollowingPeopleFromDiscovery(next.followingIds);
                     const nowFollowing = next.followingIds.includes(id);
                     toast({
                       text: nowFollowing
@@ -1346,12 +1404,16 @@ function BooksDiscover({
   setMood,
   onOpenBook,
   onAddTbr,
+  onToggleFollow,
+  aiToolsTab = null,
 }: {
   discovery: DiscoveryState;
   mood: string | null;
   setMood: (id: string | null) => void;
   onOpenBook: (b: DiscoverBook) => void;
   onAddTbr: (b: DiscoverBook) => void;
+  onToggleFollow: (readerId: string) => void;
+  aiToolsTab?: "twins" | "gift" | "list" | "people" | null;
 }) {
   const gems = booksByCategory("hidden-gems");
   const trending = booksByCategory("trending");
@@ -1367,11 +1429,25 @@ function BooksDiscover({
     <div className="space-y-12">
       <TopTenToday onOpenBook={onOpenBook} />
 
-      <AiForYouRow
-        discovery={discovery}
-        onOpenBook={onOpenBook}
-        onAddTbr={onAddTbr}
-      />
+      <div id="ai-for-you">
+        <AiForYouRow
+          discovery={discovery}
+          onOpenBook={onOpenBook}
+          onAddTbr={onAddTbr}
+        />
+      </div>
+
+      <div id="ai-discover-tools">
+        <DiscoverAiTools
+          discovery={discovery}
+          initialTab={aiToolsTab}
+          onAddTbr={(bookId) => {
+            const book = getBookById(bookId);
+            if (book) onAddTbr(book);
+          }}
+          onToggleFollow={onToggleFollow}
+        />
+      </div>
 
       <section>
         <SectionHeader
@@ -1733,12 +1809,14 @@ function NlSearchResults({
   onAddTbr: (b: DiscoverBook) => void;
   onRetry: () => void;
 }) {
+  const [whyBook, setWhyBook] = useState<DiscoverBook | null>(null);
+
   return (
     <div className="mt-8">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2 className="font-serif text-2xl font-semibold text-ink">
-            Vibe matches
+            AI vibe picks
             {query ? (
               <>
                 {" "}
@@ -1748,11 +1826,14 @@ function NlSearchResults({
           </h2>
           <p className="mt-1 text-sm text-muted">
             {loading
-              ? "Asking the catalog…"
+              ? "Matching your vibe to the catalog…"
               : hits.length > 0
-                ? `${hits.length} ranked match${hits.length === 1 ? "" : "es"}`
+                ? `${hits.length} recommendation${hits.length === 1 ? "" : "s"} · tap Why? for the full reason`
                 : "No matches yet"}
           </p>
+          {hits.length > 0 ? (
+            <p className="mt-1 text-[0.65rem] text-muted">Generated · may be wrong</p>
+          ) : null}
         </div>
         <button
           type="button"
@@ -1777,35 +1858,108 @@ function NlSearchResults({
       ) : null}
 
       {loading && hits.length === 0 ? (
-        <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+        <ul className="mt-6 space-y-3">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div
+            <li
               key={i}
-              className="h-[22rem] animate-pulse rounded-[1.25rem] bg-[#3a324f]/80"
+              className="h-28 animate-pulse rounded-[1.25rem] bg-[#3a324f]/80"
             />
           ))}
-        </div>
+        </ul>
       ) : hits.length > 0 ? (
-        <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-          {hits.map(({ book }) => (
-            <BookCard
+        <ul className="mt-6 space-y-3">
+          {hits.map(({ book, reason }) => (
+            <li
               key={book.id}
-              book={book}
-              onOpen={() => onOpenBook(book)}
-              onAddTbr={() => onAddTbr(book)}
-            />
+              className="flex flex-wrap gap-3 rounded-[1.35rem] border border-line bg-paper/70 p-3 sm:p-4"
+            >
+              <button
+                type="button"
+                onClick={() => onOpenBook(book)}
+                className="relative h-[7.5rem] w-[5rem] shrink-0 overflow-hidden rounded-lg shadow-md"
+                style={{ background: book.color }}
+                aria-label={`Open ${book.title}`}
+              >
+                <Image
+                  src={book.cover}
+                  alt=""
+                  fill
+                  className="object-cover"
+                  sizes="80px"
+                />
+              </button>
+              <div className="min-w-0 flex-1">
+                <button
+                  type="button"
+                  onClick={() => onOpenBook(book)}
+                  className="text-left"
+                >
+                  <h3 className="font-serif text-lg font-semibold text-ink hover:underline">
+                    {book.title}
+                  </h3>
+                  <p className="text-sm text-muted">{book.author}</p>
+                </button>
+                <p className="mt-2 text-sm leading-relaxed text-ink/90">
+                  <span className="font-semibold text-accent">Why: </span>
+                  {reason}
+                </p>
+                {book.recommendationBasedOn &&
+                book.recommendationBasedOn.length > 0 ? (
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {book.recommendationBasedOn.map((tag) => (
+                      <span
+                        key={tag}
+                        className="rounded-full border border-forest/35 bg-forest/10 px-2 py-0.5 text-[0.65rem] font-medium text-forest-soft"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => onAddTbr(book)}
+                    className="rounded-full bg-forest px-3.5 py-1.5 text-xs font-semibold text-paper hover:bg-forest-deep"
+                  >
+                    + Add to TBR
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setWhyBook(book)}
+                    className="rounded-full border border-forest/40 bg-forest/15 px-3.5 py-1.5 text-xs font-semibold text-forest-soft hover:bg-forest/25"
+                  >
+                    Why?
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onOpenBook(book)}
+                    className="rounded-full border border-line px-3.5 py-1.5 text-xs font-semibold text-ink hover:bg-cream-card"
+                  >
+                    View book
+                  </button>
+                </div>
+              </div>
+            </li>
           ))}
-        </div>
+        </ul>
       ) : !loading && !error ? (
         <div className="mt-12 max-w-md">
           <p className="font-serif text-2xl font-semibold text-ink">
             No vibe matches yet.
           </p>
           <p className="mt-2 text-muted">
-            Try a longer description — mood, tropes, or what you want to avoid.
+            Try a mood, tropes, or what you want to avoid — e.g. “comforting
+            read, not too dark.”
           </p>
         </div>
       ) : null}
+
+      <WhyRecommendModal
+        book={whyBook}
+        open={Boolean(whyBook)}
+        onClose={() => setWhyBook(null)}
+      />
     </div>
   );
 }

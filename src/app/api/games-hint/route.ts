@@ -26,6 +26,10 @@ type HintBody = {
   difficulty?: string;
   /** Optional emoji sequence for emoji mode (no title in client prompt needed). */
   emojis?: string[];
+  /** Adaptive: how many AI hints already used this round (0+). */
+  hintsUsed?: number;
+  /** Adaptive: guess/attempt count so far. */
+  attempt?: number;
 };
 
 function parseHint(raw: string): string | null {
@@ -64,6 +68,10 @@ export async function POST(request: Request) {
     );
   }
 
+  const hintsUsed = Math.max(0, Math.min(5, Number(body.hintsUsed) || 0));
+  const attempt = Math.max(0, Math.min(12, Number(body.attempt) || 0));
+  const adaptNote = `Hint strength level ${hintsUsed + 1} (0=vague vibe, higher=more specific still without spoilers). Player attempts so far: ${attempt}.`;
+
   let system = "";
   let user = "";
 
@@ -85,12 +93,14 @@ HARD RULES — never break these:
 - NEVER mention any letter, letter count, first/last letter, or keyboard position.
 - Do NOT say the answer is a character, place, or title if that would uniquely identify the exact word.
 - Give a vibe-only clue: genre feel, era atmosphere, literary mood, or how the word relates to the theme book in a fuzzy way.
-- Keep under 140 characters. Warm, playful, no spoilers for book plots beyond tone.`;
+- Keep under 140 characters. Warm, playful, no spoilers for book plots beyond tone.
+- Adapt specificity: early hints (level 1) are very vague; later levels may name era/genre more clearly but still never the word.`;
 
     user = `Theme book: ${themeTitle}
 Author: ${String(body.themeAuthor ?? "").slice(0, 80)}
 Tagline: ${String(body.themeTagline ?? "").slice(0, 160)}
-Secret answer word (DO NOT reveal): ${answer}`;
+Secret answer word (DO NOT reveal): ${answer}
+${adaptNote}`;
   } else {
     const title = String(body.title ?? "").trim();
     const author = String(body.author ?? "").trim();
@@ -111,7 +121,8 @@ HARD RULES:
 - NEVER reveal the book title, subtitle, series name, or distinctive proper nouns from the title.
 - NEVER quote unique title words. Author surname only if the player already has author-level hints elsewhere — prefer not naming the author.
 - Give genre / era / tone / setting vibe only (e.g. "cozy found-family fantasy with a gentle magic school feel").
-- Keep under 140 characters. Useful but not a giveaway.`;
+- Keep under 140 characters. Useful but not a giveaway.
+- Adapt: level 1 ultra-vague mood; higher levels may add setting/era but never the title.`;
 
     user = `Secret book (DO NOT name it): ${title} by ${author}
 Genre: ${String(body.genre ?? "fiction").slice(0, 60)}
@@ -120,7 +131,8 @@ ${
   game === "uncovered-emoji" && Array.isArray(body.emojis)
     ? `Emoji plot shown to player: ${body.emojis.slice(0, 5).join(" ")}`
     : "Player sees a cropped cover only."
-}`;
+}
+${adaptNote}`;
   }
 
   const result = await openaiChatJson({

@@ -40,6 +40,8 @@ export function EmojiPlotApp({ onChangeMode, onBackToGames }: Props) {
           author: puzzle.book.author,
           genre: puzzle.book.genreTags?.[0] ?? "",
           emojis: puzzle.emojiSequence,
+          hintsUsed: aiUsedFor === puzzle.id ? 1 : 0,
+          attempt: g.guesses?.length ?? 0,
         }),
       });
       const data = (await res.json()) as { hint?: string; error?: string };

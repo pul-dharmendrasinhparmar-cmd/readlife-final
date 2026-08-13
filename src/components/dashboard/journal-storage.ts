@@ -11,6 +11,7 @@ export type JournalEntry = {
 };
 
 const KEY = "readlife-journal-v1";
+export const JOURNAL_UPDATED_EVENT = "readlife:journal-updated";
 
 const SEED: JournalEntry[] = [
   {
@@ -31,6 +32,13 @@ const SEED: JournalEntry[] = [
 
 function defaults(): JournalEntry[] {
   return shouldSeedDemo() ? [...SEED] : [];
+}
+
+function notifyJournalUpdated(entries: JournalEntry[]) {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(
+    new CustomEvent(JOURNAL_UPDATED_EVENT, { detail: { entries } }),
+  );
 }
 
 export function loadJournal(): JournalEntry[] {
@@ -56,6 +64,7 @@ export function loadJournal(): JournalEntry[] {
 export function saveJournal(entries: JournalEntry[]) {
   try {
     localStorage.setItem(storageKey(KEY), JSON.stringify(entries));
+    notifyJournalUpdated(entries);
   } catch {
     // ignore
   }

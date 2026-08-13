@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   type OnboardingState,
   resolvePet,
@@ -54,6 +55,7 @@ import { TOUR_STEPS, WelcomeTour } from "./overlays/welcome-tour";
 import {
   addJournalEntry,
   deleteJournalEntry,
+  JOURNAL_UPDATED_EVENT,
   loadJournal,
   updateJournalEntry,
 } from "./journal-storage";
@@ -101,6 +103,8 @@ type Overlay =
   | "buddy";
 
 export function Dashboard() {
+  const searchParams = useSearchParams();
+  const aiParam = searchParams.get("ai");
   const [onboarding, setOnboarding] = useState<OnboardingState | null>(null);
   const [discovery, setDiscovery] = useState<DiscoveryState | null>(null);
   const [vibe, setVibe] = useState<RoomVibe>("day");
@@ -133,6 +137,28 @@ export function Dashboard() {
     setReadingEra(profile.profile.readingEra ?? null);
     if (!prefs.tutorialCompleted) setTourStep(0);
   }, [refreshDiscovery]);
+
+  useEffect(() => {
+    if (aiParam === "session") setOverlay("log-session");
+  }, [aiParam]);
+
+  useEffect(() => {
+    const onJournalUpdated = (event: Event) => {
+      const custom = event as CustomEvent<{ entries?: JournalEntry[] }>;
+      if (custom.detail?.entries) {
+        setJournal(custom.detail.entries);
+        return;
+      }
+      setJournal(loadJournal());
+    };
+    window.addEventListener(JOURNAL_UPDATED_EVENT, onJournalUpdated);
+    return () =>
+      window.removeEventListener(JOURNAL_UPDATED_EVENT, onJournalUpdated);
+  }, []);
+
+  useEffect(() => {
+    if (overlay === "journal") setJournal(loadJournal());
+  }, [overlay]);
 
   const pet = useMemo(
     () => (onboarding ? resolvePet(onboarding) : null),
@@ -431,12 +457,14 @@ export function Dashboard() {
         current={current}
         onClose={() => setOverlay(null)}
         onComplete={persistSession}
+        onJournalSaved={setJournal}
       />
       <LogSessionPanel
         open={overlay === "log-session"}
         current={current}
         onClose={() => setOverlay(null)}
         onSave={persistSession}
+        onJournalSaved={setJournal}
       />
       <AddTbrPanel
         open={overlay === "add-tbr"}

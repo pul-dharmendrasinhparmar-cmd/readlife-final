@@ -17,7 +17,7 @@ import {
   PRIORITY_LABELS,
   SOURCE_OPTIONS,
 } from "@/lib/discovery-storage";
-import { StarRating, formatStarValue } from "@/components/book/star-rating";
+import { UserRatingEditor } from "@/components/book/user-rating-editor";
 
 type Props = {
   open: boolean;
@@ -43,6 +43,9 @@ export function LibraryDrawer({
   const [note, setNote] = useState("");
   const [review, setReview] = useState("");
   const [rating, setRating] = useState<number | "">("");
+  const [breakdown, setBreakdown] = useState<
+    LibraryEntry["ratingBreakdown"] | null
+  >(null);
   const [pauseReason, setPauseReason] = useState(PAUSE_REASONS[0]);
   const [dnfReason, setDnfReason] = useState(DNF_REASONS[0]);
   const [confirmDnf, setConfirmDnf] = useState(false);
@@ -53,6 +56,7 @@ export function LibraryDrawer({
     setNote(entry.note ?? "");
     setReview(entry.review ?? "");
     setRating(entry.rating ?? "");
+    setBreakdown(entry.ratingBreakdown ?? null);
     setPauseReason(entry.pauseReason ?? PAUSE_REASONS[0]);
     setDnfReason(entry.dnfReason ?? DNF_REASONS[0]);
     setConfirmDnf(false);
@@ -224,33 +228,20 @@ export function LibraryDrawer({
                 {entry.isFavorite ? "♥ Favorite" : "♡ Favorite"}
               </button>
             </div>
-            <div className="mt-2 flex flex-wrap items-center gap-2">
-              <StarRating
-                value={typeof rating === "number" ? rating : 0}
-                interactive
-                size="lg"
-                onChange={(n) => {
-                  setRating(n);
-                  onSave({ rating: n });
-                }}
-                label="Your rating"
-              />
-              {typeof rating === "number" ? (
-                <span className="text-sm font-semibold text-ink">
-                  {formatStarValue(rating)}★
-                </span>
-              ) : null}
-              <button
-                type="button"
-                onClick={() => {
-                  setRating("");
-                  onSave({ rating: undefined });
-                }}
-                className="ml-1 text-xs font-semibold text-muted underline-offset-2 hover:underline"
-              >
-                Clear
-              </button>
-            </div>
+            <UserRatingEditor
+              className="mt-2"
+              rating={typeof rating === "number" ? rating : null}
+              breakdown={breakdown}
+              onChange={(next) => {
+                setRating(next.rating ?? "");
+                setBreakdown(next.ratingBreakdown ?? null);
+                onSave({
+                  rating: next.rating,
+                  ratingBreakdown: next.ratingBreakdown,
+                });
+              }}
+              size="sm"
+            />
           </div>
 
           <div className="mt-5">

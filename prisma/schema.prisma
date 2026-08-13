@@ -15,16 +15,34 @@ datasource db {
 model User {
   id            String    @id @default(cuid())
   name          String?
+  /// Public handle for /readers/[username]; unique when set
+  username      String?   @unique
   email         String?   @unique
   emailVerified DateTime?
   image         String?
   /// bcrypt hash for email/password accounts; null for OAuth-only users
   password      String?
+  bio           String?
   accounts      Account[]
   sessions      Session[]
   userData      UserData?
+  following     Follow[]  @relation("UserFollowing")
+  followers     Follow[]  @relation("UserFollowers")
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+}
+
+/// One-way follow between signed-up users. Mutual follow = friends.
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String
+  followingId String
+  follower    User     @relation("UserFollowing", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("UserFollowers", fields: [followingId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@unique([followerId, followingId])
+  @@index([followingId])
 }
 
 /// Persisted client reading state for signed-in users (library, quiz, games, etc.).

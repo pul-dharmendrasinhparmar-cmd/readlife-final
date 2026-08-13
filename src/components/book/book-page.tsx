@@ -2,11 +2,13 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { ReviewPolishButton, BookChatPanel } from "@/components/ai/book-ai-panels";
 import { AppNav } from "@/components/layout/app-nav";
 import { getBookById } from "@/components/search/data";
 import { ToastProvider, useToast } from "@/components/search/toast";
-import type { DiscoveryState } from "@/components/search/types";
+import type { DiscoveryState, UserRatingBreakdown } from "@/components/search/types";
 import {
   addToTbr,
   getEntry,
@@ -18,16 +20,29 @@ import {
 } from "@/lib/discovery-storage";
 import { getDashboardState } from "@/lib/onboarding-storage";
 import { getBookCommunity } from "./community-data";
-import { addUserForumPost, loadUserForumPosts } from "./forum-storage";
+import { getDemoComments } from "./forum-comments";
+import {
+  addThreadReply,
+  addUserForumPost,
+  loadThreadReplies,
+  loadUserForumPosts,
+} from "./forum-storage";
+import {
+  loadVotes,
+  scoreWithVote,
+  toggleVote,
+  type VoteValue,
+} from "./forum-votes";
 import { SpoilerReveal } from "./spoiler-reveal";
-import { StarRating, formatStarValue } from "./star-rating";
+import { StarRating } from "./star-rating";
+import { UserRatingEditor } from "./user-rating-editor";
 import {
   LibraryStatusModal,
   STATUS_PILL,
   type StatusChoice,
 } from "./status-modal";
 import { getBookTropes, getBooksWithTrope } from "./tropes";
-import type { BookTab, FeedActivity, ForumPost } from "./types";
+import type { BookTab, FeedActivity, ForumComment, ForumPost } from "./types";
 
 type Props = {
   bookId: string;
@@ -43,6 +58,8 @@ export function BookPage({ bookId }: Props) {
 
 function BookPageInner({ bookId }: Props) {
   const { toast } = useToast();
+  const searchParams = useSearchParams();
+  const aiParam = searchParams.get("ai");
   const book = getBookById(bookId);
   const community = useMemo(
     () => (book ? getBookCommunity(book) : null),
@@ -71,6 +88,11 @@ function BookPageInner({ bookId }: Props) {
   const [followingOnly, setFollowingOnly] = useState(false);
   const [replyDraft, setReplyDraft] = useState<Record<string, string>>({});
   const [openReply, setOpenReply] = useState<string | null>(null);
+  const [expandedThread, setExpandedThread] = useState<string | null>(null);
+  const [threadReplies, setThreadReplies] = useState<
+    Record<string, ForumComment[]>
+  >({});
+  const [votes, setVotes] = useState<Record<string, VoteValue>>({});
   const [reviewDraft, setReviewDraft] = useState("");
   const [reviewSpoiler, setReviewSpoiler] = useState(false);
   const [reviewEditing, setReviewEditing] = useState(false);
@@ -86,10 +108,67 @@ function BookPageInner({ bookId }: Props) {
   useEffect(() => {
     setDiscovery(loadDiscoveryState());
     setUserForumPosts(loadUserForumPosts(bookId));
+    setVotes(loadVotes());
+    setExpandedThread(null);
+    setOpenReply(null);
+    setThreadReplies({});
     const dash = getDashboardState();
     setDisplayName(dash.displayName.trim() || "you");
     setActiveTrope(null);
   }, [bookId]);
+
+  useEffect(() => {
+    if (aiParam === "chat") {
+      setTab("about");
+      setAboutOpen(true);
+    } else if (aiParam === "review") {
+      setTab("reviews");
+      setReviewEditing(true);
+    }
+  }, [aiParam, bookId]);
+
+  const castVote = (targetId: string, next: VoteValue) => {
+    const { vote } = toggleVote(targetId, next);
+    setVotes((prev) => {
+      const copy = { ...prev };
+      if (vote) copy[targetId] = vote;
+      else delete copy[targetId];
+      return copy;
+    });
+  };
+
+  const toggleThread = (threadId: string) => {
+    setExpandedThread((cur) => {
+      const next = cur === threadId ? null : threadId;
+      if (next) {
+        setThreadReplies((prev) => ({
+          ...prev,
+          [threadId]: prev[threadId] ?? loadThreadReplies(threadId),
+        }));
+        setOpenReply(threadId);
+      }
+      return next;
+    });
+  };
+
+  const submitThreadReply = (threadId: string) => {
+    const text = (replyDraft[threadId] ?? "").trim();
+    if (!text) {
+      toast({ text: "Write a reply first." });
+      return;
+    }
+    const comment = addThreadReply(threadId, {
+      username: displayName,
+      body: text,
+    });
+    setThreadReplies((prev) => ({
+      ...prev,
+      [threadId]: [...(prev[threadId] ?? loadThreadReplies(threadId)), comment],
+    }));
+    setExpandedThread(threadId);
+    setReplyDraft((prev) => ({ ...prev, [threadId]: "" }));
+    toast({ text: "Reply posted." });
+  };
 
   useEffect(() => {
     if (!discovery) return;
@@ -123,23 +202,35 @@ function BookPageInner({ bookId }: Props) {
 
   const entry = discovery ? getEntry(discovery, book.id) : undefined;
   const userRating = entry?.rating ?? null;
+  const userBreakdown = entry?.ratingBreakdown ?? null;
 
   const persist = (next: DiscoveryState) => {
     saveDiscoveryState(next);
     setDiscovery(loadDiscoveryState());
   };
 
-  const setRating = (value: number) => {
+  const saveRating = (next: {
+    rating: number | undefined;
+    ratingBreakdown: UserRatingBreakdown | undefined;
+  }) => {
     if (!discovery) return;
-    const next = entry
-      ? updateLibraryEntry(discovery, book.id, { rating: value })
+    const patch = {
+      rating: next.rating,
+      ratingBreakdown: next.ratingBreakdown,
+    };
+    const state = entry
+      ? updateLibraryEntry(discovery, book.id, patch)
       : setLibraryStatus(discovery, book.id, "tbr", {
-          rating: value,
+          ...patch,
           priority: "someday",
         });
-    persist(next);
-    setReviewEditing(true);
-    toast({ text: `Rated ${book.title} ${value}★` });
+    persist(state);
+    if (next.rating != null) {
+      setReviewEditing(true);
+      toast({ text: `Rated ${book.title} ${next.rating}★` });
+    } else {
+      toast({ text: "Rating cleared." });
+    }
   };
 
   const saveReview = () => {
@@ -324,25 +415,14 @@ function BookPageInner({ bookId }: Props) {
             </button>
 
             <div className="mt-5">
-              <p className="text-sm font-semibold text-ink">Your rating:</p>
-              <div className="mt-1">
-                <StarRating
-                  value={userRating ?? 0}
-                  interactive
-                  size="lg"
-                  onChange={setRating}
-                  label="Your rating"
-                />
-              </div>
-              {userRating ? (
-                <p className="mt-1 text-xs text-muted">
-                  You rated this {formatStarValue(userRating)}★
-                </p>
-              ) : (
-                <p className="mt-1 text-xs text-muted">
-                  Not rated yet — click left/right in a star for ¼ · ½ · ¾ · full
-                </p>
-              )}
+              <p className="text-sm font-semibold text-ink">Your rating</p>
+              <UserRatingEditor
+                className="mt-2"
+                rating={userRating}
+                breakdown={userBreakdown}
+                onChange={saveRating}
+                size="sm"
+              />
 
               {(userRating || entry?.review || reviewEditing) && (
                 <div className="mt-4 rounded-2xl border border-[#4a425c] bg-paper p-3">
@@ -362,6 +442,18 @@ function BookPageInner({ bookId }: Props) {
                   </div>
                   {reviewEditing ? (
                     <>
+                      <div className="mt-2 flex justify-end">
+                        <ReviewPolishButton
+                          title={book.title}
+                          author={book.author}
+                          rating={userRating ?? 0}
+                          notes={reviewDraft}
+                          onPolished={(review, suggestSpoilers) => {
+                            setReviewDraft(review);
+                            if (suggestSpoilers) setReviewSpoiler(true);
+                          }}
+                        />
+                      </div>
                       <textarea
                         value={reviewDraft}
                         onChange={(e) => setReviewDraft(e.target.value)}
@@ -636,6 +728,10 @@ function BookPageInner({ bookId }: Props) {
                   pageCount={book.pageCount}
                   genres={book.genres}
                   formats={book.formats}
+                  bookTitle={book.title}
+                  bookAuthor={book.author}
+                  progressPct={entry?.progressPct ?? 0}
+                  openChat={aiParam === "chat"}
                 />
               ) : null}
 
@@ -652,17 +748,25 @@ function BookPageInner({ bookId }: Props) {
                   posts={forumPosts}
                   openReply={openReply}
                   replyDraft={replyDraft}
-                  onOpenReply={setOpenReply}
+                  expandedThread={expandedThread}
+                  threadReplies={threadReplies}
+                  votes={votes}
+                  onVote={castVote}
+                  onToggleThread={toggleThread}
+                  onOpenReply={(id) => {
+                    if (id) {
+                      setExpandedThread(id);
+                      setThreadReplies((prev) => ({
+                        ...prev,
+                        [id]: prev[id] ?? loadThreadReplies(id),
+                      }));
+                    }
+                    setOpenReply(id);
+                  }}
                   onReplyDraft={(id, v) =>
                     setReplyDraft((prev) => ({ ...prev, [id]: v }))
                   }
-                  onSubmitReply={(id) => {
-                    const text = replyDraft[id]?.trim();
-                    if (!text) return;
-                    toast({ text: "Reply posted (demo)" });
-                    setReplyDraft((prev) => ({ ...prev, [id]: "" }));
-                    setOpenReply(null);
-                  }}
+                  onSubmitReply={submitThreadReply}
                   createOpen={createOpen}
                   onToggleCreate={() => {
                     setCreateOpen((v) => !v);
@@ -683,7 +787,8 @@ function BookPageInner({ bookId }: Props) {
               {tab === "reviews" ? (
                 <ReviewsPanel
                   userRating={userRating}
-                  onRate={setRating}
+                  userBreakdown={userBreakdown}
+                  onRate={saveRating}
                   myReview={entry?.review ?? null}
                   myReviewSpoiler={!!entry?.reviewSpoiler}
                   reviewDraft={reviewDraft}
@@ -704,17 +809,25 @@ function BookPageInner({ bookId }: Props) {
                   reviews={reviews}
                   openReply={openReply}
                   replyDraft={replyDraft}
-                  onOpenReply={setOpenReply}
+                  expandedThread={expandedThread}
+                  threadReplies={threadReplies}
+                  votes={votes}
+                  onVote={castVote}
+                  onToggleThread={toggleThread}
+                  onOpenReply={(id) => {
+                    if (id) {
+                      setExpandedThread(id);
+                      setThreadReplies((prev) => ({
+                        ...prev,
+                        [id]: prev[id] ?? loadThreadReplies(id),
+                      }));
+                    }
+                    setOpenReply(id);
+                  }}
                   onReplyDraft={(id, v) =>
                     setReplyDraft((prev) => ({ ...prev, [id]: v }))
                   }
-                  onSubmitReply={(id) => {
-                    const text = replyDraft[id]?.trim();
-                    if (!text) return;
-                    toast({ text: "Reply posted (demo)" });
-                    setReplyDraft((prev) => ({ ...prev, [id]: "" }));
-                    setOpenReply(null);
-                  }}
+                  onSubmitReply={submitThreadReply}
                 />
               ) : null}
 
@@ -727,6 +840,8 @@ function BookPageInner({ bookId }: Props) {
                   description={book.description}
                   stats={community.stats}
                   feed={community.feed}
+                  votes={votes}
+                  onVote={castVote}
                 />
               ) : null}
             </div>
@@ -759,6 +874,10 @@ function AboutPanel({
   pageCount,
   genres,
   formats,
+  bookTitle,
+  bookAuthor,
+  progressPct,
+  openChat = false,
 }: {
   description: string;
   canExpand: boolean;
@@ -768,6 +887,10 @@ function AboutPanel({
   pageCount: number;
   genres: string[];
   formats: string[];
+  bookTitle: string;
+  bookAuthor: string;
+  progressPct: number;
+  openChat?: boolean;
 }) {
   return (
     <section className="space-y-5">
@@ -795,6 +918,12 @@ function AboutPanel({
           </span>
         ))}
       </div>
+      <BookChatPanel
+        title={bookTitle}
+        author={bookAuthor}
+        progressPct={progressPct}
+        defaultOpen={openChat}
+      />
     </section>
   );
 }
@@ -811,6 +940,11 @@ function ForumPanel({
   posts,
   openReply,
   replyDraft,
+  expandedThread,
+  threadReplies,
+  votes,
+  onVote,
+  onToggleThread,
   onOpenReply,
   onReplyDraft,
   onSubmitReply,
@@ -837,6 +971,11 @@ function ForumPanel({
   posts: ForumPost[];
   openReply: string | null;
   replyDraft: Record<string, string>;
+  expandedThread: string | null;
+  threadReplies: Record<string, ForumComment[]>;
+  votes: Record<string, VoteValue>;
+  onVote: (id: string, next: VoteValue) => void;
+  onToggleThread: (id: string) => void;
   onOpenReply: (id: string | null) => void;
   onReplyDraft: (id: string, v: string) => void;
   onSubmitReply: (id: string) => void;
@@ -995,15 +1134,24 @@ function ForumPanel({
                 )}
               </div>
               <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-muted">
-                <span className="inline-flex items-center gap-1.5">
-                  <span aria-hidden>▲</span>
-                  {post.score}
-                  <span aria-hidden>▼</span>
-                </span>
-                <span className="inline-flex items-center gap-1.5">
+                <VoteControls
+                  mode="arrow"
+                  base={post.score}
+                  vote={votes[post.id] ?? null}
+                  onVote={(v) => onVote(post.id, v)}
+                />
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-1.5 font-semibold text-accent hover:underline"
+                  onClick={() => onToggleThread(post.id)}
+                  aria-expanded={expandedThread === post.id}
+                >
                   <span aria-hidden>💬</span>
-                  {post.commentCount}
-                </span>
+                  {post.commentCount + (threadReplies[post.id]?.length ?? 0)}
+                  <span className="font-semibold">
+                    {expandedThread === post.id ? "Hide comments" : "Comments"}
+                  </span>
+                </button>
                 <button
                   type="button"
                   className="font-semibold text-accent hover:underline"
@@ -1014,6 +1162,15 @@ function ForumPanel({
                   Reply
                 </button>
               </div>
+              {expandedThread === post.id ? (
+                <CommentThread
+                  threadId={post.id}
+                  demoCount={post.commentCount}
+                  userReplies={threadReplies[post.id] ?? []}
+                  votes={votes}
+                  onVote={onVote}
+                />
+              ) : null}
               {openReply === post.id ? (
                 <ReplyBox
                   value={replyDraft[post.id] ?? ""}
@@ -1036,6 +1193,7 @@ function ForumPanel({
 
 function ReviewsPanel({
   userRating,
+  userBreakdown,
   onRate,
   myReview,
   myReviewSpoiler,
@@ -1057,12 +1215,21 @@ function ReviewsPanel({
   reviews,
   openReply,
   replyDraft,
+  expandedThread,
+  threadReplies,
+  votes,
+  onVote,
+  onToggleThread,
   onOpenReply,
   onReplyDraft,
   onSubmitReply,
 }: {
   userRating: number | null;
-  onRate: (v: number) => void;
+  userBreakdown: UserRatingBreakdown | null;
+  onRate: (next: {
+    rating: number | undefined;
+    ratingBreakdown: UserRatingBreakdown | undefined;
+  }) => void;
   myReview: string | null;
   myReviewSpoiler: boolean;
   reviewDraft: string;
@@ -1083,6 +1250,11 @@ function ReviewsPanel({
   reviews: ReturnType<typeof getBookCommunity>["reviews"];
   openReply: string | null;
   replyDraft: Record<string, string>;
+  expandedThread: string | null;
+  threadReplies: Record<string, ForumComment[]>;
+  votes: Record<string, VoteValue>;
+  onVote: (id: string, next: VoteValue) => void;
+  onToggleThread: (id: string) => void;
   onOpenReply: (id: string | null) => void;
   onReplyDraft: (id: string, v: string) => void;
   onSubmitReply: (id: string) => void;
@@ -1090,15 +1262,14 @@ function ReviewsPanel({
   return (
     <div className="rounded-[1.5rem] border border-[#564d6a] bg-[#3a324f] p-4 sm:p-5">
       <div className="rounded-2xl border border-[#4a425c] bg-paper px-4 py-3">
-        <div className="flex flex-wrap items-center gap-3">
-          <span className="text-sm font-semibold text-ink">Your rating:</span>
-          <StarRating
-            value={userRating ?? 0}
-            interactive
-            onChange={onRate}
-            label="Your rating"
-          />
-        </div>
+        <p className="text-sm font-semibold text-ink">Your rating</p>
+        <UserRatingEditor
+          className="mt-2"
+          rating={userRating}
+          breakdown={userBreakdown}
+          onChange={onRate}
+          size="sm"
+        />
         <div className="mt-3 border-t border-[#3f3654] pt-3">
           <div className="flex items-center justify-between gap-2">
             <p className="text-xs font-semibold tracking-wide text-ink/70 uppercase">
@@ -1242,8 +1413,24 @@ function ReviewsPanel({
             </div>
 
             <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-muted">
-              <span>♡ {review.likes}</span>
-              <span>💬 {review.commentCount}</span>
+              <VoteControls
+                mode="like"
+                base={review.likes}
+                vote={votes[review.id] ?? null}
+                onVote={(v) => onVote(review.id, v)}
+              />
+              <button
+                type="button"
+                className="inline-flex items-center gap-1.5 font-semibold text-accent hover:underline"
+                onClick={() => onToggleThread(review.id)}
+                aria-expanded={expandedThread === review.id}
+              >
+                <span aria-hidden>💬</span>
+                {review.commentCount + (threadReplies[review.id]?.length ?? 0)}
+                <span>
+                  {expandedThread === review.id ? "Hide comments" : "Comments"}
+                </span>
+              </button>
               <button
                 type="button"
                 className="font-semibold text-accent hover:underline"
@@ -1254,6 +1441,15 @@ function ReviewsPanel({
                 Reply
               </button>
             </div>
+            {expandedThread === review.id ? (
+              <CommentThread
+                threadId={review.id}
+                demoCount={review.commentCount}
+                userReplies={threadReplies[review.id] ?? []}
+                votes={votes}
+                onVote={onVote}
+              />
+            ) : null}
             {openReply === review.id ? (
               <ReplyBox
                 value={replyDraft[review.id] ?? ""}
@@ -1281,6 +1477,8 @@ function FeedPanel({
   description,
   stats,
   feed,
+  votes,
+  onVote,
 }: {
   bookTitle: string;
   bookAuthor: string;
@@ -1289,6 +1487,8 @@ function FeedPanel({
   description: string;
   stats: ReturnType<typeof getBookCommunity>["stats"];
   feed: FeedActivity[];
+  votes: Record<string, VoteValue>;
+  onVote: (id: string, next: VoteValue) => void;
 }) {
   return (
     <div className="space-y-4">
@@ -1352,15 +1552,15 @@ function FeedPanel({
             </div>
 
             <div className="mt-3 flex items-center gap-3 text-sm">
-              <span className="inline-flex items-center gap-1 rounded-full border border-line bg-paper px-2.5 py-1 text-ink/85">
-                ♡ {item.likes}
-              </span>
+              <VoteControls
+                mode="like"
+                base={item.likes}
+                vote={votes[item.id] ?? null}
+                onVote={(v) => onVote(item.id, v)}
+              />
               <span className="inline-flex items-center gap-1 rounded-full border border-line bg-paper px-2.5 py-1 text-ink/85">
                 💬 {item.commentCount}
               </span>
-              <button type="button" className="font-semibold text-accent hover:underline">
-                Reply
-              </button>
             </div>
           </article>
         ))}
@@ -1418,6 +1618,142 @@ function CoverThumb({
       <Image src={cover} alt="" fill className="object-cover" sizes="58px" />
       <span className="sr-only">{title}</span>
     </div>
+  );
+}
+
+function CommentThread({
+  threadId,
+  demoCount,
+  userReplies,
+  votes,
+  onVote,
+}: {
+  threadId: string;
+  demoCount: number;
+  userReplies: ForumComment[];
+  votes: Record<string, VoteValue>;
+  onVote: (id: string, next: VoteValue) => void;
+}) {
+  const comments = [...getDemoComments(threadId, demoCount), ...userReplies];
+  if (comments.length === 0) {
+    return (
+      <p className="mt-3 rounded-xl border border-dashed border-[#4a425c] bg-[#3a324f]/50 px-3 py-3 text-sm text-muted">
+        No comments yet — be the first to reply.
+      </p>
+    );
+  }
+  return (
+    <ul className="mt-3 space-y-2 border-t border-[#3f3654] pt-3">
+      {comments.map((c) => (
+        <li
+          key={c.id}
+          className="rounded-xl border border-[#4a425c] bg-[#3a324f]/70 px-3 py-2.5"
+        >
+          <div className="flex flex-wrap items-center gap-2 text-xs text-muted">
+            <span className="font-semibold text-ink">{c.username}</span>
+            <span>· {c.atLabel}</span>
+            {c.spoilers ? (
+              <span className="rounded-full bg-accent/20 px-1.5 py-0.5 text-[0.62rem] font-bold tracking-wide text-accent uppercase">
+                spoilers
+              </span>
+            ) : null}
+          </div>
+          <div className="mt-1.5 text-sm leading-relaxed text-ink/90">
+            {c.spoilers ? (
+              <SpoilerReveal>
+                <p>{c.body}</p>
+              </SpoilerReveal>
+            ) : (
+              <p>{c.body}</p>
+            )}
+          </div>
+          <div className="mt-2">
+            <VoteControls
+              mode="arrow"
+              size="sm"
+              base={c.score ?? 1}
+              vote={votes[c.id] ?? null}
+              onVote={(v) => onVote(c.id, v)}
+            />
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function VoteControls({
+  mode,
+  base,
+  vote,
+  onVote,
+  size = "md",
+}: {
+  mode: "arrow" | "like";
+  base: number;
+  vote: VoteValue | null;
+  onVote: (next: VoteValue) => void;
+  size?: "sm" | "md";
+}) {
+  const display = scoreWithVote(base, vote);
+  const compact = size === "sm";
+
+  if (mode === "like") {
+    const liked = vote === "like";
+    return (
+      <button
+        type="button"
+        onClick={() => onVote("like")}
+        className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 font-semibold transition ${
+          liked
+            ? "border-[#b85a4a]/50 bg-[#b85a4a]/15 text-[#e8a090]"
+            : "border-line bg-paper text-ink/85 hover:bg-[#3f3654]"
+        } ${compact ? "text-xs" : "text-sm"}`}
+        aria-pressed={liked}
+        aria-label={liked ? "Unlike" : "Like"}
+      >
+        <span aria-hidden>{liked ? "♥" : "♡"}</span>
+        <span className="tabular-nums">{display}</span>
+      </button>
+    );
+  }
+
+  return (
+    <span
+      className={`inline-flex items-center gap-0.5 rounded-full border border-line bg-paper ${
+        compact ? "px-1.5 py-0.5 text-xs" : "px-2 py-1 text-sm"
+      }`}
+    >
+      <button
+        type="button"
+        onClick={() => onVote("up")}
+        className={`rounded px-1.5 py-0.5 font-semibold transition ${
+          vote === "up"
+            ? "bg-forest/25 text-forest"
+            : "text-muted hover:bg-[#3f3654] hover:text-ink"
+        }`}
+        aria-pressed={vote === "up"}
+        aria-label="Upvote"
+      >
+        ▲
+      </button>
+      <span className="min-w-[1.5rem] text-center font-semibold tabular-nums text-ink">
+        {display}
+      </span>
+      <button
+        type="button"
+        onClick={() => onVote("down")}
+        className={`rounded px-1.5 py-0.5 font-semibold transition ${
+          vote === "down"
+            ? "bg-[#b85a4a]/25 text-[#e8a090]"
+            : "text-muted hover:bg-[#3f3654] hover:text-ink"
+        }`}
+        aria-pressed={vote === "down"}
+        aria-label="Downvote"
+      >
+        ▼
+      </button>
+    </span>
   );
 }
 

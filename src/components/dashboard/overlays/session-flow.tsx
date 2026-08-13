@@ -2,7 +2,9 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { SessionCompanion } from "@/components/ai/session-companion";
 import type { CurrentBookView } from "../dashboard-data";
+import type { JournalEntry } from "../journal-storage";
 import { OverlayShell } from "./overlay-shell";
 
 type Props = {
@@ -14,6 +16,7 @@ type Props = {
     minutes: number;
     pagesReadDelta: number;
   }) => void;
+  onJournalSaved?: (entries: JournalEntry[]) => void;
 };
 
 type Phase = "setup" | "focus" | "done";
@@ -30,7 +33,13 @@ function suggestedPages(minutes: number) {
   return Math.max(1, Math.round(minutes * 0.7));
 }
 
-export function SessionFlow({ open, current, onClose, onComplete }: Props) {
+export function SessionFlow({
+  open,
+  current,
+  onClose,
+  onComplete,
+  onJournalSaved,
+}: Props) {
   const [phase, setPhase] = useState<Phase>("setup");
   const [minutes, setMinutes] = useState(25);
   const [pages, setPages] = useState(suggestedPages(25));
@@ -233,6 +242,14 @@ export function SessionFlow({ open, current, onClose, onComplete }: Props) {
             We&apos;ll update {current.book.title} with +{pages} pages and{" "}
             {minutes} minutes.
           </p>
+          <SessionCompanion
+            title={current.book.title}
+            author={current.book.author}
+            minutes={minutes}
+            pages={pages}
+            progressPct={current.progressPct}
+            onSaved={onJournalSaved}
+          />
           <button
             type="button"
             onClick={finish}

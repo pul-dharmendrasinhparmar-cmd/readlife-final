@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { AppNav } from "@/components/layout/app-nav";
 import { getDashboardState, saveOnboardingState } from "@/lib/onboarding-storage";
@@ -20,6 +21,7 @@ import type { GameProfile } from "@/components/games/hub/types";
 import { QuizFlow } from "@/components/personality/quiz-flow";
 import { getPersonality, formatPersonalityCode } from "@/components/personality/personalities";
 import { PersonalityResultCard } from "@/components/personality/result-card";
+import { PersonalityShelfBridge } from "@/components/ai/personality-shelf";
 import {
   ensureDemoPersonalitySeed,
   loadActiveAssessment,
@@ -54,6 +56,8 @@ export function ProfilePageView() {
 
 function ProfilePageInner() {
   const { toast } = useToast();
+  const searchParams = useSearchParams();
+  const aiParam = searchParams.get("ai");
   const [ready, setReady] = useState(false);
   const [profileState, setProfileState] = useState<ProfileState | null>(null);
   const [discovery, setDiscovery] = useState<DiscoveryState | null>(null);
@@ -83,7 +87,13 @@ function ProfilePageInner() {
     // Keep avatar/pet aligned with onboarding
     const synced = updateProfile(ps, {
       displayName: dash.displayName.trim() || ps.profile.displayName,
-      avatarId: dash.avatar === "male" ? "male" : "female",
+      avatarId:
+        dash.avatar === "male" ||
+        dash.avatar === "female" ||
+        dash.avatar === "custom"
+          ? dash.avatar
+          : ps.profile.avatarId,
+      avatarImage: dash.avatarImage ?? ps.profile.avatarImage ?? null,
       shelfPetId: dash.pet ?? ps.profile.shelfPetId,
       petName: dash.petName.trim() || ps.profile.petName,
     });
@@ -100,6 +110,15 @@ function ProfilePageInner() {
   useEffect(() => {
     refreshIdentity();
   }, []);
+
+  useEffect(() => {
+    if (aiParam !== "shelf") return;
+    window.setTimeout(() => {
+      document
+        .getElementById("ai-personality-shelf")
+        ?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 250);
+  }, [aiParam, ready]);
 
   const goalYear = 2026;
 
@@ -402,6 +421,11 @@ function ProfilePageInner() {
                       <p className="mt-3 font-serif text-base italic text-ink/90">
                         &ldquo;{personality.motto}&rdquo;
                       </p>
+                      <div id="ai-personality-shelf">
+                        <PersonalityShelfBridge
+                          personalityLabel={`${personality.name} (${formatPersonalityCode(personality.code)}): ${personality.summary}`}
+                        />
+                      </div>
                       <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2">
                         <button
                           type="button"
@@ -559,6 +583,7 @@ function ProfilePageInner() {
             ...dash,
             displayName: next.profile.displayName,
             avatar: next.profile.avatarId,
+            avatarImage: next.profile.avatarImage ?? null,
             pet: next.profile.shelfPetId as typeof dash.pet,
             petName: next.profile.petName,
           });

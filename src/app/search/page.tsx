@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { SearchPage } from "@/components/search/search-page";
 
 export const metadata: Metadata = {
@@ -8,5 +9,9 @@ export const metadata: Metadata = {
 };
 
 export default function SearchRoutePage() {
-  return <SearchPage />;
+  return (
+    <Suspense fallback={null}>
+      <SearchPage />
+    </Suspense>
+  );
 }

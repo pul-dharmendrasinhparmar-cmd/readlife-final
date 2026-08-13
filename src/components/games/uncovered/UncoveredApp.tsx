@@ -235,6 +235,8 @@ function PlayScreen({
           author: q.author,
           genre: q.genre ?? "",
           difficulty: q.difficulty,
+          hintsUsed: aiHintUsedFor === q.id ? 1 : 0,
+          attempt: g.index,
         }),
       });
       const data = (await res.json()) as { hint?: string; error?: string };

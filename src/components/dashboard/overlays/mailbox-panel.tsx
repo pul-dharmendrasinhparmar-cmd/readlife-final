@@ -1,6 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { useMemo } from "react";
+import {
+  AI_DIRECTORY,
+  resolveAiDirectoryHref,
+} from "@/lib/ai/directory";
 import type { MailItem } from "../mailbox-data";
 import { OverlayShell } from "./overlay-shell";
 
@@ -23,6 +28,15 @@ const KIND_LABEL: Record<MailItem["kind"], string> = {
 };
 
 export function MailboxPanel({ open, items, onClose, onMarkRead }: Props) {
+  const tools = useMemo(
+    () =>
+      AI_DIRECTORY.map((entry) => ({
+        ...entry,
+        href: resolveAiDirectoryHref(entry),
+      })),
+    [open],
+  );
+
   return (
     <OverlayShell
       open={open}
@@ -31,6 +45,28 @@ export function MailboxPanel({ open, items, onClose, onMarkRead }: Props) {
       onClose={onClose}
       side="right"
     >
+      <div className="mb-3 rounded-2xl border border-forest/30 bg-forest/10 px-3.5 py-3">
+        <p className="text-[0.68rem] font-semibold tracking-wide text-ink/60 uppercase">
+          AI tools
+        </p>
+        <p className="mt-1 text-[0.7rem] text-muted">
+          {tools.length} features — tap a name to open it
+        </p>
+        <ul className="mt-2 max-h-[min(22rem,50vh)] space-y-2 overflow-y-auto pr-1 text-sm text-ink/90">
+          {tools.map((entry) => (
+            <li key={entry.id}>
+              <Link
+                href={entry.href}
+                className="font-semibold text-forest hover:underline"
+                onClick={onClose}
+              >
+                {entry.label}
+              </Link>{" "}
+              <span className="text-ink/80">— {entry.blurb}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
       <div className="mb-3 flex justify-end">
         <button
           type="button"

@@ -4,7 +4,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
+import { useSearchParams } from "next/navigation";
 import { AppNav } from "@/components/layout/app-nav";
+import { DailyChallengeCard } from "@/components/ai/daily-challenge-card";
 import { GameModal } from "@/components/search/game-modal";
 import { MINI_GAMES } from "@/components/search/data";
 import type { MiniGame } from "@/components/search/types";
@@ -71,6 +73,8 @@ function findGame(id: string): MiniGame | undefined {
 }
 
 export function GamesPage() {
+  const searchParams = useSearchParams();
+  const aiParam = searchParams.get("ai");
   const [profile, setProfile] = useState<GameProfile | null>(null);
   const [activeGame, setActiveGame] = useState<MiniGame | null>(null);
   const [panel, setPanel] = useState<Panel>(null);
@@ -81,6 +85,15 @@ export function GamesPage() {
   useEffect(() => {
     setProfile(loadGameProfile());
   }, []);
+
+  useEffect(() => {
+    if (aiParam !== "daily") return;
+    window.setTimeout(() => {
+      document
+        .getElementById("ai-daily-challenge")
+        ?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 200);
+  }, [aiParam]);
 
   const play = useCallback((id: "bookle" | "bookworm" | "lexicon" | "uncovered" | "pieces" | "trolley" | "bookbound") => {
     const g = findGame(id);
@@ -266,6 +279,9 @@ export function GamesPage() {
                 </div>
               </div>
 
+              <div className="mt-4" id="ai-daily-challenge">
+                <DailyChallengeCard />
+              </div>
             </section>
 
             <div className="mt-8 grid min-w-0 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_19.5rem] xl:grid-cols-[minmax(0,1fr)_21rem]">

@@ -1,11 +1,13 @@
 "use client";
 
 import { storageKey } from "@/lib/user-storage";
-import type { ForumPost } from "./types";
+import type { ForumComment, ForumPost } from "./types";
 
 const KEY = "readlife-book-forum-v1";
+const REPLIES_KEY = "readlife-book-forum-replies-v1";
 
 type Store = Record<string, ForumPost[]>;
+type RepliesStore = Record<string, ForumComment[]>;
 
 function readStore(): Store {
   if (typeof window === "undefined") return {};
@@ -21,6 +23,22 @@ function readStore(): Store {
 
 function writeStore(store: Store) {
   localStorage.setItem(storageKey(KEY), JSON.stringify(store));
+}
+
+function readReplies(): RepliesStore {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = localStorage.getItem(storageKey(REPLIES_KEY));
+    if (!raw) return {};
+    const parsed = JSON.parse(raw) as RepliesStore;
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function writeReplies(store: RepliesStore) {
+  localStorage.setItem(storageKey(REPLIES_KEY), JSON.stringify(store));
 }
 
 export function loadUserForumPosts(bookId: string): ForumPost[] {
@@ -51,4 +69,26 @@ export function addUserForumPost(
   store[bookId] = [post, ...(store[bookId] ?? [])];
   writeStore(store);
   return post;
+}
+
+export function loadThreadReplies(threadId: string): ForumComment[] {
+  return readReplies()[threadId] ?? [];
+}
+
+export function addThreadReply(
+  threadId: string,
+  input: { username: string; body: string; spoilers?: boolean },
+): ForumComment {
+  const store = readReplies();
+  const comment: ForumComment = {
+    id: `reply-${threadId}-${Date.now()}`,
+    username: input.username,
+    body: input.body.trim(),
+    atLabel: "just now",
+    score: 1,
+    spoilers: input.spoilers,
+  };
+  store[threadId] = [...(store[threadId] ?? []), comment];
+  writeReplies(store);
+  return comment;
 }

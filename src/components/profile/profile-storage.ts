@@ -380,6 +380,40 @@ export function saveProfileState(state: ProfileState) {
   }
 }
 
+/** Keep profile followingPeople aligned with discovery followingIds (demo readers). */
+export function syncFollowingPeopleFromDiscovery(followingIds: string[]) {
+  const state = loadProfileState();
+  const people = followingIds
+    .map((id) => {
+      const r = DISCOVER_READERS.find((x) => x.id === id);
+      return r ? readerToFollow(r) : null;
+    })
+    .filter(Boolean) as FollowPerson[];
+  // Preserve any real-user follows (ids not in DISCOVER_READERS)
+  const real = state.followingPeople.filter(
+    (p) => !DISCOVER_READERS.some((r) => r.id === p.id),
+  );
+  const merged = [...people, ...real];
+  const seen = new Set<string>();
+  const followingPeople = merged.filter((p) => {
+    if (seen.has(p.id)) return false;
+    seen.add(p.id);
+    return true;
+  });
+  saveProfileState({ ...state, followingPeople });
+}
+
+/** Add/remove a signed-up friend on the local profile friends list. */
+export function toggleLocalFriendPerson(person: FollowPerson, follow: boolean) {
+  const state = loadProfileState();
+  const exists = state.followingPeople.some((p) => p.id === person.id);
+  let followingPeople = state.followingPeople;
+  if (follow && !exists) followingPeople = [person, ...followingPeople];
+  if (!follow && exists)
+    followingPeople = followingPeople.filter((p) => p.id !== person.id);
+  saveProfileState({ ...state, followingPeople });
+}
+
 export function updateProfile(
   state: ProfileState,
   patch: Partial<UserProfile>,

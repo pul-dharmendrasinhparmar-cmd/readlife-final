@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect, useState } from "react";
 import { resolveAvatarImage } from "@/components/onboarding/data";
 import { formatPersonalityCode } from "@/components/personality/personalities";
@@ -59,7 +58,7 @@ export function ProfileHero({
   following,
   onBuddy,
 }: Props) {
-  const avatar = resolveAvatarImage(profile.avatarId);
+  const avatar = resolveAvatarImage(profile.avatarId, profile.avatarImage);
   const petEmoji = PET_EMOJI[profile.shelfPetId] ?? "✨";
   const [editingGoal, setEditingGoal] = useState(false);
   const [draftTarget, setDraftTarget] = useState(String(goal.target));
@@ -95,12 +94,11 @@ export function ProfileHero({
             className="relative h-24 w-24 shrink-0 overflow-hidden rounded-full border-2 border-line shadow-lg sm:h-32 sm:w-32"
             aria-label={isOwner ? "Edit avatar" : undefined}
           >
-            <Image
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
               src={avatar}
               alt=""
-              fill
-              className="object-cover object-top"
-              sizes="128px"
+              className="absolute inset-0 h-full w-full object-cover object-top"
             />
           </button>
 

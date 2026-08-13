@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
@@ -54,14 +53,14 @@ export function AppNav() {
 
   useEffect(() => {
     const state = getDashboardState();
-    setAvatarSrc(resolveAvatarImage(state.avatar));
+    setAvatarSrc(resolveAvatarImage(state.avatar, state.avatarImage));
     setName(
       state.displayName.trim() ||
         session?.user?.name?.trim() ||
         (session?.user ? "Reader" : "Alex"),
     );
     setMail(loadMailbox());
-  }, [session?.user?.id, session?.user?.name]);
+  }, [session?.user?.id, session?.user?.name, pathname]);
 
   useEffect(() => {
     if (mailOpen) setMail(loadMailbox());
@@ -123,7 +122,7 @@ export function AppNav() {
             </button>
 
             <Link
-              href="/"
+              href="/home"
               className="flex min-w-0 shrink-0 items-center gap-2 text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest"
             >
               <span className="font-serif text-[1.45rem] font-semibold tracking-[-0.02em]">
@@ -181,12 +180,11 @@ export function AppNav() {
               className="relative h-10 w-10 overflow-hidden rounded-full border border-[#564d6a] bg-[#3f3654] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest"
               aria-label={`${name}'s profile`}
             >
-              <Image
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
                 src={avatarSrc}
                 alt=""
-                fill
-                className="object-cover object-top"
-                sizes="40px"
+                className="absolute inset-0 h-full w-full object-cover object-top"
               />
             </Link>
           </div>

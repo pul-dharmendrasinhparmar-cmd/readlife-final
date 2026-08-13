@@ -1,8 +1,10 @@
 "use client";
 
 import Image from "next/image";
+import { useRef, useState } from "react";
+import { fileToAvatarDataUrl } from "@/components/profile/avatar-upload";
 import type { OnboardingState } from "./data";
-import { READER_AVATARS, SHELF_PETS } from "./data";
+import { READER_AVATARS, SHELF_PETS, resolveAvatarImage } from "./data";
 
 type Props = {
   state: OnboardingState;
@@ -11,6 +13,28 @@ type Props = {
 
 export function MoveInStep({ state, onChange }: Props) {
   const selectedPet = SHELF_PETS.find((p) => p.id === state.pet);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+
+  const customPreview = resolveAvatarImage(state.avatar, state.avatarImage);
+
+  const onPickFile = async (file: File | undefined) => {
+    if (!file) return;
+    setUploadError(null);
+    setUploading(true);
+    try {
+      const dataUrl = await fileToAvatarDataUrl(file);
+      onChange({ avatar: "custom", avatarImage: dataUrl });
+    } catch (err) {
+      setUploadError(
+        err instanceof Error ? err.message : "Could not upload that image.",
+      );
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  };
 
   return (
     <div>
@@ -24,7 +48,6 @@ export function MoveInStep({ state, onChange }: Props) {
         A few optional finishing touches — then settle in.
       </p>
 
-      {/* Name */}
       <section className="mt-8">
         <label
           htmlFor="display-name"
@@ -42,23 +65,24 @@ export function MoveInStep({ state, onChange }: Props) {
         />
       </section>
 
-      {/* Avatar */}
       <section className="mt-10">
         <h2 className="font-serif text-xl font-semibold text-ink">
           Select your avatar
         </h2>
         <p className="mt-1 text-sm text-muted">
-          Pick a reader — or customize your own.
+          Pick a reader — or upload your own photo.
         </p>
 
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           {READER_AVATARS.map((avatar) => {
-            const selected = state.avatar === avatar.id;
+            const selected = state.avatar === avatar.id && !state.avatarImage;
             return (
               <button
                 key={avatar.id}
                 type="button"
-                onClick={() => onChange({ avatar: avatar.id })}
+                onClick={() =>
+                  onChange({ avatar: avatar.id, avatarImage: null })
+                }
                 className={`relative flex flex-col items-center rounded-[1.35rem] border-2 bg-paper/80 px-3 pb-4 pt-5 transition ${
                   selected
                     ? "border-forest shadow-[0_0_0_1px_rgba(176,143,206,0.2)]"
@@ -66,7 +90,7 @@ export function MoveInStep({ state, onChange }: Props) {
                 }`}
               >
                 {selected ? (
-                  <span className="absolute top-2.5 right-2.5 flex h-6 w-6 items-center justify-center rounded-full bg-forest text-xs text-paper">
+                  <span className="absolute top-2.5 right-2.5 flex h-6 w-6 items-center justify-center rounded-full bg-forest text-xs text-[#2a2438]">
                     ✓
                   </span>
                 ) : null}
@@ -87,37 +111,60 @@ export function MoveInStep({ state, onChange }: Props) {
           })}
         </div>
 
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp,image/gif"
+          className="sr-only"
+          onChange={(e) => onPickFile(e.target.files?.[0])}
+        />
         <button
           type="button"
-          onClick={() => onChange({ avatar: "custom" })}
-          className={`mt-3 flex w-full items-center gap-4 rounded-[1.35rem] border-2 border-dashed px-5 py-4 text-left transition ${
-            state.avatar === "custom"
+          disabled={uploading}
+          onClick={() => fileRef.current?.click()}
+          className={`mt-3 flex w-full items-center gap-4 rounded-[1.35rem] border-2 border-dashed px-5 py-4 text-left transition disabled:opacity-60 ${
+            state.avatar === "custom" && state.avatarImage
               ? "border-forest bg-cream-card"
               : "border-forest/35 bg-paper/70 hover:border-forest/55 hover:bg-cream-card/80"
           }`}
         >
-          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-cream text-xl shadow-sm">
-            ✏️
+          <span className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-cream text-xl shadow-sm">
+            {state.avatarImage ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={customPreview}
+                alt=""
+                className="h-full w-full object-cover object-top"
+              />
+            ) : (
+              "📷"
+            )}
           </span>
           <span className="min-w-0 flex-1">
             <span className="block font-serif text-lg font-semibold text-ink">
-              Customize your own avatar
+              {uploading
+                ? "Uploading…"
+                : state.avatarImage
+                  ? "Photo uploaded"
+                  : "Upload your photo"}
             </span>
             <span className="text-sm text-muted">
-              Skin, hair, outfits, accessories — make it yours.
+              JPG, PNG, or WebP — under 8MB.
             </span>
           </span>
-          {state.avatar === "custom" ? (
-            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-forest text-xs text-paper">
+          {state.avatar === "custom" && state.avatarImage ? (
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-forest text-xs text-[#2a2438]">
               ✓
             </span>
           ) : (
             <span className="text-lg text-muted-soft">→</span>
           )}
         </button>
+        {uploadError ? (
+          <p className="mt-2 text-sm font-medium text-[#e8a090]">{uploadError}</p>
+        ) : null}
       </section>
 
-      {/* Shelf pet */}
       <section className="mt-10">
         <h2 className="font-serif text-xl font-semibold text-ink">
           Select a shelf pet
@@ -146,7 +193,7 @@ export function MoveInStep({ state, onChange }: Props) {
                 }`}
               >
                 {selected ? (
-                  <span className="absolute top-2 right-2 flex h-5 w-5 items-center justify-center rounded-full bg-forest text-[0.65rem] text-paper">
+                  <span className="absolute top-2 right-2 flex h-5 w-5 items-center justify-center rounded-full bg-forest text-[0.65rem] text-[#2a2438]">
                     ✓
                   </span>
                 ) : null}

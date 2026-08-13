@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { SessionCompanion } from "@/components/ai/session-companion";
 import type { CurrentBookView } from "../dashboard-data";
+import type { JournalEntry } from "../journal-storage";
 import { OverlayShell } from "./overlay-shell";
 
 type Props = {
@@ -13,6 +15,7 @@ type Props = {
     minutes: number;
     pagesReadDelta: number;
   }) => void;
+  onJournalSaved?: (entries: JournalEntry[]) => void;
 };
 
 const DURATION_PRESETS = [5, 10, 15, 25, 30, 45, 60] as const;
@@ -21,7 +24,13 @@ function suggestedPages(minutes: number) {
   return Math.max(1, Math.round(minutes * 0.7));
 }
 
-export function LogSessionPanel({ open, current, onClose, onSave }: Props) {
+export function LogSessionPanel({
+  open,
+  current,
+  onClose,
+  onSave,
+  onJournalSaved,
+}: Props) {
   const [minutes, setMinutes] = useState(25);
   const [pages, setPages] = useState(suggestedPages(25));
   const [customOpen, setCustomOpen] = useState(false);
@@ -122,6 +131,15 @@ export function LogSessionPanel({ open, current, onClose, onSave }: Props) {
               className="mt-1 w-full rounded-2xl border border-[#564d6a] bg-paper px-3 py-2.5 text-ink"
             />
           </label>
+
+          <SessionCompanion
+            title={current.book.title}
+            author={current.book.author}
+            minutes={minutes}
+            pages={pages}
+            progressPct={current.progressPct}
+            onSaved={onJournalSaved}
+          />
 
           <button
             type="button"

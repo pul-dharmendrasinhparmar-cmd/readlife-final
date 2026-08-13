@@ -82,6 +82,8 @@ export default function GameScreen({
           themeTagline: theme.tagline,
           themeAuthor: theme.author ?? "",
           answer,
+          hintsUsed: aiHintUsed ? 1 : 0,
+          attempt: guesses.length,
         }),
       });
       const data = (await res.json()) as { hint?: string; error?: string };

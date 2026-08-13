@@ -1,0 +1,13 @@
+---
+description: Keep Mailbox AI tools directory in sync when shipping GenAI features
+alwaysApply: true
+---
+
+# Mailbox AI directory
+
+When you add, rename, or remove a user-facing AI feature (OpenAI/`/api/ai/*`, `/api/search-nl`, `/api/recommend`, game hints, etc.):
+
+1. Update `src/lib/ai/directory.ts` (`AI_DIRECTORY`) with label, blurb, and href.
+2. Mailbox **AI tools** reads that list automatically — do not hardcode entries in `mailbox-panel.tsx`.
+3. Prefer a short seed mail item in `mailbox-data.ts` when the feature is newly shipped.
+4. Book recommendations must include Add to TBR where books are listed.

@@ -15,6 +15,7 @@ import {
 import { PersonalityShareCard } from "./share-card";
 import { PersonalityCompare } from "./compare";
 import { PersonalityResultCard } from "./result-card";
+import { PersonalityShelfBridge } from "@/components/ai/personality-shelf";
 import {
   DIMENSIONS,
   LIKERT_LABELS,
@@ -633,6 +634,10 @@ function FullResult({
           Suggestions only — your room and pet are not changed automatically.
         </p>
       </div>
+
+      <PersonalityShelfBridge
+        personalityLabel={`${p.name} (${formatPersonalityCode(p.code)}): ${p.summary}`}
+      />
 
       <div className="mt-5 grid gap-2 sm:grid-cols-2">
         {!assessment.addedToProfile ? (

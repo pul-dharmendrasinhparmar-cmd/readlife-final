@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   useEffect,
   useMemo,
@@ -11,6 +11,7 @@ import {
   type ReactNode,
   type SetStateAction,
 } from "react";
+import { TbrCoachPanel } from "@/components/ai/tbr-coach-panel";
 import { AppNav } from "@/components/layout/app-nav";
 import { LeafIcon } from "@/components/icons";
 import { SearchIcon } from "@/components/layout/nav-icons";
@@ -95,6 +96,8 @@ export function LibraryPage() {
 function LibraryPageInner() {
   const { toast } = useToast();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const aiParam = searchParams.get("ai");
   const [state, setState] = useState<DiscoveryState | null>(null);
   const [tab, setTab] = useState<Tab>("all");
   const [query, setQuery] = useState("");
@@ -115,6 +118,17 @@ function LibraryPageInner() {
   useEffect(() => {
     setState(loadDiscoveryState());
   }, []);
+
+  useEffect(() => {
+    if (aiParam === "tbr") {
+      setTab("tbr");
+      window.setTimeout(() => {
+        document
+          .getElementById("ai-tbr-coach")
+          ?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 200);
+    }
+  }, [aiParam]);
 
   const persist = (next: DiscoveryState) => {
     saveDiscoveryState(next);
@@ -597,6 +611,7 @@ function LibraryPageInner() {
                 setSelected={setSelected}
                 menuId={menuId}
                 setMenuId={setMenuId}
+                openCoach={aiParam === "tbr"}
                 onOpen={openBook}
                 onMove={(bookId, priority) => {
                   persist(moveTbrPriority(state, bookId, priority));
@@ -895,6 +910,7 @@ function TbrSection({
   setSelected,
   menuId,
   setMenuId,
+  openCoach = false,
   onOpen,
   onMove,
   onCleanup,
@@ -906,6 +922,7 @@ function TbrSection({
   setSelected: Dispatch<SetStateAction<string[]>>;
   menuId: string | null;
   setMenuId: (id: string | null) => void;
+  openCoach?: boolean;
   onOpen: (id: string) => void;
   onMove: (bookId: string, priority: TbrPriority) => void;
   onCleanup: () => void;
@@ -945,6 +962,13 @@ function TbrSection({
         >
           TBR Cleanup
         </button>
+      </div>
+
+      <div id="ai-tbr-coach">
+        <TbrCoachPanel
+          tbrIds={rows.map((r) => r.book.id)}
+          defaultOpen={openCoach}
+        />
       </div>
 
       {insights.length > 0 ? (

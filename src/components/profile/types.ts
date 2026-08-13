@@ -73,7 +73,9 @@ export type UserProfile = {
   displayName: string;
   username: string;
   bio: string;
-  avatarId: "male" | "female";
+  avatarId: "male" | "female" | "custom";
+  /** Compressed data URL when the user uploads their own photo. */
+  avatarImage?: string | null;
   shelfPetId: string;
   petName: string;
   socialLinks: SocialLinks;

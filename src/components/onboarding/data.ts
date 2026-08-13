@@ -167,6 +167,8 @@ export type OnboardingState = {
   reminder: string;
   room: string;
   avatar: "male" | "female" | "custom" | null;
+  /** Compressed data URL for a custom uploaded profile photo. */
+  avatarImage?: string | null;
   displayName: string;
   pet: string | null;
   petName: string;
@@ -268,8 +270,10 @@ export const SHELF_PETS = [
 export const ONBOARDING_STORAGE_KEY = "readlife-onboarding-v1";
 
 export function resolveAvatarImage(
-  avatar: OnboardingState["avatar"],
+  avatar: OnboardingState["avatar"] | "male" | "female" | "custom" | null | undefined,
+  customImage?: string | null,
 ): string {
+  if (customImage) return customImage;
   if (avatar === "male") return READER_AVATARS[0].image;
   if (avatar === "female") return READER_AVATARS[1].image;
   return READER_AVATARS[1].image;
