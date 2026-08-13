@@ -35,12 +35,18 @@ export function TrolleyApp({ onBackToGames }: Props) {
           ref={g.playfieldRef}
           onPointerDown={(e) => {
             if (g.phase !== "playing") return;
+            // Don't steal taps from HUD buttons
+            if ((e.target as HTMLElement).closest("button, a")) return;
+            e.preventDefault();
             g.setDragging(true);
             g.moveToClientX(e.clientX);
-            (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
+            (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
           }}
           onPointerMove={(e) => {
             if (g.phase !== "playing") return;
+            // Touch always reports buttons=0; mouse needs a pressed button.
+            if (e.pointerType !== "touch" && e.buttons === 0) return;
+            e.preventDefault();
             g.moveToClientX(e.clientX);
           }}
           onPointerUp={() => g.setDragging(false)}

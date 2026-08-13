@@ -232,6 +232,75 @@
   overflow: hidden;
 }
 
+@media (max-width: 430px) {
+  .bookle-root .game-panel {
+    margin: 0;
+    width: 100%;
+    max-width: none;
+    padding: 8px 8px max(8px, env(safe-area-inset-bottom, 0px));
+    gap: 6px;
+    border-radius: 0;
+  }
+
+  .bookle-root .game-panel::before {
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
+    border-bottom: 0;
+  }
+
+  .bookle-root .game-header {
+    padding-bottom: 6px;
+    gap: 4px;
+  }
+
+  .bookle-root .game-title h1 {
+    font-size: 0.98rem;
+  }
+
+  .bookle-root .game-title p {
+    display: none;
+  }
+
+  .bookle-root .back-btn,
+  .bookle-root .reset-btn,
+  .bookle-root .hint-btn {
+    padding: 7px 9px;
+    font-size: 12px;
+  }
+
+  .bookle-root .tile {
+    --tile: min(48px, 11.2vw, 7.2svh);
+  }
+
+  .bookle-root .board,
+  .bookle-root .row {
+    gap: 4px;
+  }
+
+  .bookle-root .key {
+    height: max(42px, min(48px, 6.2svh));
+    font-size: 13px;
+    max-width: 40px;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .bookle-root .key.wide {
+    max-width: 58px;
+    font-size: 11px;
+  }
+
+  .bookle-root .keyboard {
+    gap: 5px;
+    padding-bottom: max(4px, env(safe-area-inset-bottom, 0px));
+  }
+
+  .bookle-root .keyboard-row {
+    gap: 4px;
+  }
+}
+
 .bookle-root .game-panel::before {
   content: "";
   position: absolute;
@@ -375,6 +444,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
 
 .bookle-root .key.wide {

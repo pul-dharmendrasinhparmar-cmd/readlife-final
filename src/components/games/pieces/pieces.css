@@ -115,13 +115,16 @@
   flex: 1;
   flex-direction: column;
   gap: 0.65rem;
+  touch-action: none;
 }
 
 .pcs-board {
   position: relative;
-  width: min(100%, 22rem, 46svh);
+  width: min(100%, 22rem, 42svh);
   margin: 0 auto;
   aspect-ratio: 3 / 4;
+  flex-shrink: 0;
+  touch-action: none;
   border-radius: 0.45rem;
   background:
     repeating-linear-gradient(
@@ -153,16 +156,38 @@
 
 .pcs-tray {
   display: flex;
-  min-height: 7.5rem;
+  min-height: 6.5rem;
   flex: 1;
   flex-wrap: wrap;
   align-content: flex-start;
   gap: 0.28rem;
   overflow: auto;
+  overscroll-behavior: contain;
   padding: 0.4rem;
   border-radius: 1rem;
   border: 1px solid #4a425c;
   background: #3a324f;
+  /* Allow vertical scroll in tray, but piece thumbs opt out via touch-action: none */
+  touch-action: pan-y;
+}
+
+@media (max-width: 430px) {
+  .pcs-shell {
+    padding: 0.4rem 0.55rem max(0.55rem, env(safe-area-inset-bottom, 0px));
+  }
+
+  .pcs-board {
+    width: min(100%, 20rem, 40svh);
+  }
+
+  .pcs-tray {
+    min-height: 5.75rem;
+  }
+
+  .pcs-thumb {
+    width: 3.05rem;
+    height: 3.25rem;
+  }
 }
 
 .pcs-thumb {

@@ -61,7 +61,7 @@ export function IntroCard({ level, progress, onStart }: IntroProps) {
         </ul>
       </div>
 
-      <p className="bw-controls-hint">Arrow Keys / WASD / Swipe</p>
+      <p className="bw-controls-hint">Swipe the board · Arrow keys / WASD</p>
 
       <button type="button" className="bw-btn" onClick={onStart}>
         Start Level

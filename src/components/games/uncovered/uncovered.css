@@ -886,6 +886,75 @@
   line-height: 1.35;
 }
 
+@media (max-width: 430px) {
+  .unc-shell {
+    padding: 0.4rem 0.65rem max(0.55rem, env(safe-area-inset-bottom, 0px));
+  }
+
+  .unc-stage {
+    width: min(10.5rem, 48vw);
+  }
+
+  .unc-options {
+    /* 2-col keeps all answers visible without burying the last option */
+    grid-template-columns: 1fr 1fr;
+    gap: 0.35rem;
+    width: 100%;
+  }
+
+  .unc-opt {
+    min-height: 2.55rem;
+    padding: 0.5rem 0.55rem;
+    font-size: 0.76rem;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .unc-mode {
+    min-height: 4.5rem;
+    touch-action: manipulation;
+  }
+
+  .unc-emoji-search {
+    width: 100%;
+  }
+
+  .unc-emoji-search input {
+    font-size: 16px; /* avoid iOS input zoom */
+    min-height: 2.75rem;
+  }
+
+  .unc-emoji-suggest {
+    /* Open upward so soft keyboard doesn't bury choices */
+    top: auto;
+    bottom: calc(100% + 0.3rem);
+    max-height: min(40svh, 14rem);
+  }
+
+  .unc-emoji-grid {
+    width: 100%;
+  }
+
+  .unc-emoji-guess,
+  .unc-emoji-slot {
+    min-height: 2.4rem;
+    height: auto;
+  }
+
+  .unc-prompt {
+    font-size: 0.98rem;
+    margin: 0.4rem 0 0.4rem;
+  }
+
+  .unc-play {
+    padding-bottom: 0.35rem;
+  }
+
+  .unc-scoreline {
+    margin-bottom: 0.35rem;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .unc-flip,
   .unc-result,

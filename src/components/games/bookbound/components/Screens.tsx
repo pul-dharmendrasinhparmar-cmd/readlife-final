@@ -373,6 +373,7 @@ export function TouchControls({
     (key: "left" | "right" | "jump" | "attack") =>
     (e: PointerEvent) => {
       e.preventDefault();
+      e.stopPropagation();
       (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
       hold(key, true);
     };
@@ -380,6 +381,7 @@ export function TouchControls({
     (key: "left" | "right" | "jump" | "attack") =>
     (e: PointerEvent) => {
       e.preventDefault();
+      e.stopPropagation();
       hold(key, false);
     };
   return (
@@ -392,6 +394,7 @@ export function TouchControls({
           onPointerDown={press("left")}
           onPointerUp={release("left")}
           onPointerCancel={release("left")}
+          onLostPointerCapture={release("left")}
         >
           ←
         </button>
@@ -402,6 +405,7 @@ export function TouchControls({
           onPointerDown={press("right")}
           onPointerUp={release("right")}
           onPointerCancel={release("right")}
+          onLostPointerCapture={release("right")}
         >
           →
         </button>
@@ -414,6 +418,7 @@ export function TouchControls({
           onPointerDown={press("jump")}
           onPointerUp={release("jump")}
           onPointerCancel={release("jump")}
+          onLostPointerCapture={release("jump")}
         >
           ↑
         </button>
@@ -424,6 +429,7 @@ export function TouchControls({
           onPointerDown={press("attack")}
           onPointerUp={release("attack")}
           onPointerCancel={release("attack")}
+          onLostPointerCapture={release("attack")}
         >
           ✦
         </button>

@@ -199,9 +199,9 @@ export function useBookwormGame(levelId?: string) {
     return () => window.removeEventListener("keydown", onKey);
   }, [queueDir, beginCountdown]);
 
-  // Prevent page scroll while playing (touch)
+  // Prevent page scroll while playing / countdown (touch)
   useEffect(() => {
-    if (phase !== "playing") return;
+    if (phase !== "playing" && phase !== "countdown") return;
     const prevent = (e: TouchEvent) => {
       if (e.cancelable) e.preventDefault();
     };

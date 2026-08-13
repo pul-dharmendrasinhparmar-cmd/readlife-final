@@ -116,8 +116,14 @@ export function usePiecesGame() {
     (id: number, event: ReactPointerEvent<HTMLElement>) => {
       if (placed.has(id) || phase !== "playing") return;
       event.preventDefault();
+      event.stopPropagation();
       const piece = PIECES.find((p) => p.id === id);
       if (!piece) return;
+      try {
+        event.currentTarget.setPointerCapture?.(event.pointerId);
+      } catch {
+        /* ignore capture failures */
+      }
       const thumb = event.currentTarget.getBoundingClientRect();
       const s = scaleRef.current;
       const relX =
@@ -145,17 +151,20 @@ export function usePiecesGame() {
 
     const onMove = (event: PointerEvent) => {
       const current = dragRef.current;
-      if (!current) return;
-      setDrag({
+      if (!current || current.pointerId !== event.pointerId) return;
+      if (event.cancelable) event.preventDefault();
+      const next = {
         ...current,
         x: event.clientX - current.grabX,
         y: event.clientY - current.grabY,
-      });
+      };
+      dragRef.current = next;
+      setDrag(next);
     };
 
-    const onUp = () => {
+    const onUp = (event: PointerEvent) => {
       const current = dragRef.current;
-      if (!current) return;
+      if (!current || current.pointerId !== event.pointerId) return;
       const board = boardRef.current;
       const s = scaleRef.current;
       if (board) {
@@ -164,23 +173,27 @@ export function usePiecesGame() {
           const rect = board.getBoundingClientRect();
           const targetX = rect.left + piece.bbox.x * s;
           const targetY = rect.top + piece.bbox.y * s;
-          if (Math.hypot(current.x - targetX, current.y - targetY) <= SNAP_PX) {
+          // Slightly larger snap on coarse pointers / phones
+          const snap =
+            window.matchMedia("(pointer: coarse)").matches
+              ? SNAP_PX * 1.35
+              : SNAP_PX;
+          if (Math.hypot(current.x - targetX, current.y - targetY) <= snap) {
             setPlaced((prev) => new Set(prev).add(current.id));
           }
         }
       }
+      dragRef.current = null;
       setDrag(null);
     };
 
-    document.addEventListener("pointermove", onMove);
+    document.addEventListener("pointermove", onMove, { passive: false });
     document.addEventListener("pointerup", onUp);
     document.addEventListener("pointercancel", onUp);
-    document.addEventListener("mouseup", onUp);
     return () => {
       document.removeEventListener("pointermove", onMove);
       document.removeEventListener("pointerup", onUp);
       document.removeEventListener("pointercancel", onUp);
-      document.removeEventListener("mouseup", onUp);
     };
   }, [phase]);
 

@@ -93,10 +93,13 @@ export function GameModal({ game, open, onClose }: Props) {
     };
     window.addEventListener("keydown", onKey);
     const prevOverflow = document.body.style.overflow;
+    const prevOverscroll = document.documentElement.style.overscrollBehavior;
     document.body.style.overflow = "hidden";
+    document.documentElement.style.overscrollBehavior = "none";
     return () => {
       window.removeEventListener("keydown", onKey);
       document.body.style.overflow = prevOverflow;
+      document.documentElement.style.overscrollBehavior = prevOverscroll;
     };
   }, [open, game, onClose]);
 
@@ -120,8 +123,11 @@ export function GameModal({ game, open, onClose }: Props) {
               ? "max-md:h-[100dvh] h-[min(96svh,760px)] max-w-5xl"
               : "max-md:h-[100dvh] h-[min(96svh,960px)] max-w-3xl";
 
+  const gameShellClass =
+    "flex min-h-0 flex-1 flex-col overflow-hidden overscroll-none [touch-action:manipulation] max-md:select-none";
+
   return (
-    <div className="fixed inset-0 z-[70] flex items-stretch justify-center p-0 sm:items-center sm:p-4">
+    <div className="fixed inset-0 z-[70] flex items-stretch justify-center overscroll-none p-0 sm:items-center sm:p-4">
       <button
         type="button"
         className="absolute inset-0 bg-[#2a2438]/55 backdrop-blur-[2px] max-md:hidden"
@@ -134,24 +140,24 @@ export function GameModal({ game, open, onClose }: Props) {
         aria-labelledby={titleId}
         className={
           isFullscreenGame
-            ? `relative z-10 flex w-full flex-col overflow-hidden border-[#4a425c] bg-[#3a324f] shadow-[0_24px_60px_rgba(42,36,56,0.25)] max-md:rounded-none max-md:border-0 sm:rounded-[1.5rem] sm:border ${fullscreenSize}`
+            ? `relative z-10 flex w-full flex-col overflow-hidden overscroll-none border-[#4a425c] bg-[#3a324f] shadow-[0_24px_60px_rgba(42,36,56,0.25)] max-md:h-[100dvh] max-md:max-h-[100dvh] max-md:rounded-none max-md:border-0 sm:rounded-[1.5rem] sm:border ${fullscreenSize}`
             : "relative z-10 m-3 w-full max-w-lg rounded-[1.5rem] border border-[#4a425c] bg-[#3a324f] p-6 shadow-[0_24px_60px_rgba(42,36,56,0.25)] sm:m-0"
         }
       >
         <div
           className={
             isFullscreenGame
-              ? "flex shrink-0 items-start justify-between gap-3 border-b border-[#4a425c]/80 px-4 py-2.5 pt-[max(0.65rem,env(safe-area-inset-top))] sm:px-5 sm:py-3 sm:pt-3"
+              ? "relative z-20 flex shrink-0 items-center justify-between gap-3 border-b border-[#4a425c]/80 px-3 py-2 pt-[max(0.5rem,env(safe-area-inset-top))] sm:items-start sm:px-5 sm:py-3 sm:pt-3"
               : "flex items-start justify-between gap-3"
           }
         >
           <div className="min-w-0">
-            <p className="text-[0.68rem] font-semibold tracking-[0.14em] text-ink/65 uppercase">
+            <p className="text-[0.62rem] font-semibold tracking-[0.14em] text-ink/65 uppercase sm:text-[0.68rem]">
               Mini game
             </p>
             <h2
               id={titleId}
-              className="mt-0.5 truncate font-serif text-xl font-semibold text-ink sm:mt-1 sm:text-2xl"
+              className="mt-0 truncate font-serif text-lg font-semibold text-ink sm:mt-1 sm:text-2xl"
             >
               {game.title}
             </h2>
@@ -159,38 +165,38 @@ export function GameModal({ game, open, onClose }: Props) {
           <button
             type="button"
             onClick={onClose}
-            className="min-h-11 shrink-0 rounded-full px-3 py-1.5 text-sm font-semibold text-ink hover:bg-[#3f3654] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest"
+            className="relative z-20 min-h-10 shrink-0 rounded-full px-3 py-1.5 text-sm font-semibold text-ink hover:bg-[#3f3654] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest sm:min-h-11"
           >
             Close
           </button>
         </div>
 
         {game.id === "bookle" && game.playable ? (
-          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          <div className={gameShellClass}>
             <BookleApp />
           </div>
         ) : game.id === "bookworm" && game.playable ? (
-          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          <div className={`${gameShellClass} max-md:[touch-action:none]`}>
             <BookwormApp onBackToGames={onClose} />
           </div>
         ) : game.id === "lexicon" && game.playable ? (
-          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          <div className={gameShellClass}>
             <LexiconApp />
           </div>
         ) : game.id === "uncovered" && game.playable ? (
-          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          <div className={gameShellClass}>
             <UncoveredApp onBackToGames={onClose} />
           </div>
         ) : game.id === "pieces" && game.playable ? (
-          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          <div className={`${gameShellClass} max-md:[touch-action:none]`}>
             <PiecesApp onBackToGames={onClose} />
           </div>
         ) : game.id === "trolley" && game.playable ? (
-          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          <div className={`${gameShellClass} max-md:[touch-action:none]`}>
             <TrolleyApp onBackToGames={onClose} />
           </div>
         ) : game.id === "bookbound" && game.playable ? (
-          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          <div className={`${gameShellClass} max-md:[touch-action:none]`}>
             <BookboundApp onBackToGames={onClose} />
           </div>
         ) : !game.playable ? (

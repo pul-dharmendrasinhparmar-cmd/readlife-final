@@ -142,13 +142,15 @@
   justify-content: space-between;
   align-items: flex-end;
   gap: 0.5rem;
-  z-index: 2;
+  z-index: 5;
+  touch-action: none;
 }
 
 .bb-touch-cluster {
   pointer-events: auto;
   display: flex;
   gap: 0.4rem;
+  touch-action: none;
 }
 
 .bb-pad {
@@ -163,7 +165,7 @@
   cursor: pointer;
   user-select: none;
   -webkit-user-select: none;
-  touch-action: manipulation;
+  touch-action: none;
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -187,6 +189,39 @@
   .bb-canvas {
     /* Leave room for on-screen controls */
     max-height: calc(100% - 5.5rem);
+  }
+}
+
+@media (max-width: 430px) {
+  .bb-root {
+    overscroll-behavior: none;
+  }
+
+  .bb-stage {
+    align-items: flex-start;
+    justify-content: center;
+    padding-bottom: 5.35rem;
+  }
+
+  .bb-pad {
+    width: 3.85rem;
+    height: 3.85rem;
+    font-size: 1.25rem;
+  }
+
+  .bb-touch {
+    inset: auto 0.35rem max(0.35rem, env(safe-area-inset-bottom, 0px));
+  }
+
+  .bb-canvas {
+    width: 100%;
+    max-height: calc(100% - 0.15rem);
+  }
+
+  .bb-hud {
+    padding: 0.45rem 0.55rem;
+    /* HUD covers canvas area, not the pad strip */
+    bottom: 5.35rem;
   }
 }
 
@@ -392,6 +427,29 @@
   justify-content: space-between;
   gap: 0.5rem;
   margin-top: 0.85rem;
+}
+
+@media (max-width: 430px) {
+  .bb-story-copy {
+    padding: 0.75rem 0.85rem max(0.85rem, env(safe-area-inset-bottom, 0px));
+  }
+
+  .bb-story-copy h3 {
+    font-size: 1rem;
+  }
+
+  .bb-story-nav {
+    gap: 0.4rem;
+  }
+
+  .bb-story-nav .bb-ghost,
+  .bb-story-nav .bb-cta {
+    flex: 1 1 0;
+    min-height: 2.75rem;
+    padding: 0.55rem 0.7rem;
+    font-size: 0.84rem;
+    touch-action: manipulation;
+  }
 }
 
 .bb-title-screen {
