@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Bebas_Neue, Source_Sans_3 } from "next/font/google";
+import { AuthSessionProvider } from "@/components/auth/session-provider";
 import "./globals.css";
 
 const bebasNeue = Bebas_Neue({
@@ -42,7 +43,9 @@ export default function RootLayout({
       lang="en"
       className={`${bebasNeue.variable} ${sourceSans.variable} h-full`}
     >
-      <body className="min-h-full antialiased">{children}</body>
+      <body className="min-h-full antialiased">
+        <AuthSessionProvider>{children}</AuthSessionProvider>
+      </body>
     </html>
   );
 }

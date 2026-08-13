@@ -75,14 +75,14 @@ export default function Home() {
 
             <div className="animate-fade-up-delay-3 mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
               <a
-                href="/home"
+                href="/signup"
                 className="inline-flex items-center justify-center gap-2 rounded-full bg-forest px-6 py-3.5 text-[0.98rem] font-semibold text-[#2a2438] shadow-[0_10px_24px_rgba(176,143,206,0.22)] transition hover:-translate-y-0.5 hover:bg-forest-deep"
               >
                 <LeafIcon className="h-4 w-4" />
                 Create your free account
               </a>
               <a
-                href="/home"
+                href="/login"
                 className="inline-flex items-center justify-center gap-2.5 rounded-full border border-accent/40 bg-[#f4f5f8]/10 px-6 py-3.5 text-[0.98rem] font-semibold text-accent transition hover:-translate-y-0.5 hover:bg-[#f4f5f8]/15"
               >
                 <GoogleIcon />
@@ -93,10 +93,17 @@ export default function Home() {
             <p className="mt-5 text-sm text-muted">
               Already have an account?{" "}
               <a
-                href="/home"
+                href="/login"
                 className="font-semibold text-accent underline underline-offset-2"
               >
                 Log in
+              </a>
+              {" · "}
+              <a
+                href="/home"
+                className="font-semibold text-ink/80 underline underline-offset-2"
+              >
+                Browse as guest
               </a>
             </p>
           </div>

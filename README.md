@@ -94,22 +94,75 @@ Playable literary games with streaks, achievements, and friends leaderboards:
 
 ```bash
 npm install
-npm run dev
+cp .env.example .env.local
+cp .env.example .env          # Prisma CLI reads DATABASE_URL from .env
+# Fill AUTH_SECRET (required) and keep DATABASE_URL for SQLite
+npx prisma migrate dev        # creates local SQLite DB
+npm run dev                   # restart after any env change
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
 
+Guest / demo mode still works without signing in — existing localStorage flows are unchanged. Auth is additive.
+
 ### API keys (book recommendations)
 
-- **Local:** copy `.env.example` to `.env.local` and set `OPENAI_API_KEY` (optional `OPENAI_MODEL`).
+- **Local:** set `OPENAI_API_KEY` in `.env.local` (optional `OPENAI_MODEL`).
 - **Netlify:** Site settings → Environment variables → add `OPENAI_API_KEY` (and `OPENAI_MODEL` if needed). GitHub never stores the real key — only `.env.example` is committed.
+
+### Authentication (Auth.js + Prisma)
+
+ReadLife supports **email/password** and **Google OAuth** via [Auth.js (NextAuth v5)](https://authjs.dev/) with a Prisma user store.
+
+| Variable | Required | Notes |
+|----------|----------|--------|
+| `AUTH_SECRET` | Yes | `openssl rand -base64 32` |
+| `DATABASE_URL` | Yes | Local: `file:./dev.db` (SQLite). Production: Neon Postgres URL |
+| `AUTH_URL` | Recommended | `http://localhost:3000` locally; your Netlify URL in prod |
+| `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` | Optional | Email/password works without these |
+| `OPENAI_API_KEY` | Optional | Unrelated to auth; keep as before |
+
+**Email / password (works locally with SQLite only):**
+
+1. Set `AUTH_SECRET` and `DATABASE_URL="file:./dev.db"` in `.env` + `.env.local`.
+2. Run `npx prisma migrate dev` (or `npm run db:migrate`).
+3. Restart `npm run dev`.
+4. Open `/signup`, create an account, then use `/login`.
+5. AppNav shows your name + **Sign out** when signed in.
+
+**Google OAuth:**
+
+1. [Google Cloud Console](https://console.cloud.google.com/) → APIs & Services → Credentials → Create credentials → OAuth client ID → **Web application**.
+2. Authorized JavaScript origins:
+   - `http://localhost:3000`
+   - `https://YOUR-SITE.netlify.app`
+3. Authorized redirect URIs:
+   - `http://localhost:3000/api/auth/callback/google`
+   - `https://YOUR-SITE.netlify.app/api/auth/callback/google`
+4. Copy Client ID / Client Secret into `AUTH_GOOGLE_ID` and `AUTH_GOOGLE_SECRET` (never commit real values).
+5. Restart `npm run dev`. The “Continue with Google” button appears when both vars are set.
+
+**Netlify / Postgres:**
+
+SQLite files do not persist on Netlify’s serverless filesystem. For production:
+
+1. Create a free [Neon](https://neon.tech) Postgres database and copy the connection string.
+2. In `prisma/schema.prisma`, change `provider = "sqlite"` to `provider = "postgresql"`.
+3. Set `DATABASE_URL`, `AUTH_SECRET`, `AUTH_URL` (your Netlify URL), and optionally Google vars in Netlify env settings.
+4. Run `npx prisma migrate deploy` against that database (locally or in CI) before/at deploy.
+5. Redeploy the site.
+
+Server session: `import { auth } from "@/auth"` or `getSession()` / `getCurrentUserId()` from `@/lib/session`.  
+Client session: `useSession()` from `next-auth/react` (wrapped by `AuthSessionProvider` in the root layout).
 
 Other scripts:
 
 ```bash
-npm run build    # production build
-npm run start    # serve production build
-npm run lint     # ESLint
+npm run build       # prisma generate + production build
+npm run start       # serve production build
+npm run lint        # ESLint
+npm run db:migrate  # prisma migrate dev
+npm run db:studio   # browse local DB
 ```
 
 ---
@@ -118,8 +171,10 @@ npm run lint     # ESLint
 
 ```
 src/
-  app/                 # Next.js App Router pages
+  app/                 # Next.js App Router pages (+ /login, /signup, /api/auth)
+  auth.ts              # Auth.js (NextAuth v5) config
   components/
+    auth/              # Session provider, login/signup form, user menu
     dashboard/         # Reading Room UI & overlays
     search/            # Discover & book drawers
     library/           # Library views
@@ -129,7 +184,8 @@ src/
     games/             # Bookbound, Bookle, Bookworm, …
     layout/            # Shared nav
     onboarding/        # Setup flow
-  lib/                 # Shared storage helpers
+  lib/                 # Prisma, session helpers, OpenAI, storage
+prisma/                # Schema + migrations (SQLite locally)
 public/                # Covers, room art, game assets, badges
 ```
 

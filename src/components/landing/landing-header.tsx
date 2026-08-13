@@ -47,13 +47,13 @@ export function LandingHeader() {
 
         <div className="flex items-center gap-2">
           <a
-            href="/home"
+            href="/login"
             className="hidden rounded-full border border-accent/70 px-4 py-1.5 text-sm font-semibold text-accent transition hover:bg-accent/5 sm:inline-flex"
           >
             Log in
           </a>
           <a
-            href="/home"
+            href="/signup"
             className="inline-flex items-center gap-1.5 rounded-full bg-forest px-3.5 py-1.5 text-sm font-semibold text-[#2a2438] shadow-sm transition hover:bg-forest-deep sm:px-4"
           >
             Sign up
@@ -111,11 +111,20 @@ export function LandingHeader() {
             ))}
             <li>
               <a
-                href="/home"
+                href="/login"
                 className="flex min-h-12 items-center rounded-2xl px-4 py-3 text-base font-semibold text-accent hover:bg-[#3f3654]"
                 onClick={() => setOpen(false)}
               >
                 Log in
+              </a>
+            </li>
+            <li>
+              <a
+                href="/signup"
+                className="flex min-h-12 items-center rounded-2xl px-4 py-3 text-base font-semibold text-forest hover:bg-[#3f3654]"
+                onClick={() => setOpen(false)}
+              >
+                Sign up
               </a>
             </li>
           </ul>

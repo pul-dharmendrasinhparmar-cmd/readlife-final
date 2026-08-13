@@ -14,6 +14,8 @@ import {
   type MailItem,
 } from "@/components/dashboard/mailbox-data";
 import { MailboxPanel } from "@/components/dashboard/overlays/mailbox-panel";
+import { signOut, useSession } from "next-auth/react";
+import { UserMenu } from "@/components/auth/user-menu";
 import {
   BellIcon,
   BookIcon,
@@ -41,6 +43,7 @@ function navActive(pathname: string, href: string) {
 
 export function AppNav() {
   const pathname = usePathname();
+  const { data: session } = useSession();
   const menuId = useId();
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const [avatarSrc, setAvatarSrc] = useState("/avatars/reader-female.png");
@@ -155,6 +158,7 @@ export function AppNav() {
           </nav>
 
           <div className="flex items-center gap-2 sm:gap-3">
+            <UserMenu />
             <button
               type="button"
               onClick={() => setMailOpen(true)}
@@ -218,6 +222,33 @@ export function AppNav() {
                   </li>
                 );
               })}
+              <li className="border-t border-[#4a425c]/80 pt-1">
+                {session?.user ? (
+                  <button
+                    type="button"
+                    className="flex min-h-12 w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-base font-semibold text-accent hover:bg-[#3f3654]"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      void signOut({ callbackUrl: "/" });
+                    }}
+                  >
+                    Sign out
+                    {session.user.email ? (
+                      <span className="truncate text-sm font-normal text-muted">
+                        ({session.user.email})
+                      </span>
+                    ) : null}
+                  </button>
+                ) : (
+                  <Link
+                    href="/login"
+                    className="flex min-h-12 items-center gap-3 rounded-2xl px-4 py-3 text-base font-semibold text-accent hover:bg-[#3f3654]"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Sign in / Sign up
+                  </Link>
+                )}
+              </li>
             </ul>
           </nav>
         </div>

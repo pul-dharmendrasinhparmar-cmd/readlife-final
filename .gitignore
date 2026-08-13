@@ -34,6 +34,12 @@ yarn-error.log*
 .env*
 !.env.example
 
+# Local SQLite database (Prisma)
+/prisma/*.db
+/prisma/*.db-journal
+/dev.db
+/dev.db-journal
+
 # vercel
 .vercel
 
@@ -43,3 +49,5 @@ next-env.d.ts
 
 # Local scratch / nested clone (not part of ReadLife)
 tmp-sasin-game/
+
+/src/generated/prisma
