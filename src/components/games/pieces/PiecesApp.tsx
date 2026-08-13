@@ -118,18 +118,20 @@ export function PiecesApp({ onBackToGames }: Props) {
           <p>{formatPiecesTime(g.elapsedMs)}</p>
         </div>
         <div className="pcs-play">
-          <div ref={g.boardRef} className="pcs-board">
-            {PIECES.filter((p) => g.placed.has(p.id)).map((piece) => (
-              <div
-                key={piece.id}
-                className="pcs-board-piece"
-                style={{
-                  ...pieceMaskStyle(piece, g.coverUrl, g.scale),
-                  left: piece.bbox.x * g.scale,
-                  top: piece.bbox.y * g.scale,
-                }}
-              />
-            ))}
+          <div className="pcs-stage">
+            <div ref={g.boardRef} className="pcs-board">
+              {PIECES.filter((p) => g.placed.has(p.id)).map((piece) => (
+                <div
+                  key={piece.id}
+                  className="pcs-board-piece"
+                  style={{
+                    ...pieceMaskStyle(piece, g.coverUrl, g.scale),
+                    left: piece.bbox.x * g.scale,
+                    top: piece.bbox.y * g.scale,
+                  }}
+                />
+              ))}
+            </div>
           </div>
           <div className="pcs-tray" aria-label="Puzzle pieces">
             {g.trayPieces.map((piece) => {
