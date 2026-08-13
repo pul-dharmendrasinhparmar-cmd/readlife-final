@@ -16,7 +16,10 @@
   align-items: center;
   justify-content: flex-start;
   min-height: 0;
+  max-height: 100%;
+  width: 100%;
   overflow: hidden;
+  overscroll-behavior: none;
   font-family: var(--font-source-sans), system-ui, sans-serif;
   color: var(--ink);
   background:
@@ -24,6 +27,8 @@
     radial-gradient(ellipse 90% 70% at 96% 12%, rgba(176, 143, 206, 0.09), transparent 50%),
     linear-gradient(180deg, #3a324f 0%, #2a2438 55%, #3f3654 100%);
   user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 
 .bw-root * {
@@ -113,13 +118,15 @@
   position: relative;
   z-index: 1;
   width: min(100%, 520px);
+  max-height: 100%;
   display: grid;
   gap: 0.7rem;
   padding: 0.75rem 1rem 1rem;
   margin: 0 auto;
   min-height: 0;
   flex: 1;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  overflow: hidden;
   animation: bw-rise 0.4s ease both;
 }
 
@@ -229,16 +236,26 @@
 .bw-stage {
   position: relative;
   min-height: 0;
+  width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
   touch-action: none;
+  overscroll-behavior: none;
+  /* Size the board against this box — not vw/svh (avoids mobile zoom/grow) */
+  container-type: size;
 }
 
 .bw-frame {
   position: relative;
-  width: min(100%, min(92vw, 68svh, 480px));
+  /* Square that always fits the stage; hard cap for desktop */
+  width: min(100%, 480px);
+  max-width: 100%;
+  max-height: 100%;
   aspect-ratio: 1;
+  height: auto;
   padding: 0.55rem;
   background:
     linear-gradient(180deg, #efe2d0, #e5d4bc),
@@ -248,6 +265,14 @@
   box-shadow:
     inset 0 1px 0 rgba(255, 250, 244, 0.85),
     0 10px 28px rgba(42, 36, 56, 0.1);
+  touch-action: none;
+}
+
+@supports (width: min(100cqmin, 480px)) {
+  .bw-frame {
+    width: min(100cqmin, 480px);
+    max-height: none;
+  }
 }
 
 .bw-board {
@@ -984,7 +1009,14 @@
     overscroll-behavior: none;
   }
   .bw-frame {
-    width: min(100%, min(94vw, 56svh, 420px));
+    /* Slightly smaller hard cap on phones; still fits via cqmin/max-height */
+    width: min(100%, 400px);
+  }
+  @supports (width: min(100cqmin, 400px)) {
+    .bw-frame {
+      width: min(100cqmin, 400px);
+      max-height: none;
+    }
   }
   .bw-hint {
     font-size: 0.68rem;
@@ -1023,10 +1055,6 @@
     position: sticky;
     bottom: 0;
     z-index: 2;
-  }
-  .bw-frame {
-    /* Prefer fitting the intro CTA over a taller board on phones */
-    width: min(100%, min(94vw, 52svh, 400px));
   }
 }
 

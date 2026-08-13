@@ -32,9 +32,14 @@ export function useSwipeControls(
   const onPointerDown = useCallback(
     (e: PointerEvent) => {
       if (!enabled || e.button !== 0) return;
-      // Prefer pointer path; ignore secondary touch duplicates.
+      // Prefer pointer path; ignore secondary touch duplicates / pinch.
       if (e.pointerType === "touch") {
         e.preventDefault();
+      }
+      if (start.current && start.current.pointerId !== e.pointerId) {
+        // Second finger — abort swipe so the browser doesn't treat it as zoom.
+        start.current = null;
+        return;
       }
       (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
       start.current = { x: e.clientX, y: e.clientY, pointerId: e.pointerId };

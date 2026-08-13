@@ -199,14 +199,33 @@ export function useBookwormGame(levelId?: string) {
     return () => window.removeEventListener("keydown", onKey);
   }, [queueDir, beginCountdown]);
 
-  // Prevent page scroll while playing / countdown (touch)
+  // Prevent page scroll / pinch-zoom while playing / countdown (touch)
   useEffect(() => {
     if (phase !== "playing" && phase !== "countdown") return;
-    const prevent = (e: TouchEvent) => {
+    const preventMove = (e: TouchEvent) => {
       if (e.cancelable) e.preventDefault();
     };
-    document.addEventListener("touchmove", prevent, { passive: false });
-    return () => document.removeEventListener("touchmove", prevent);
+    // Multi-touch + Safari gesture events cause the page to keep enlarging
+    const preventZoomTouch = (e: TouchEvent) => {
+      if (e.touches.length > 1 && e.cancelable) e.preventDefault();
+    };
+    const preventGesture = (e: Event) => {
+      e.preventDefault();
+    };
+    document.addEventListener("touchmove", preventMove, { passive: false });
+    document.addEventListener("touchstart", preventZoomTouch, { passive: false });
+    document.addEventListener("gesturestart", preventGesture, {
+      passive: false,
+    } as AddEventListenerOptions);
+    document.addEventListener("gesturechange", preventGesture, {
+      passive: false,
+    } as AddEventListenerOptions);
+    return () => {
+      document.removeEventListener("touchmove", preventMove);
+      document.removeEventListener("touchstart", preventZoomTouch);
+      document.removeEventListener("gesturestart", preventGesture);
+      document.removeEventListener("gesturechange", preventGesture);
+    };
   }, [phase]);
 
   // Combo expiry ticker
