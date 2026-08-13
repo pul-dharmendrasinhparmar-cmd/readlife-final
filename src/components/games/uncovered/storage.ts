@@ -1,3 +1,4 @@
+import { storageKey } from "@/lib/user-storage";
 import type { UncoveredStats } from "./types";
 import { localISODate } from "./questions";
 
@@ -22,7 +23,7 @@ function yesterdayISO() {
 export function loadUncoveredStats(): UncoveredStats {
   if (typeof window === "undefined") return EMPTY;
   try {
-    const raw = localStorage.getItem(KEY);
+    const raw = localStorage.getItem(storageKey(KEY));
     if (!raw) return EMPTY;
     const parsed = JSON.parse(raw) as UncoveredStats;
     const today = localISODate();
@@ -76,7 +77,7 @@ export function recordUncoveredGame(input: {
       : input.recognized,
   };
   try {
-    localStorage.setItem(KEY, JSON.stringify(next));
+    localStorage.setItem(storageKey(KEY), JSON.stringify(next));
   } catch {
     /* ignore */
   }

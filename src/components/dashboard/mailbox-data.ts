@@ -1,5 +1,7 @@
 "use client";
 
+import { shouldSeedDemo, storageKey } from "@/lib/user-storage";
+
 export type MailItem = {
   id: string;
   kind: "buddy" | "badge" | "list" | "wrapped" | "party" | "game" | "book" | "update";
@@ -110,22 +112,28 @@ function mergeSeed(existing: MailItem[]): MailItem[] {
 }
 
 export function loadMailbox(): MailItem[] {
-  if (typeof window === "undefined") return sortMail([...SEED]);
+  if (typeof window === "undefined") {
+    return shouldSeedDemo() ? sortMail([...SEED]) : [];
+  }
   try {
-    const raw = localStorage.getItem(KEY);
+    const raw = localStorage.getItem(storageKey(KEY));
     if (!raw) {
+      if (!shouldSeedDemo()) return [];
       const seeded = sortMail([...SEED]);
-      localStorage.setItem(KEY, JSON.stringify(seeded));
+      localStorage.setItem(storageKey(KEY), JSON.stringify(seeded));
       return seeded;
     }
     const parsed = JSON.parse(raw) as MailItem[];
+    if (!shouldSeedDemo()) {
+      return Array.isArray(parsed) ? sortMail(parsed) : [];
+    }
     const base =
       Array.isArray(parsed) && parsed.length ? parsed : [...SEED];
     const merged = mergeSeed(base);
-    localStorage.setItem(KEY, JSON.stringify(merged));
+    localStorage.setItem(storageKey(KEY), JSON.stringify(merged));
     return merged;
   } catch {
-    return sortMail([...SEED]);
+    return shouldSeedDemo() ? sortMail([...SEED]) : [];
   }
 }
 
@@ -134,7 +142,7 @@ export function markMailboxRead(id?: string): MailItem[] {
     !id || m.id === id ? { ...m, unread: false } : m,
   );
   try {
-    localStorage.setItem(KEY, JSON.stringify(items));
+    localStorage.setItem(storageKey(KEY), JSON.stringify(items));
   } catch {
     // ignore
   }

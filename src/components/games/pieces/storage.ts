@@ -1,4 +1,5 @@
 import { localISODate } from "@/components/games/uncovered/questions";
+import { storageKey } from "@/lib/user-storage";
 import type { PiecesStats } from "./types";
 
 const KEY = "readlife-pieces-stats-v1";
@@ -13,7 +14,7 @@ export const EMPTY_PIECES_STATS: PiecesStats = {
 export function loadPiecesStats(): PiecesStats {
   if (typeof window === "undefined") return EMPTY_PIECES_STATS;
   try {
-    const raw = localStorage.getItem(KEY);
+    const raw = localStorage.getItem(storageKey(KEY));
     if (!raw) return EMPTY_PIECES_STATS;
     const parsed = JSON.parse(raw) as PiecesStats;
     const today = localISODate();
@@ -48,7 +49,7 @@ export function recordPiecesGame(input: { timeMs: number; completed: boolean }) 
     todayCompleted: input.completed || (prev.lastPlayedDate === today && prev.todayCompleted),
   };
   try {
-    localStorage.setItem(KEY, JSON.stringify(next));
+    localStorage.setItem(storageKey(KEY), JSON.stringify(next));
   } catch {
     /* ignore */
   }

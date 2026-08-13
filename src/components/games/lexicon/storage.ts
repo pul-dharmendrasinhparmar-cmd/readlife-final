@@ -1,3 +1,5 @@
+import { storageKey } from "@/lib/user-storage";
+
 export type LexiconStats = {
   gamesPlayed: number;
   gamesWon: number;
@@ -21,7 +23,7 @@ export function loadLexiconStats(): LexiconStats {
     return { gamesPlayed: 0, gamesWon: 0, personalBest: 0 };
   }
   try {
-    const raw = localStorage.getItem(KEY);
+    const raw = localStorage.getItem(storageKey(KEY));
     if (!raw) return { gamesPlayed: 0, gamesWon: 0, personalBest: 0 };
     return JSON.parse(raw) as LexiconStats;
   } catch {
@@ -44,7 +46,7 @@ export function recordLexiconGame(input: {
     lastPlayedDate: todayISO(),
   };
   try {
-    localStorage.setItem(KEY, JSON.stringify(next));
+    localStorage.setItem(storageKey(KEY), JSON.stringify(next));
   } catch {
     /* ignore */
   }

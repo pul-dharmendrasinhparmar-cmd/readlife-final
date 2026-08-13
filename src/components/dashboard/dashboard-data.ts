@@ -2,6 +2,7 @@
 
 import { buildPeriodSnapshot } from "@/components/insights/calculate";
 import { DEMO_STREAK_DAYS } from "@/components/insights/demo-sessions";
+import { shouldSeedDemo } from "@/lib/user-storage";
 import type { BuddyRead } from "@/components/profile/types";
 import { getBookById } from "@/components/search/data";
 import type {
@@ -124,12 +125,12 @@ export function getMonthPreview(discovery: DiscoveryState): MonthPreview {
     hoursRead: Math.round((minutes / 60) * 10) / 10,
     avgRating: snap.avgRating.value,
     minutesRead: minutes,
-    streakDays: snap.streakDays.value || DEMO_STREAK_DAYS,
+    streakDays: snap.streakDays.value || (shouldSeedDemo() ? DEMO_STREAK_DAYS : 0),
   };
 }
 
 export function getStreakDays(): number {
-  return DEMO_STREAK_DAYS;
+  return shouldSeedDemo() ? DEMO_STREAK_DAYS : 0;
 }
 
 export function getTodayGoalMinutes(onboarding: OnboardingState) {

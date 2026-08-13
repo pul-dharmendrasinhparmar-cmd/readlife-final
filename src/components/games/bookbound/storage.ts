@@ -1,4 +1,5 @@
 import type { GameProfile, UserGameAchievement } from "@/components/games/hub/types";
+import { storageKey } from "@/lib/user-storage";
 import type { BookboundStats, ChapterId, RunStats } from "./types";
 
 const KEY = "readlife-bookbound-stats-v1";
@@ -23,7 +24,7 @@ export const EMPTY_BOOKBOUND: BookboundStats = {
 export function loadBookboundStats(): BookboundStats {
   if (typeof window === "undefined") return EMPTY_BOOKBOUND;
   try {
-    const raw = localStorage.getItem(KEY);
+    const raw = localStorage.getItem(storageKey(KEY));
     if (!raw) return EMPTY_BOOKBOUND;
     return { ...EMPTY_BOOKBOUND, ...(JSON.parse(raw) as BookboundStats) };
   } catch {
@@ -33,7 +34,7 @@ export function loadBookboundStats(): BookboundStats {
 
 function saveStats(next: BookboundStats) {
   try {
-    localStorage.setItem(KEY, JSON.stringify(next));
+    localStorage.setItem(storageKey(KEY), JSON.stringify(next));
   } catch {
     /* ignore */
   }
@@ -42,7 +43,7 @@ function saveStats(next: BookboundStats) {
 export function hasSeenBookboundIntro() {
   if (typeof window === "undefined") return true;
   try {
-    return localStorage.getItem(INTRO_KEY) === "1";
+    return localStorage.getItem(storageKey(INTRO_KEY)) === "1";
   } catch {
     return true;
   }
@@ -50,7 +51,7 @@ export function hasSeenBookboundIntro() {
 
 export function markBookboundIntroSeen() {
   try {
-    localStorage.setItem(INTRO_KEY, "1");
+    localStorage.setItem(storageKey(INTRO_KEY), "1");
   } catch {
     /* ignore */
   }
@@ -59,7 +60,7 @@ export function markBookboundIntroSeen() {
 export function loadBookboundMute() {
   if (typeof window === "undefined") return false;
   try {
-    return localStorage.getItem(MUTE_KEY) === "1";
+    return localStorage.getItem(storageKey(MUTE_KEY)) === "1";
   } catch {
     return false;
   }
@@ -67,7 +68,7 @@ export function loadBookboundMute() {
 
 export function saveBookboundMute(muted: boolean) {
   try {
-    localStorage.setItem(MUTE_KEY, muted ? "1" : "0");
+    localStorage.setItem(storageKey(MUTE_KEY), muted ? "1" : "0");
   } catch {
     /* ignore */
   }

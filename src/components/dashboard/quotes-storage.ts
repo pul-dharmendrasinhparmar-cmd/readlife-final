@@ -1,5 +1,7 @@
 "use client";
 
+import { shouldSeedDemo, storageKey } from "@/lib/user-storage";
+
 export type FavoriteQuote = {
   id: string;
   text: string;
@@ -34,24 +36,33 @@ const SEED: FavoriteQuote[] = [
   },
 ];
 
+function defaults(): FavoriteQuote[] {
+  return shouldSeedDemo() ? [...SEED] : [];
+}
+
 export function loadQuotes(): FavoriteQuote[] {
-  if (typeof window === "undefined") return SEED;
+  if (typeof window === "undefined") return defaults();
   try {
-    const raw = localStorage.getItem(KEY);
+    const raw = localStorage.getItem(storageKey(KEY));
     if (!raw) {
-      localStorage.setItem(KEY, JSON.stringify(SEED));
-      return [...SEED];
+      const fresh = defaults();
+      if (shouldSeedDemo()) {
+        localStorage.setItem(storageKey(KEY), JSON.stringify(fresh));
+      }
+      return fresh;
     }
     const parsed = JSON.parse(raw) as FavoriteQuote[];
-    return Array.isArray(parsed) && parsed.length ? parsed : [...SEED];
+    if (!Array.isArray(parsed)) return defaults();
+    if (shouldSeedDemo() && !parsed.length) return [...SEED];
+    return parsed;
   } catch {
-    return [...SEED];
+    return defaults();
   }
 }
 
 export function saveQuotes(quotes: FavoriteQuote[]) {
   try {
-    localStorage.setItem(KEY, JSON.stringify(quotes));
+    localStorage.setItem(storageKey(KEY), JSON.stringify(quotes));
   } catch {
     // ignore
   }

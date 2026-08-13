@@ -55,9 +55,13 @@ export function AppNav() {
   useEffect(() => {
     const state = getDashboardState();
     setAvatarSrc(resolveAvatarImage(state.avatar));
-    setName(state.displayName.trim() || "Alex");
+    setName(
+      state.displayName.trim() ||
+        session?.user?.name?.trim() ||
+        (session?.user ? "Reader" : "Alex"),
+    );
     setMail(loadMailbox());
-  }, []);
+  }, [session?.user?.id, session?.user?.name]);
 
   useEffect(() => {
     if (mailOpen) setMail(loadMailbox());

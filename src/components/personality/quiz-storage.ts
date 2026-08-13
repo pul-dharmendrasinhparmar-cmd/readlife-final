@@ -1,5 +1,6 @@
 "use client";
 
+import { shouldSeedDemo, storageKey } from "@/lib/user-storage";
 import { PERSONALITY_QUESTIONS } from "./questions";
 import { getPersonality } from "./personalities";
 import { buildAssessmentId, scoreAnswers } from "./score";
@@ -76,18 +77,19 @@ function assessmentFromScore(
 }
 
 /**
- * Seed demo EIMO once. Never overwrites an existing history/active assessment.
+ * Seed demo EIMO once for guests. Signed-in users must take the quiz themselves.
  */
 export function ensureDemoPersonalitySeed(): PersonalityAssessment | null {
   if (typeof window === "undefined") return null;
+  if (!shouldSeedDemo()) return null;
   try {
-    if (localStorage.getItem(SKIP_DEMO_KEY) === "1") return null;
+    if (localStorage.getItem(storageKey(SKIP_DEMO_KEY)) === "1") return null;
     const history = loadHistory();
     if (history.length > 0) {
-      localStorage.setItem(SEEDED_KEY, "1");
+      localStorage.setItem(storageKey(SEEDED_KEY), "1");
       return loadActiveAssessment();
     }
-    if (localStorage.getItem(SEEDED_KEY) === "1") {
+    if (localStorage.getItem(storageKey(SEEDED_KEY)) === "1") {
       return loadActiveAssessment();
     }
 
@@ -101,8 +103,8 @@ export function ensureDemoPersonalitySeed(): PersonalityAssessment | null {
       { isPublic: true, addedToProfile: true },
     );
     appendHistory(assessment);
-    localStorage.setItem(ACTIVE_KEY, JSON.stringify(assessment));
-    localStorage.setItem(SEEDED_KEY, "1");
+    localStorage.setItem(storageKey(ACTIVE_KEY), JSON.stringify(assessment));
+    localStorage.setItem(storageKey(SEEDED_KEY), "1");
     return assessment;
   } catch {
     return null;
@@ -112,7 +114,7 @@ export function ensureDemoPersonalitySeed(): PersonalityAssessment | null {
 export function loadQuizProgress(): QuizProgress | null {
   if (typeof window === "undefined") return null;
   try {
-    const raw = localStorage.getItem(PROGRESS_KEY);
+    const raw = localStorage.getItem(storageKey(PROGRESS_KEY));
     if (!raw) return null;
     return JSON.parse(raw) as QuizProgress;
   } catch {
@@ -122,7 +124,7 @@ export function loadQuizProgress(): QuizProgress | null {
 
 export function saveQuizProgress(progress: QuizProgress) {
   try {
-    localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress));
+    localStorage.setItem(storageKey(PROGRESS_KEY), JSON.stringify(progress));
   } catch {
     // ignore
   }
@@ -130,7 +132,7 @@ export function saveQuizProgress(progress: QuizProgress) {
 
 export function clearQuizProgress() {
   try {
-    localStorage.removeItem(PROGRESS_KEY);
+    localStorage.removeItem(storageKey(PROGRESS_KEY));
   } catch {
     // ignore
   }
@@ -139,7 +141,7 @@ export function clearQuizProgress() {
 export function loadHistory(): PersonalityAssessment[] {
   if (typeof window === "undefined") return [];
   try {
-    const raw = localStorage.getItem(HISTORY_KEY);
+    const raw = localStorage.getItem(storageKey(HISTORY_KEY));
     if (!raw) return [];
     return JSON.parse(raw) as PersonalityAssessment[];
   } catch {
@@ -155,7 +157,7 @@ function appendHistory(assessment: PersonalityAssessment) {
     20,
   );
   try {
-    localStorage.setItem(HISTORY_KEY, JSON.stringify(next));
+    localStorage.setItem(storageKey(HISTORY_KEY), JSON.stringify(next));
   } catch {
     // ignore
   }
@@ -164,7 +166,7 @@ function appendHistory(assessment: PersonalityAssessment) {
 export function loadActiveAssessment(): PersonalityAssessment | null {
   if (typeof window === "undefined") return null;
   try {
-    const raw = localStorage.getItem(ACTIVE_KEY);
+    const raw = localStorage.getItem(storageKey(ACTIVE_KEY));
     if (raw) return JSON.parse(raw) as PersonalityAssessment;
     const history = loadHistory();
     return history.find((h) => h.addedToProfile) ?? history[0] ?? null;
@@ -177,7 +179,7 @@ export function saveAssessment(assessment: PersonalityAssessment) {
   appendHistory(assessment);
   if (assessment.addedToProfile) {
     try {
-      localStorage.setItem(ACTIVE_KEY, JSON.stringify(assessment));
+      localStorage.setItem(storageKey(ACTIVE_KEY), JSON.stringify(assessment));
     } catch {
       // ignore
     }
@@ -188,7 +190,7 @@ export function setActiveAssessment(assessment: PersonalityAssessment) {
   const next = { ...assessment, addedToProfile: true };
   appendHistory(next);
   try {
-    localStorage.setItem(ACTIVE_KEY, JSON.stringify(next));
+    localStorage.setItem(storageKey(ACTIVE_KEY), JSON.stringify(next));
   } catch {
     // ignore
   }
@@ -201,7 +203,7 @@ export function updateActiveVisibility(isPublic: boolean) {
   const next = { ...active, isPublic };
   appendHistory(next);
   try {
-    localStorage.setItem(ACTIVE_KEY, JSON.stringify(next));
+    localStorage.setItem(storageKey(ACTIVE_KEY), JSON.stringify(next));
   } catch {
     // ignore
   }

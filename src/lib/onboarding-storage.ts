@@ -1,14 +1,30 @@
 "use client";
 
 import {
+  EMPTY_ONBOARDING_STATE,
   INITIAL_STATE,
   ONBOARDING_STORAGE_KEY,
   type OnboardingState,
 } from "@/components/onboarding/data";
+import {
+  displayNameFromHints,
+  getAuthHints,
+  shouldSeedDemo,
+  storageKey,
+} from "@/lib/user-storage";
+
+function mergeBase(): OnboardingState {
+  return shouldSeedDemo()
+    ? structuredClone(INITIAL_STATE)
+    : structuredClone(EMPTY_ONBOARDING_STATE);
+}
 
 export function saveOnboardingState(state: OnboardingState) {
   try {
-    localStorage.setItem(ONBOARDING_STORAGE_KEY, JSON.stringify(state));
+    localStorage.setItem(
+      storageKey(ONBOARDING_STORAGE_KEY),
+      JSON.stringify(state),
+    );
   } catch {
     // ignore quota / private mode
   }
@@ -16,40 +32,56 @@ export function saveOnboardingState(state: OnboardingState) {
 
 export function loadOnboardingState(): OnboardingState | null {
   try {
-    const raw = localStorage.getItem(ONBOARDING_STORAGE_KEY);
+    const raw = localStorage.getItem(storageKey(ONBOARDING_STORAGE_KEY));
     if (!raw) return null;
     const parsed = JSON.parse(raw) as Partial<OnboardingState>;
+    const base = mergeBase();
     return {
-      ...INITIAL_STATE,
+      ...base,
       ...parsed,
-      goals: { ...INITIAL_STATE.goals, ...(parsed.goals ?? {}) },
-      lovedBooks: parsed.lovedBooks ?? INITIAL_STATE.lovedBooks,
-      skipBooks: parsed.skipBooks ?? INITIAL_STATE.skipBooks,
-      genres: parsed.genres ?? INITIAL_STATE.genres,
-      formats: parsed.formats ?? INITIAL_STATE.formats,
+      goals: { ...base.goals, ...(parsed.goals ?? {}) },
+      lovedBooks: parsed.lovedBooks ?? base.lovedBooks,
+      skipBooks: parsed.skipBooks ?? base.skipBooks,
+      genres: parsed.genres ?? base.genres,
+      formats: parsed.formats ?? base.formats,
     };
   } catch {
     return null;
   }
 }
 
-/** Demo-friendly defaults when setup has not been completed yet. */
+/** Dashboard identity + goals — demo Alex for guests; auth/empty for accounts. */
 export function getDashboardState(): OnboardingState {
   const saved = loadOnboardingState();
+  if (shouldSeedDemo()) {
+    if (saved) {
+      return {
+        ...saved,
+        displayName: saved.displayName.trim() || "Alex",
+        avatar: saved.avatar ?? "female",
+        pet: saved.pet ?? "cat",
+        petName: saved.petName.trim() || "Mochi",
+      };
+    }
+    return {
+      ...INITIAL_STATE,
+      displayName: "Alex",
+      avatar: "female",
+      pet: "cat",
+      petName: "Mochi",
+    };
+  }
+
+  const hints = getAuthHints();
+  const fallbackName = displayNameFromHints(hints);
   if (saved) {
     return {
       ...saved,
-      displayName: saved.displayName.trim() || "Alex",
-      avatar: saved.avatar ?? "female",
-      pet: saved.pet ?? "cat",
-      petName: saved.petName.trim() || "Mochi",
+      displayName: saved.displayName.trim() || fallbackName,
     };
   }
   return {
-    ...INITIAL_STATE,
-    displayName: "Alex",
-    avatar: "female",
-    pet: "cat",
-    petName: "Mochi",
+    ...EMPTY_ONBOARDING_STATE,
+    displayName: fallbackName,
   };
 }

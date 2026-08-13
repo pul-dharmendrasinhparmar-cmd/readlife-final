@@ -2,6 +2,7 @@
 
 import type { DiscoveryState } from "@/components/search/types";
 import { updateLibraryEntry } from "@/lib/discovery-storage";
+import { shouldSeedDemo, storageKey } from "@/lib/user-storage";
 
 const TODAY_KEY = "readlife-today-goal-v1";
 
@@ -16,25 +17,28 @@ function todayKey() {
 
 export function loadTodayGoalProgress(): TodayGoalProgress {
   const date = todayKey();
+  const demoMinutes = shouldSeedDemo() ? 18 : 0;
   if (typeof window === "undefined") {
-    return { date, minutesDone: 18 };
+    return { date, minutesDone: demoMinutes };
   }
   try {
-    const raw = localStorage.getItem(TODAY_KEY);
+    const raw = localStorage.getItem(storageKey(TODAY_KEY));
     if (!raw) {
-      const seed = { date, minutesDone: 18 };
-      localStorage.setItem(TODAY_KEY, JSON.stringify(seed));
+      const seed = { date, minutesDone: demoMinutes };
+      if (shouldSeedDemo()) {
+        localStorage.setItem(storageKey(TODAY_KEY), JSON.stringify(seed));
+      }
       return seed;
     }
     const parsed = JSON.parse(raw) as TodayGoalProgress;
     if (parsed.date !== date) {
       const fresh = { date, minutesDone: 0 };
-      localStorage.setItem(TODAY_KEY, JSON.stringify(fresh));
+      localStorage.setItem(storageKey(TODAY_KEY), JSON.stringify(fresh));
       return fresh;
     }
     return parsed;
   } catch {
-    return { date, minutesDone: 18 };
+    return { date, minutesDone: demoMinutes };
   }
 }
 
@@ -45,7 +49,7 @@ export function addTodayMinutes(minutes: number): TodayGoalProgress {
     minutesDone: current.minutesDone + Math.max(0, minutes),
   };
   try {
-    localStorage.setItem(TODAY_KEY, JSON.stringify(next));
+    localStorage.setItem(storageKey(TODAY_KEY), JSON.stringify(next));
   } catch {
     // ignore
   }

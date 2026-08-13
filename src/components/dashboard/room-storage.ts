@@ -1,5 +1,7 @@
 "use client";
 
+import { storageKey } from "@/lib/user-storage";
+
 export type RoomVibe = "day" | "night" | "rainy" | "snowy";
 
 export type RoomPrefs = {
@@ -34,7 +36,7 @@ function hourDefaultVibe(): RoomVibe {
 export function loadRoomPrefs(): RoomPrefs {
   if (typeof window === "undefined") return DEFAULTS;
   try {
-    const raw = localStorage.getItem(KEY);
+    const raw = localStorage.getItem(storageKey(KEY));
     if (!raw) {
       return { ...DEFAULTS, vibe: hourDefaultVibe() };
     }
@@ -50,7 +52,7 @@ export function loadRoomPrefs(): RoomPrefs {
 
 export function saveRoomPrefs(prefs: RoomPrefs) {
   try {
-    localStorage.setItem(KEY, JSON.stringify(prefs));
+    localStorage.setItem(storageKey(KEY), JSON.stringify(prefs));
   } catch {
     // ignore
   }

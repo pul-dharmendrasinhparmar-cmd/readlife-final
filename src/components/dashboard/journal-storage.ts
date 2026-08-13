@@ -1,5 +1,7 @@
 "use client";
 
+import { shouldSeedDemo, storageKey } from "@/lib/user-storage";
+
 export type JournalEntry = {
   id: string;
   title: string;
@@ -27,24 +29,33 @@ const SEED: JournalEntry[] = [
   },
 ];
 
+function defaults(): JournalEntry[] {
+  return shouldSeedDemo() ? [...SEED] : [];
+}
+
 export function loadJournal(): JournalEntry[] {
-  if (typeof window === "undefined") return SEED;
+  if (typeof window === "undefined") return defaults();
   try {
-    const raw = localStorage.getItem(KEY);
+    const raw = localStorage.getItem(storageKey(KEY));
     if (!raw) {
-      localStorage.setItem(KEY, JSON.stringify(SEED));
-      return [...SEED];
+      const fresh = defaults();
+      if (shouldSeedDemo()) {
+        localStorage.setItem(storageKey(KEY), JSON.stringify(fresh));
+      }
+      return fresh;
     }
     const parsed = JSON.parse(raw) as JournalEntry[];
-    return Array.isArray(parsed) && parsed.length ? parsed : [...SEED];
+    if (!Array.isArray(parsed)) return defaults();
+    if (shouldSeedDemo() && !parsed.length) return [...SEED];
+    return parsed;
   } catch {
-    return [...SEED];
+    return defaults();
   }
 }
 
 export function saveJournal(entries: JournalEntry[]) {
   try {
-    localStorage.setItem(KEY, JSON.stringify(entries));
+    localStorage.setItem(storageKey(KEY), JSON.stringify(entries));
   } catch {
     // ignore
   }

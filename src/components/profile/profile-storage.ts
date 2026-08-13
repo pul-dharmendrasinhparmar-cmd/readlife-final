@@ -1,6 +1,14 @@
 "use client";
 
 import { DISCOVER_READERS } from "@/components/search/data";
+import {
+  displayNameFromHints,
+  getAuthHints,
+  shouldSeedDemo,
+  storageKey,
+  usernameFromHints,
+  type AuthUserHints,
+} from "@/lib/user-storage";
 import type {
   ActivityItem,
   FollowPerson,
@@ -229,16 +237,98 @@ export function defaultProfileState(): ProfileState {
   };
 }
 
+/** Clean slate for a newly signed-up / logged-in account. */
+export function emptyProfileState(user?: AuthUserHints | null): ProfileState {
+  const hints = user ?? getAuthHints();
+  const displayName = displayNameFromHints(hints);
+  const username = usernameFromHints(hints);
+  return {
+    profile: {
+      userId: hints?.id ?? "me",
+      displayName,
+      username,
+      bio: "",
+      avatarId: "female",
+      shelfPetId: "cat",
+      petName: "",
+      socialLinks: {},
+      followersCount: 0,
+      followingCount: 0,
+      privacy: {
+        readingPersonalityPublic: true,
+        readerDnaPublic: true,
+        readingEraPublic: true,
+        activityPublic: true,
+        readingRoomPublic: true,
+        booksPublic: true,
+      },
+      favoriteBookIds: [],
+      featuredBadgeIds: [],
+      recommendedListIds: [],
+      readingEra: {
+        title: "",
+        blurb: "",
+      },
+      buddyReads: [],
+    },
+    lists: [],
+    followerIds: [],
+    followingPeople: [],
+    followerPeople: [],
+    activity: [],
+    savedListIds: [],
+  };
+}
+
+function profileDefaultsForScope(): ProfileState {
+  return shouldSeedDemo() ? defaultProfileState() : emptyProfileState();
+}
+
 export function loadProfileState(): ProfileState {
-  if (typeof window === "undefined") return defaultProfileState();
+  if (typeof window === "undefined") return profileDefaultsForScope();
   try {
-    const raw = localStorage.getItem(PROFILE_KEY);
+    const raw = localStorage.getItem(storageKey(PROFILE_KEY));
     if (!raw) {
-      const fresh = defaultProfileState();
+      const fresh = profileDefaultsForScope();
       saveProfileState(fresh);
       return fresh;
     }
     const parsed = JSON.parse(raw) as Partial<ProfileState>;
+
+    if (!shouldSeedDemo()) {
+      const base = emptyProfileState();
+      return {
+        ...base,
+        ...parsed,
+        profile: {
+          ...base.profile,
+          ...(parsed.profile ?? {}),
+          socialLinks: {
+            ...base.profile.socialLinks,
+            ...(parsed.profile?.socialLinks ?? {}),
+          },
+          privacy: {
+            ...base.profile.privacy,
+            ...(parsed.profile?.privacy ?? {}),
+          },
+          readingEra: {
+            ...base.profile.readingEra,
+            ...(parsed.profile?.readingEra ?? {}),
+          },
+          buddyReads: parsed.profile?.buddyReads ?? [],
+          favoriteBookIds: parsed.profile?.favoriteBookIds ?? [],
+          featuredBadgeIds: parsed.profile?.featuredBadgeIds ?? [],
+          recommendedListIds: parsed.profile?.recommendedListIds ?? [],
+        },
+        lists: parsed.lists ?? [],
+        followerIds: parsed.followerIds ?? [],
+        followingPeople: parsed.followingPeople ?? [],
+        followerPeople: parsed.followerPeople ?? [],
+        activity: parsed.activity ?? [],
+        savedListIds: parsed.savedListIds ?? [],
+      };
+    }
+
     const base = defaultProfileState();
     return {
       ...base,
@@ -278,13 +368,13 @@ export function loadProfileState(): ProfileState {
       activity: parsed.activity?.length ? parsed.activity : base.activity,
     };
   } catch {
-    return defaultProfileState();
+    return profileDefaultsForScope();
   }
 }
 
 export function saveProfileState(state: ProfileState) {
   try {
-    localStorage.setItem(PROFILE_KEY, JSON.stringify(state));
+    localStorage.setItem(storageKey(PROFILE_KEY), JSON.stringify(state));
   } catch {
     // ignore
   }

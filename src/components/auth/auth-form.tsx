@@ -2,9 +2,16 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { signIn } from "next-auth/react";
+import { getSession, signIn } from "next-auth/react";
 import { useState } from "react";
 import { GoogleIcon, LeafIcon } from "@/components/icons";
+import { bindUserStorage } from "@/lib/user-storage";
+import { emptyProfileState, saveProfileState } from "@/components/profile/profile-storage";
+import { emptyDiscoveryState, saveDiscoveryState } from "@/lib/discovery-storage";
+import { saveOnboardingState } from "@/lib/onboarding-storage";
+import { EMPTY_ONBOARDING_STATE } from "@/components/onboarding/data";
+import { buildEmptyProfile } from "@/components/games/hub/demo-data";
+import { saveGameProfile } from "@/components/games/hub/storage";
 
 type Mode = "login" | "signup";
 
@@ -30,6 +37,10 @@ export function AuthForm({ mode, googleEnabled }: AuthFormProps) {
     setPending(true);
 
     try {
+      let registeredUser:
+        | { id: string; email: string; name: string | null }
+        | undefined;
+
       if (mode === "signup") {
         const res = await fetch("/api/auth/register", {
           method: "POST",
@@ -38,11 +49,13 @@ export function AuthForm({ mode, googleEnabled }: AuthFormProps) {
         });
         const data = (await res.json().catch(() => ({}))) as {
           error?: string;
+          user?: { id: string; email: string; name: string | null };
         };
         if (!res.ok) {
           setError(data.error || "Could not create account.");
           return;
         }
+        registeredUser = data.user;
       }
 
       const result = await signIn("credentials", {
@@ -59,6 +72,40 @@ export function AuthForm({ mode, googleEnabled }: AuthFormProps) {
             : "Account created, but sign-in failed. Try logging in.",
         );
         return;
+      }
+
+      // Bind user-scoped storage before navigation so demo guest keys never apply.
+      if (registeredUser?.id) {
+        bindUserStorage({
+          id: registeredUser.id,
+          name: registeredUser.name,
+          email: registeredUser.email,
+        });
+        saveDiscoveryState(emptyDiscoveryState());
+        saveProfileState(
+          emptyProfileState({
+            id: registeredUser.id,
+            name: registeredUser.name,
+            email: registeredUser.email,
+          }),
+        );
+        saveOnboardingState({
+          ...EMPTY_ONBOARDING_STATE,
+          displayName:
+            registeredUser.name?.trim() ||
+            registeredUser.email.split("@")[0] ||
+            "Reader",
+        });
+        saveGameProfile(buildEmptyProfile({ userId: registeredUser.id }));
+      } else {
+        const session = await getSession();
+        if (session?.user?.id) {
+          bindUserStorage({
+            id: session.user.id,
+            name: session.user.name,
+            email: session.user.email,
+          });
+        }
       }
 
       router.push(callbackUrl);

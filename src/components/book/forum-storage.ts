@@ -1,5 +1,6 @@
 "use client";
 
+import { storageKey } from "@/lib/user-storage";
 import type { ForumPost } from "./types";
 
 const KEY = "readlife-book-forum-v1";
@@ -9,7 +10,7 @@ type Store = Record<string, ForumPost[]>;
 function readStore(): Store {
   if (typeof window === "undefined") return {};
   try {
-    const raw = localStorage.getItem(KEY);
+    const raw = localStorage.getItem(storageKey(KEY));
     if (!raw) return {};
     const parsed = JSON.parse(raw) as Store;
     return parsed && typeof parsed === "object" ? parsed : {};
@@ -19,7 +20,7 @@ function readStore(): Store {
 }
 
 function writeStore(store: Store) {
-  localStorage.setItem(KEY, JSON.stringify(store));
+  localStorage.setItem(storageKey(KEY), JSON.stringify(store));
 }
 
 export function loadUserForumPosts(bookId: string): ForumPost[] {

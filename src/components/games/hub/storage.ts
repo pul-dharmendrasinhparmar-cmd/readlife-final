@@ -5,7 +5,8 @@ import { loadLexiconStats } from "@/components/games/lexicon/storage";
 import { loadUncoveredStats } from "@/components/games/uncovered/storage";
 import { loadPiecesStats } from "@/components/games/pieces/storage";
 import { loadTrolleyStats } from "@/components/games/trolley/storage";
-import { buildDemoProfile, todayISO } from "./demo-data";
+import { shouldSeedDemo, storageKey } from "@/lib/user-storage";
+import { buildDemoProfile, buildEmptyProfile, todayISO } from "./demo-data";
 import type {
   BookboundStats,
   GameProfile,
@@ -271,26 +272,30 @@ function withLiveStats(profile: GameProfile): GameProfile {
   );
 }
 
+function freshProfile(): GameProfile {
+  return shouldSeedDemo() ? buildDemoProfile() : buildEmptyProfile();
+}
+
 export function loadGameProfile(): GameProfile {
-  if (typeof window === "undefined") return buildDemoProfile();
+  if (typeof window === "undefined") return freshProfile();
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(storageKey(STORAGE_KEY));
     if (!raw) {
-      const seeded = buildDemoProfile();
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(seeded));
+      const seeded = freshProfile();
+      localStorage.setItem(storageKey(STORAGE_KEY), JSON.stringify(seeded));
       return withLiveStats(seeded);
     }
     const parsed = normalizeProfile(JSON.parse(raw) as GameProfile);
     return withLiveStats(parsed);
   } catch {
-    return withLiveStats(buildDemoProfile());
+    return withLiveStats(freshProfile());
   }
 }
 
 export function saveGameProfile(profile: GameProfile) {
   if (typeof window === "undefined") return;
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
+    localStorage.setItem(storageKey(STORAGE_KEY), JSON.stringify(profile));
   } catch {
     /* ignore */
   }

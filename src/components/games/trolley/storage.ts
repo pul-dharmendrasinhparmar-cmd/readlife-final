@@ -1,3 +1,4 @@
+import { storageKey } from "@/lib/user-storage";
 import type { TrolleyStats } from "./types";
 
 const KEY = "readlife-trolley-stats-v1";
@@ -27,7 +28,7 @@ function yesterdayISO() {
 export function loadTrolleyStats(): TrolleyStats {
   if (typeof window === "undefined") return EMPTY_TROLLEY;
   try {
-    const raw = localStorage.getItem(KEY);
+    const raw = localStorage.getItem(storageKey(KEY));
     if (!raw) return EMPTY_TROLLEY;
     return { ...EMPTY_TROLLEY, ...(JSON.parse(raw) as TrolleyStats) };
   } catch {
@@ -62,7 +63,7 @@ export function recordTrolleyGame(input: {
     lastPlayedDate: today,
   };
   try {
-    localStorage.setItem(KEY, JSON.stringify(next));
+    localStorage.setItem(storageKey(KEY), JSON.stringify(next));
   } catch {
     /* ignore */
   }
@@ -71,7 +72,7 @@ export function recordTrolleyGame(input: {
 export function hasSeenTrolleyTutorial() {
   if (typeof window === "undefined") return true;
   try {
-    return localStorage.getItem(TUTORIAL_KEY) === "1";
+    return localStorage.getItem(storageKey(TUTORIAL_KEY)) === "1";
   } catch {
     return true;
   }
@@ -79,7 +80,7 @@ export function hasSeenTrolleyTutorial() {
 
 export function markTrolleyTutorialSeen() {
   try {
-    localStorage.setItem(TUTORIAL_KEY, "1");
+    localStorage.setItem(storageKey(TUTORIAL_KEY), "1");
   } catch {
     /* ignore */
   }

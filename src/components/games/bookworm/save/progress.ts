@@ -1,9 +1,10 @@
+import { storageKey } from "@/lib/user-storage";
 import type { LevelProgress } from "../types";
 
 const PREFIX = "readlife-bookworm";
 
 function key(levelId: string, field: string) {
-  return `${PREFIX}:${levelId}:${field}`;
+  return storageKey(`${PREFIX}:${levelId}:${field}`);
 }
 
 const DEFAULT: LevelProgress = {

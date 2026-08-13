@@ -14,6 +14,7 @@ import {
   DEFAULT_SAVED_LIST_IDS,
   SEED_LIBRARY_ENTRIES,
 } from "@/components/library/seed";
+import { shouldSeedDemo, storageKey } from "@/lib/user-storage";
 
 const STORAGE_KEY = "readlife-discovery-v2";
 const LEGACY_KEY = "readlife-discovery-v1";
@@ -66,11 +67,23 @@ function withCompat(
   };
 }
 
+/** Guest / marketing demo library (Alex). */
 export const DEFAULT_DISCOVERY_STATE: DiscoveryState = withCompat(
   SEED_LIBRARY_ENTRIES,
   [],
   DEFAULT_SAVED_LIST_IDS,
 );
+
+/** Signed-in accounts start here — no books until the user adds them. */
+export function emptyDiscoveryState(): DiscoveryState {
+  return withCompat([], [], []);
+}
+
+function defaultStateForScope(): DiscoveryState {
+  return shouldSeedDemo()
+    ? structuredClone(DEFAULT_DISCOVERY_STATE)
+    : emptyDiscoveryState();
+}
 
 function migrateLegacy(raw: string): DiscoveryState | null {
   try {
@@ -151,12 +164,13 @@ function migrateLegacy(raw: string): DiscoveryState | null {
 }
 
 export function loadDiscoveryState(): DiscoveryState {
-  if (typeof window === "undefined") return DEFAULT_DISCOVERY_STATE;
+  if (typeof window === "undefined") return defaultStateForScope();
   try {
-    const v2 = localStorage.getItem(STORAGE_KEY);
+    const v2 = localStorage.getItem(storageKey(STORAGE_KEY));
     if (v2) {
       const parsed = JSON.parse(v2) as Partial<DiscoveryState>;
-      if (parsed.entries?.length) {
+      // Authenticated users may legitimately have an empty library.
+      if (Array.isArray(parsed.entries)) {
         const entries = parsed.entries.map((e) => {
           const status = (e as { status?: string }).status;
           if (status === "interested") {
@@ -173,17 +187,21 @@ export function loadDiscoveryState(): DiscoveryState {
         return next;
       }
     }
-    const v1 = localStorage.getItem(LEGACY_KEY);
-    if (v1) {
-      const migrated = migrateLegacy(v1);
-      if (migrated) {
-        saveDiscoveryState(migrated);
-        return migrated;
+    // Legacy guest migration only — never copy guest demo into a user namespace.
+    if (shouldSeedDemo()) {
+      const v1 = localStorage.getItem(LEGACY_KEY);
+      if (v1) {
+        const migrated = migrateLegacy(v1);
+        if (migrated) {
+          saveDiscoveryState(migrated);
+          return migrated;
+        }
       }
+      return structuredClone(DEFAULT_DISCOVERY_STATE);
     }
-    return structuredClone(DEFAULT_DISCOVERY_STATE);
+    return emptyDiscoveryState();
   } catch {
-    return structuredClone(DEFAULT_DISCOVERY_STATE);
+    return defaultStateForScope();
   }
 }
 
@@ -194,7 +212,7 @@ export function saveDiscoveryState(state: DiscoveryState) {
       state.followingIds,
       state.savedListIds,
     );
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+    localStorage.setItem(storageKey(STORAGE_KEY), JSON.stringify(payload));
   } catch {
     // ignore
   }

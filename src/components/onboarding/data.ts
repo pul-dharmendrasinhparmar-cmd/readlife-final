@@ -192,6 +192,27 @@ export const INITIAL_STATE: OnboardingState = {
   petName: "",
 };
 
+/** Empty setup defaults for signed-in accounts (no pre-selected Alex taste). */
+export const EMPTY_ONBOARDING_STATE: OnboardingState = {
+  genres: [],
+  formats: [],
+  lovedBooks: [],
+  skipBooks: [],
+  goals: {
+    books: { enabled: true, value: 12 },
+    time: { enabled: true, value: 20 },
+    pages: { enabled: false, value: 40 },
+    streak: { enabled: true, value: 3 },
+    noPressure: false,
+  },
+  reminder: "gentle",
+  room: "cozy-nook",
+  avatar: null,
+  displayName: "",
+  pet: null,
+  petName: "",
+};
+
 export const READER_AVATARS = [
   {
     id: "male" as const,

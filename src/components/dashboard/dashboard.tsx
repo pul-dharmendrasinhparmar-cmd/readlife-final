@@ -18,6 +18,7 @@ import {
   setLibraryStatus,
 } from "@/lib/discovery-storage";
 import { getDashboardState } from "@/lib/onboarding-storage";
+import { shouldSeedDemo } from "@/lib/user-storage";
 import {
   DEMO_READING_PARTY,
   getCurrentBook,
@@ -172,14 +173,16 @@ export function Dashboard() {
   const upcoming = useMemo(() => {
     const profile = loadProfileState();
     const buddy = getUpcomingFromBuddyReads(profile.profile.buddyReads);
-    return [...buddy, DEMO_READING_PARTY];
+    return shouldSeedDemo() ? [...buddy, DEMO_READING_PARTY] : buddy;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [buddyReadsVersion, discovery]);
 
   const friends = useMemo(() => loadProfileState().followingPeople, []);
 
   const greeting = useMemo(() => {
-    const name = onboarding?.displayName.trim() || "Alex";
+    const name =
+      onboarding?.displayName.trim() ||
+      (shouldSeedDemo() ? "Alex" : "Reader");
     return getGreeting(name);
   }, [onboarding]);
 

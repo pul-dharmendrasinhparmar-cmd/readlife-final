@@ -32,6 +32,81 @@ export function todayISO() {
   return localISODate(new Date());
 }
 
+/** Fresh games profile for signed-in accounts — no demo streaks. */
+export function buildEmptyProfile(overrides?: Partial<GameProfile>): GameProfile {
+  const base: GameProfile = {
+    userId: "you",
+    hasPlayedAny: false,
+    leaderboardVisibility: "friends",
+    overallStreak: {
+      current: 0,
+      longest: 0,
+      recentDays: [],
+    },
+    bookle: {
+      gamesPlayed: 0,
+      gamesWon: 0,
+      winRate: 0,
+      currentSolveStreak: 0,
+      longestSolveStreak: 0,
+      averageGuesses: 0,
+      guessDistribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 },
+      todayCompleted: false,
+    },
+    bookworm: {
+      gamesPlayed: 0,
+      personalBest: 0,
+      highestLevelReached: "",
+      totalBooksCollected: 0,
+      currentPlayStreak: 0,
+      longestPlayStreak: 0,
+    },
+    lexicon: {
+      gamesPlayed: 0,
+      gamesWon: 0,
+      personalBest: 0,
+    },
+    uncovered: {
+      gamesPlayed: 0,
+      personalBest: 0,
+      currentPlayStreak: 0,
+      longestPlayStreak: 0,
+      longestRecognizeStreak: 0,
+      todayCompleted: false,
+    },
+    pieces: {
+      gamesPlayed: 0,
+      puzzlesCompleted: 0,
+      bestTimeMs: 0,
+      todayCompleted: false,
+    },
+    trolley: {
+      gamesPlayed: 0,
+      personalBest: 0,
+      currentPlayStreak: 0,
+      longestPlayStreak: 0,
+    },
+    bookbound: {
+      gamesPlayed: 0,
+      highestLevelUnlocked: 1,
+      level1Completed: false,
+      level2Completed: false,
+      level3Completed: false,
+      highestScore: 0,
+      totalPagesCollected: 0,
+      totalGoldenPagesCollected: 0,
+      totalEnemiesDefeated: 0,
+      ogresDefeated: 0,
+      witchesDefeated: 0,
+      dragonsDefeated: 0,
+    },
+    achievements: [],
+    pinnedAchievementIds: [],
+    challenges: [],
+  };
+  return { ...base, ...overrides };
+}
+
 /** Seeded “lived-in” profile so the hub isn’t a wall of zeros. */
 export function buildDemoProfile(overrides?: Partial<GameProfile>): GameProfile {
   const today = todayISO();

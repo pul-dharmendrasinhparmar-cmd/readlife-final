@@ -1,6 +1,7 @@
 import { getBookById } from "@/components/search/data";
 import type { DiscoveryState, LibraryEntry } from "@/components/search/types";
 import { SOURCE_OPTIONS, tbrAgeDays } from "@/lib/discovery-storage";
+import { shouldSeedDemo } from "@/lib/user-storage";
 import {
   DEMO_AUGUST_FINISHED_IDS,
   DEMO_SESSIONS,
@@ -40,26 +41,27 @@ export function buildPeriodSnapshot(
   month = 7, // August
 ): PeriodSnapshot {
   const entries = state.entries;
-  const sessions = DEMO_SESSIONS;
+  const useDemo = shouldSeedDemo();
+  const sessions = useDemo ? DEMO_SESSIONS : [];
 
-  // --- sessions for activity (MOCK) ---
+  // --- sessions for activity (MOCK for guests; empty for accounts) ---
   const periodSessions = filterSessions(sessions, period, year, month);
   const minutesRead = periodSessions.reduce((s, x) => s + x.minutes, 0);
   const pagesFromSessions = periodSessions.reduce((s, x) => s + x.pagesRead, 0);
   const sessionDays = new Set(periodSessions.map((s) => s.date));
 
   // --- finished books ---
-  // CALCULATED for all/year from library; MOCK overlay for August demo month/week
+  // CALCULATED for all/year from library; MOCK overlay for August demo month/week (guests)
   let finishedEntries: LibraryEntry[] = [];
   let finishedProvenance: PeriodSnapshot["booksFinished"]["provenance"] =
     "calculated";
 
-  if (period === "month" && year === 2026 && month === 7) {
+  if (useDemo && period === "month" && year === 2026 && month === 7) {
     finishedEntries = DEMO_AUGUST_FINISHED_IDS.map(
       (id) => entries.find((e) => e.bookId === id)!,
     ).filter(Boolean);
     finishedProvenance = "hybrid";
-  } else if (period === "week") {
+  } else if (useDemo && period === "week") {
     finishedEntries = DEMO_AUGUST_FINISHED_IDS.slice(0, 2)
       .map((id) => entries.find((e) => e.bookId === id)!)
       .filter(Boolean);
@@ -71,8 +73,8 @@ export function buildPeriodSnapshot(
         e.dateFinished &&
         new Date(e.dateFinished).getFullYear() === year,
     );
-    // ensure demo richness
-    if (finishedEntries.length < 6) {
+    // ensure demo richness for guests only
+    if (useDemo && finishedEntries.length < 6) {
       finishedEntries = entries.filter((e) => e.status === "read");
       finishedProvenance = "hybrid";
     }
@@ -181,12 +183,12 @@ export function buildPeriodSnapshot(
     }))
     .sort((a, b) => b.share - a.share);
 
-  // Pause — CALCULATED + light mock for resume days
+  // Pause — CALCULATED + light mock for resume days (guests)
   const pauseStats = {
     paused: pausedN,
-    resumed: 2, // MOCK historical
+    resumed: useDemo ? 2 : 0,
     waiting: pausedN,
-    avgResumeDays: 18, // MOCK
+    avgResumeDays: useDemo ? 18 : 0,
   };
 
   // Source performance — CALCULATED from library
@@ -329,19 +331,25 @@ export function buildPeriodSnapshot(
           ? String(year)
           : "All Time";
 
-  // Align Dashboard month preview: Aug 2026 = 8 books, 1476 min (24.6h), 4.3★, streak 12
+  // Align Dashboard month preview for guests: Aug 2026 = 8 books, 1476 min, 4.3★, streak 12
   const isDemoAugust =
-    period === "month" && year === 2026 && month === 7;
+    useDemo && period === "month" && year === 2026 && month === 7;
   const booksFinishedValue = isDemoAugust
     ? 8
-    : finishedEntries.length || finishedN;
+    : finishedEntries.length || (useDemo ? finishedN : finishedEntries.length);
   const minutesValue = isDemoAugust
     ? 1476
-    : minutesRead || Math.round(finishedN * 90);
+    : useDemo
+      ? minutesRead || Math.round(finishedN * 90)
+      : minutesRead;
   const pagesValue = isDemoAugust
     ? 2436
-    : pagesFromSessions || booksFinishedValue * 320;
-  const avgRatingValue = isDemoAugust ? 4.3 : avg(ratings) || 4.0;
+    : useDemo
+      ? pagesFromSessions || booksFinishedValue * 320
+      : pagesFromSessions;
+  const avgRatingValue = isDemoAugust
+    ? 4.3
+    : avg(ratings) || (useDemo ? 4.0 : 0);
 
   return {
     label,
@@ -351,24 +359,31 @@ export function buildPeriodSnapshot(
     booksFinished: { value: booksFinishedValue, provenance: finishedProvenance },
     pagesRead: {
       value: pagesValue,
-      provenance: isDemoAugust ? "hybrid" : "mock",
+      provenance: isDemoAugust ? "hybrid" : useDemo ? "mock" : "calculated",
     },
     minutesRead: {
       value: minutesValue,
-      provenance: isDemoAugust ? "hybrid" : "mock",
+      provenance: isDemoAugust ? "hybrid" : useDemo ? "mock" : "calculated",
     },
     sessions: {
-      value: isDemoAugust ? 14 : periodSessions.length || 6,
-      provenance: "mock",
+      value: isDemoAugust
+        ? 14
+        : periodSessions.length || (useDemo ? 6 : 0),
+      provenance: useDemo ? "mock" : "calculated",
     },
-    streakDays: { value: DEMO_STREAK_DAYS, provenance: "hybrid" },
+    streakDays: {
+      value: useDemo ? DEMO_STREAK_DAYS : 0,
+      provenance: useDemo ? "hybrid" : "calculated",
+    },
     avgRating: {
       value: avgRatingValue,
       provenance: isDemoAugust ? "hybrid" : "calculated",
     },
     readingDays: {
-      value: isDemoAugust ? 18 : sessionDays.size || 10,
-      provenance: "mock",
+      value: isDemoAugust
+        ? 18
+        : sessionDays.size || (useDemo ? 10 : 0),
+      provenance: useDemo ? "mock" : "calculated",
     },
     goalBooks: { current: booksFinishedValue, target: 10 },
     goalMinutes: { current: minutesValue, target: 1800 },
