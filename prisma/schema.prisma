@@ -22,8 +22,21 @@ model User {
   password      String?
   accounts      Account[]
   sessions      Session[]
+  userData      UserData?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+}
+
+/// Persisted client reading state for signed-in users (library, quiz, games, etc.).
+/// Guest demo data stays local-only and is never stored here.
+model UserData {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// { version: 1, entries: Record<baseLocalStorageKey, string> }
+  payload   Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Account {
