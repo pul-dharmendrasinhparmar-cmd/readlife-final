@@ -22,6 +22,9 @@ import {
   toggleFollow,
   toggleSavedList,
 } from "@/lib/discovery-storage";
+import { loadOnboardingState } from "@/lib/onboarding-storage";
+import { getPersonality } from "@/components/personality/personalities";
+import { loadActiveAssessment } from "@/components/personality/quiz-storage";
 import {
   autocompleteSuggestions,
   booksByCategory,
@@ -368,6 +371,7 @@ function SearchPageInner() {
             <div className="mt-8" role="tabpanel">
               {tab === "books" ? (
                 <BooksDiscover
+                  discovery={discovery}
                   mood={mood}
                   setMood={setMood}
                   onOpenBook={openBook}
@@ -831,18 +835,173 @@ function TopTenToday({
   );
 }
 
+function buildTastePayload(discovery: DiscoveryState) {
+  const readIds = discovery.readBookIds.slice(0, 20);
+  const readingIds = discovery.entries
+    .filter((e) => e.status === "reading")
+    .map((e) => e.bookId)
+    .slice(0, 8);
+  const tbrIds = discovery.tbr.map((t) => t.bookId).slice(0, 16);
+  const favoriteIds = discovery.entries
+    .filter((e) => e.isFavorite)
+    .map((e) => e.bookId)
+    .slice(0, 12);
+
+  const onboarding = loadOnboardingState();
+  const genres = onboarding?.genres ?? [];
+  const lovedIds = (onboarding?.lovedBooks ?? [])
+    .map((b) => b.id)
+    .filter(Boolean)
+    .slice(0, 12);
+
+  const assessment = loadActiveAssessment();
+  let personalityBlurb = "";
+  if (assessment?.personalityCode) {
+    const p = getPersonality(assessment.personalityCode);
+    personalityBlurb = `${p.name} (${assessment.personalityCode}): ${p.summary}`;
+  }
+
+  const excludeIds = [
+    ...new Set([
+      ...readIds,
+      ...readingIds,
+      ...tbrIds,
+      ...discovery.entries.map((e) => e.bookId),
+    ]),
+  ];
+
+  return {
+    readIds: [...new Set([...readIds, ...lovedIds])],
+    readingIds,
+    tbrIds,
+    favoriteIds,
+    genres,
+    personalityBlurb,
+    excludeIds,
+  };
+}
+
+function AiForYouRow({
+  discovery,
+  onOpenBook,
+  onAddTbr,
+}: {
+  discovery: DiscoveryState;
+  onOpenBook: (b: DiscoverBook) => void;
+  onAddTbr: (b: DiscoverBook) => void;
+}) {
+  const fallback = booksByCategory("for-you");
+  const [books, setBooks] = useState<DiscoverBook[] | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [fetched, setFetched] = useState(false);
+
+  const displayBooks = books ?? fallback;
+
+  const fetchRecs = async () => {
+    if (loading) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/recommend", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(buildTastePayload(discovery)),
+      });
+      const data = (await res.json()) as {
+        recommendations?: { id: string; reason: string }[];
+        error?: string;
+      };
+      if (!res.ok) {
+        setError(data.error ?? "Could not load recommendations.");
+        return;
+      }
+      const next = (data.recommendations ?? [])
+        .map((item) => {
+          const book = getBookById(item.id);
+          if (!book) return null;
+          return { ...book, recommendationReason: item.reason };
+        })
+        .filter(Boolean) as DiscoverBook[];
+      if (next.length === 0) {
+        setError("No matching books came back. Try again.");
+        return;
+      }
+      setBooks(next);
+      setFetched(true);
+    } catch {
+      setError("Network error while fetching recommendations.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <section>
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div className="max-w-2xl">
+          <h2 className="font-serif text-[1.35rem] font-semibold text-ink">
+            For You
+          </h2>
+          <p className="mt-1 text-sm text-muted">
+            {fetched
+              ? "AI picks from the ReadLife catalog, tuned to your shelf."
+              : "Picked from your reading history and Reader DNA — tap for live AI picks."}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={fetchRecs}
+          disabled={loading}
+          className="shrink-0 self-start rounded-full border border-forest/40 bg-[#2a2438] px-4 py-2 text-sm font-semibold text-white transition hover:border-forest/60 hover:bg-[#342c45] disabled:cursor-wait disabled:opacity-70 sm:self-auto"
+        >
+          {loading
+            ? "Finding books…"
+            : fetched
+              ? "Refresh recommendations"
+              : "Get recommendations"}
+        </button>
+      </div>
+      {error ? (
+        <p className="mb-3 rounded-xl border border-[#564d6a] bg-[#3a324f]/70 px-3 py-2 text-sm text-muted">
+          {error}
+        </p>
+      ) : null}
+      {loading && !books ? (
+        <div className="flex gap-3 overflow-hidden pb-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div
+              key={i}
+              className="h-[22rem] w-[10.75rem] shrink-0 animate-pulse rounded-[1.25rem] bg-[#3a324f]/80 sm:w-[12rem]"
+            />
+          ))}
+        </div>
+      ) : (
+        <BookCarousel
+          label="For You"
+          books={displayBooks}
+          featured
+          onOpenBook={onOpenBook}
+          onAddTbr={onAddTbr}
+        />
+      )}
+    </section>
+  );
+}
+
 function BooksDiscover({
+  discovery,
   mood,
   setMood,
   onOpenBook,
   onAddTbr,
 }: {
+  discovery: DiscoveryState;
   mood: string | null;
   setMood: (id: string | null) => void;
   onOpenBook: (b: DiscoverBook) => void;
   onAddTbr: (b: DiscoverBook) => void;
 }) {
-  const forYou = booksByCategory("for-you");
   const gems = booksByCategory("hidden-gems");
   const trending = booksByCategory("trending");
   const outside = booksByCategory("outside");
@@ -857,19 +1016,11 @@ function BooksDiscover({
     <div className="space-y-12">
       <TopTenToday onOpenBook={onOpenBook} />
 
-      <section>
-        <SectionHeader
-          title="For You"
-          subtitle="Picked from your reading history and Reader DNA."
-        />
-        <BookCarousel
-          label="For You"
-          books={forYou}
-          featured
-          onOpenBook={onOpenBook}
-          onAddTbr={onAddTbr}
-        />
-      </section>
+      <AiForYouRow
+        discovery={discovery}
+        onOpenBook={onOpenBook}
+        onAddTbr={onAddTbr}
+      />
 
       <section>
         <SectionHeader
