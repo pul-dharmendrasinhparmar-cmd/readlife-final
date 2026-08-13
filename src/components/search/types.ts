@@ -78,6 +78,8 @@ export type DiscoverBook = {
   reviewCount: number;
   formats: string[];
   recommendationReason?: string;
+  /** Short taste-signal labels shown as “Based on …” under AI picks */
+  recommendationBasedOn?: string[];
   discoveryCategory?:
     | "for-you"
     | "hidden-gems"

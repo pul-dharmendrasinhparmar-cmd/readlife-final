@@ -741,6 +741,24 @@ function BookCard({
           <p className="mt-2 line-clamp-2 min-h-[2.75em] text-[0.72rem] leading-snug text-ink/70 italic">
             {book.recommendationReason ?? "\u00A0"}
           </p>
+          {book.recommendationBasedOn && book.recommendationBasedOn.length > 0 ? (
+            <div className="mt-2 flex flex-col gap-1">
+              <p className="text-[0.62rem] font-semibold uppercase tracking-[0.06em] text-muted">
+                Based on
+              </p>
+              <div className="flex flex-wrap gap-1">
+                {book.recommendationBasedOn.slice(0, 3).map((label) => (
+                  <span
+                    key={label}
+                    className="inline-block max-w-full truncate rounded-full border border-forest/35 bg-forest/10 px-2 py-0.5 text-[0.62rem] font-medium leading-tight text-forest-soft"
+                    title={label}
+                  >
+                    {label}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ) : null}
         </div>
       </button>
       <button
@@ -909,7 +927,11 @@ function AiForYouRow({
         body: JSON.stringify(buildTastePayload(discovery)),
       });
       const data = (await res.json()) as {
-        recommendations?: { id: string; reason: string }[];
+        recommendations?: {
+          id: string;
+          reason: string;
+          basedOn?: string[] | string;
+        }[];
         error?: string;
       };
       if (!res.ok) {
@@ -920,7 +942,16 @@ function AiForYouRow({
         .map((item) => {
           const book = getBookById(item.id);
           if (!book) return null;
-          return { ...book, recommendationReason: item.reason };
+          const basedOn = Array.isArray(item.basedOn)
+            ? item.basedOn.map((s) => String(s).trim()).filter(Boolean)
+            : typeof item.basedOn === "string" && item.basedOn.trim()
+              ? [item.basedOn.trim()]
+              : [];
+          return {
+            ...book,
+            recommendationReason: item.reason,
+            recommendationBasedOn: basedOn.slice(0, 4),
+          };
         })
         .filter(Boolean) as DiscoverBook[];
       if (next.length === 0) {
@@ -948,6 +979,11 @@ function AiForYouRow({
               ? "AI picks from the ReadLife catalog, tuned to your shelf."
               : "Picked from your reading history and Reader DNA — tap for live AI picks."}
           </p>
+          {fetched ? (
+            <p className="mt-2 text-xs text-forest-soft/90">
+              Based on your library, tastes, and reading personality
+            </p>
+          ) : null}
         </div>
         <button
           type="button"
