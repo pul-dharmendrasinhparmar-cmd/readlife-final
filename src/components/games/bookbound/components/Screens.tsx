@@ -10,7 +10,7 @@ import type { BookboundPhase, BookboundStats, ChapterId, RunStats } from "../typ
 
 const STORY = [
   {
-    bg: BG.library,
+    bg: STORY_ART[1],
     title: "In the heart of the Grand Library, every book held a world of its own.",
     body: "Some were bright and strange. Some were ancient and forgotten. But every story had its place.",
   },
@@ -55,39 +55,8 @@ export function StoryIntro({
   return (
     <div className="bb-story">
       <div className="bb-story-art">
-        <img
-          className="bb-story-bg"
-          src={panel.bg}
-          alt=""
-          style={"fade" in panel && panel.fade ? { filter: "grayscale(0.35) brightness(0.72)" } : undefined}
-        />
-        {"pip" in panel && panel.pip ? (
-          <img className="bb-story-pip" src={panel.pip} alt="" />
-        ) : null}
-        {"pages" in panel && panel.pages ? (
-          <div className="bb-pages" aria-hidden>
-            {Array.from({ length: 7 }).map((_, i) => (
-              <span
-                key={i}
-                className="bb-fly"
-                style={{
-                  left: `${6 + i * 8}%`,
-                  animationDelay: `${i * 0.35}s`,
-                  top: `${10 + (i % 3) * 12}%`,
-                }}
-              />
-            ))}
-          </div>
-        ) : null}
-        {"portals" in panel && panel.portals ? (
-          <div className="bb-portals">
-            {[BG.library, BG.forest, BG.castle].map((src) => (
-              <div key={src} className="bb-portal-card">
-                <img src={src} alt="" />
-              </div>
-            ))}
-          </div>
-        ) : null}
+        {/* Story PNGs are complete scenes — never stack pip/pages/portal overlays on top. */}
+        <img className="bb-story-bg" src={panel.bg} alt="" />
       </div>
       <div className="bb-story-copy">
         <p className="bb-kicker">
@@ -210,9 +179,10 @@ export function LevelIntroCard({
         <h2>{ch.name}</h2>
         <p className="bb-muted">{ch.blurb}</p>
         <p className="bb-muted">
-          Move with A/D or the arrow keys. Jump with Space — tap again in the
-          air for a double jump. Blast with F or X. Watch for flying books,
-          ink, and fireballs.
+          On phone: use the on-screen pads — arrows to move, ↑ to jump (again
+          in air for a double jump), ✦ to blast. On keyboard: A/D or arrows,
+          Space to jump, F or X to attack. Watch for flying books, ink, and
+          fireballs.
         </p>
         <div className="bb-row">
           <button type="button" className="bb-cta" onClick={onStart}>

@@ -1,10 +1,13 @@
+/** Level parallax backgrounds — environment only, never bake Pip/UI into these. */
 export const BG = {
   library: "/games/bookbound/bg-library.png",
   forest: "/games/bookbound/bg-forest.png",
   castle: "/games/bookbound/bg-castle.png",
 } as const;
 
+/** Full-bleed story illustrations (Pip/pages/portals already in the art). Do not overlay extras. */
 export const STORY_ART = {
+  1: "/games/bookbound/story-1.png",
   2: "/games/bookbound/story-2.png",
   3: "/games/bookbound/story-3.png",
   4: "/games/bookbound/story-4.png",
@@ -57,9 +60,7 @@ export const SPRITES = {
   pageGolden: `${S}/page-golden.png`,
   ledgeShort: `${S}/ledge-short.png`,
   ledgeMid: `${S}/ledge-mid.png`,
-  ledgeMidDeco: `${S}/ledge-mid-deco.png`,
   ledgeLong: `${S}/ledge-long.png`,
-  ledgeLongDeco: `${S}/ledge-long-deco.png`,
   groundLeft: `${S}/ground-cap-left.png`,
   groundTile: `${S}/ground-tile.png`,
   groundRight: `${S}/ground-cap-right.png`,
@@ -75,9 +76,7 @@ export const SPRITES = {
 export const LEDGE_WOOD = {
   short: { src: `${S}/ledge-short.png`, top: 3, left: 16, width: 250, imgW: 278, imgH: 113 },
   mid: { src: `${S}/ledge-mid.png`, top: 8, left: 8, width: 330, imgW: 346, imgH: 93 },
-  midDeco: { src: `${S}/ledge-mid-deco.png`, top: 95, left: 8, width: 328, imgW: 352, imgH: 239 },
   long: { src: `${S}/ledge-long.png`, top: 10, left: 6, width: 554, imgW: 566, imgH: 102 },
-  longDeco: { src: `${S}/ledge-long-deco.png`, top: 61, left: 8, width: 558, imgW: 584, imgH: 168 },
 } as const;
 
 export type LedgeWood = (typeof LEDGE_WOOD)[keyof typeof LEDGE_WOOD];
@@ -103,9 +102,7 @@ export const ALL_SPRITE_URLS: string[] = [
   SPRITES.pageGolden,
   SPRITES.ledgeShort,
   SPRITES.ledgeMid,
-  SPRITES.ledgeMidDeco,
   SPRITES.ledgeLong,
-  SPRITES.ledgeLongDeco,
   SPRITES.groundLeft,
   SPRITES.groundTile,
   SPRITES.groundRight,

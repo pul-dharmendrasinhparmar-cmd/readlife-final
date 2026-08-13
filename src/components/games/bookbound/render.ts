@@ -146,10 +146,10 @@ function drawBackground(
 }
 
 function pickLedge(p: Platform): LedgeWood {
-  const deco = Math.floor(p.x / 37) % 2 === 0;
+  // Prefer plain shelves — deco ledge art is ghosted and draws props over Pip.
   if (p.w <= 130) return LEDGE_WOOD.short;
-  if (p.w <= 155) return deco ? LEDGE_WOOD.midDeco : LEDGE_WOOD.mid;
-  return deco ? LEDGE_WOOD.longDeco : LEDGE_WOOD.long;
+  if (p.w <= 155) return LEDGE_WOOD.mid;
+  return LEDGE_WOOD.long;
 }
 
 function drawGroundPiece(
