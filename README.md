@@ -99,6 +99,11 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
+### API keys (book recommendations)
+
+- **Local:** copy `.env.example` to `.env.local` and set `OPENAI_API_KEY` (optional `OPENAI_MODEL`).
+- **Netlify:** Site settings → Environment variables → add `OPENAI_API_KEY` (and `OPENAI_MODEL` if needed). GitHub never stores the real key — only `.env.example` is committed.
+
 Other scripts:
 
 ```bash
