@@ -80,6 +80,8 @@ export type DiscoverBook = {
   recommendationReason?: string;
   /** Short taste-signal labels shown as “Based on …” under AI picks */
   recommendationBasedOn?: string[];
+  /** Longer grounded paragraph for the Why? popup on AI picks */
+  recommendationExplanation?: string;
   discoveryCategory?:
     | "for-you"
     | "hidden-gems"

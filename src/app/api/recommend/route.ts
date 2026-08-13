@@ -14,12 +14,19 @@ type TastePayload = {
   excludeIds?: string[];
 };
 
-type RecommendItem = { id: string; reason: string; basedOn: string[] };
+type RecommendItem = {
+  id: string;
+  reason: string;
+  basedOn: string[];
+  explanation: string;
+};
 
 const DEFAULT_MODEL = "gpt-4o-mini";
 const MIN_RECS = 4;
 const MAX_RECS = 6;
 const MAX_BASED_ON = 4;
+const MAX_REASON = 160;
+const MAX_EXPLANATION = 520;
 
 function catalogCompact() {
   return DISCOVER_BOOKS.map((b) => ({
@@ -49,22 +56,81 @@ function firstTitle(ids: string[] | undefined): string | null {
   return null;
 }
 
+function personalityLabel(blurb: string | undefined): string | null {
+  const personality = (blurb ?? "").trim();
+  if (!personality) return null;
+  const name = personality.split(":")[0]?.trim() || personality;
+  return name.length > 52 ? `${name.slice(0, 50)}…` : name;
+}
+
 function fallbackBasedOn(body: TastePayload): string[] {
   const labels: string[] = [];
-  const loved = firstTitle(body.favoriteIds) ?? firstTitle(body.readIds);
-  if (loved) labels.push(`Loved ${loved}`);
-  const genres = (body.genres ?? []).slice(0, 2);
-  if (genres.length) labels.push(genres.join(" + "));
-  const personality = (body.personalityBlurb ?? "").trim();
-  if (personality) {
-    const name = personality.split(":")[0]?.trim() || personality;
-    labels.push(
-      name.length > 42 ? `${name.slice(0, 40)}… personality` : `${name} personality`,
-    );
+  const finished = firstTitle(body.readIds);
+  const loved = firstTitle(body.favoriteIds);
+  if (finished) labels.push(`Finished ${finished}`);
+  else if (loved) labels.push(`Favorite: ${loved}`);
+  const reading = firstTitle(body.readingIds);
+  if (reading && labels.length < MAX_BASED_ON) {
+    labels.push(`Reading ${reading}`);
   }
-  if ((body.tbrIds ?? []).length > 0) labels.push("On your TBR adjacent");
+  const genres = (body.genres ?? []).slice(0, 2);
+  for (const g of genres) {
+    if (labels.length >= MAX_BASED_ON) break;
+    labels.push(`Genre: ${g}`);
+  }
+  const personality = personalityLabel(body.personalityBlurb);
+  if (personality && labels.length < MAX_BASED_ON) {
+    labels.push(`Personality: ${personality}`);
+  }
+  if ((body.tbrIds ?? []).length > 0 && labels.length < MAX_BASED_ON) {
+    const tbrTitle = firstTitle(body.tbrIds);
+    labels.push(tbrTitle ? `TBR near ${tbrTitle}` : "On your TBR adjacent");
+  }
   if (labels.length === 0) labels.push("Your ReadLife taste");
   return labels.slice(0, MAX_BASED_ON);
+}
+
+function fallbackExplanation(
+  bookTitle: string,
+  body: TastePayload,
+  basedOn: string[],
+): string {
+  const finished = firstTitle(body.readIds);
+  const loved = firstTitle(body.favoriteIds);
+  const reading = firstTitle(body.readingIds);
+  const genres = (body.genres ?? []).slice(0, 2);
+  const personality = personalityLabel(body.personalityBlurb);
+
+  const parts: string[] = [];
+  parts.push(
+    `We picked ${bookTitle} because it lines up with concrete signals from your ReadLife shelf.`,
+  );
+
+  const shelfBits: string[] = [];
+  if (finished) shelfBits.push(`you finished ${finished}`);
+  if (loved && loved !== finished) shelfBits.push(`you favorited ${loved}`);
+  if (reading) shelfBits.push(`you're currently reading ${reading}`);
+  if (shelfBits.length) {
+    parts.push(`It echoes books in your library — ${shelfBits.join(", ")}.`);
+  }
+
+  if (genres.length) {
+    parts.push(
+      `Genre overlap matters here: your taste includes ${genres.join(" and ")}, which this title shares.`,
+    );
+  }
+
+  if (personality) {
+    parts.push(
+      `Your reading personality (${personality}) also points toward this kind of story.`,
+    );
+  }
+
+  if (parts.length < 3 && basedOn.length) {
+    parts.push(`Key signals: ${basedOn.slice(0, 3).join("; ")}.`);
+  }
+
+  return parts.join(" ").slice(0, MAX_EXPLANATION);
 }
 
 function normalizeBasedOn(raw: unknown): string[] {
@@ -117,10 +183,15 @@ function parseRecommendations(raw: string): RecommendItem[] {
     const id = String((item as { id?: unknown }).id ?? "").trim();
     const reason = String((item as { reason?: unknown }).reason ?? "")
       .trim()
-      .slice(0, 160);
+      .slice(0, MAX_REASON);
     if (!id || !reason) continue;
     const basedOn = normalizeBasedOn((item as { basedOn?: unknown }).basedOn);
-    out.push({ id, reason, basedOn });
+    const explanation = String(
+      (item as { explanation?: unknown }).explanation ?? "",
+    )
+      .trim()
+      .slice(0, MAX_EXPLANATION);
+    out.push({ id, reason, basedOn, explanation });
   }
   return out;
 }
@@ -128,6 +199,7 @@ function parseRecommendations(raw: string): RecommendItem[] {
 function validateAgainstCatalog(
   items: RecommendItem[],
   exclude: Set<string>,
+  body: TastePayload,
   tasteFallback: string[],
 ): RecommendItem[] {
   const catalogIds = new Set(DISCOVER_BOOKS.map((b) => b.id));
@@ -139,9 +211,15 @@ function validateAgainstCatalog(
     if (exclude.has(item.id)) continue;
     if (seen.has(item.id)) continue;
     seen.add(item.id);
+    const book = DISCOVER_BOOKS.find((b) => b.id === item.id);
+    const basedOn = item.basedOn.length > 0 ? item.basedOn : tasteFallback;
+    const explanation =
+      item.explanation ||
+      fallbackExplanation(book?.title ?? "this book", body, basedOn);
     valid.push({
       ...item,
-      basedOn: item.basedOn.length > 0 ? item.basedOn : tasteFallback,
+      basedOn,
+      explanation,
     });
     if (valid.length >= MAX_RECS) break;
   }
@@ -195,13 +273,14 @@ export async function POST(request: Request) {
 
   const system = `You are ReadLife's book recommender. Recommend ONLY from the provided catalog JSON.
 Return a JSON object:
-{"recommendations":[{"id":"<catalog id>","reason":"<one short sentence why this fits>","basedOn":["<short label>","..."]}]}.
+{"recommendations":[{"id":"<catalog id>","reason":"<one short sentence why this fits>","basedOn":["<short label>","..."],"explanation":"<2-4 sentence paragraph for a Why? popup>"}]}.
 
 Rules for each recommendation:
-- reason: specific, warm, under 140 characters — explain the fit, not generic praise.
-- basedOn: 1–4 short labels (under 40 chars each) citing CONCRETE signals from the reader's taste payload. Examples: "Loved Circe", "Fantasy + atmospheric", "Dream Wanderer personality", "On your TBR adjacent", "Similar to Piranesi".
-- Prefer naming real titles from favorites/read/TBR, real genres they listed, and their personality name when available.
-- Never invent ids or cite books/genres/personality not present in the taste signals (you may paraphrase genres/personality lightly).
+- reason: specific, warm, under 140 characters — explain the fit for THIS book, not generic praise.
+- basedOn: 1–4 short labels (under 40 chars each) citing CONCRETE signals from the reader's taste payload. Prefer formats like: "Finished Circe", "Favorite: Piranesi", "Genre: Fantasy", "Personality: The Dream Wanderer (EIMO)", "Reading Babel", "TBR near The Night Circus".
+- explanation: 2–4 sentences for a "Why we picked this" popup. Name the recommended title, cite real finished/favorite/reading/TBR titles when available, mention genre overlap, and include their personality name/code when present. No filler like "based on your overall tastes" without specifics.
+- Never invent ids. Never cite books, genres, or personality traits that are not in the taste signals (light paraphrase of personality blurb is OK).
+- Avoid generic fluff. Every sentence should reference a concrete signal or a clear catalog-book trait tied to those signals.
 - Pick ${MIN_RECS} to ${MAX_RECS} books. Prefer variety across genres when taste allows.`;
 
   const user = `Reader taste signals:
@@ -248,7 +327,12 @@ ${JSON.stringify(catalog)}`;
     };
     const content = data.choices?.[0]?.message?.content ?? "";
     const parsed = parseRecommendations(content);
-    const recommendations = validateAgainstCatalog(parsed, exclude, tasteFallback);
+    const recommendations = validateAgainstCatalog(
+      parsed,
+      exclude,
+      body,
+      tasteFallback,
+    );
 
     if (recommendations.length < MIN_RECS) {
       // Soft fallback: fill from catalog genres if model under-delivered
@@ -263,10 +347,12 @@ ${JSON.stringify(catalog)}`;
           genreSet.size === 0 ||
           book.genres.some((g) => genreSet.has(g.toLowerCase()));
         if (!genreHit && genreSet.size > 0) continue;
+        const basedOn = tasteFallback;
         recommendations.push({
           id: book.id,
-          reason: "A strong catalog match for your shelf.",
-          basedOn: tasteFallback,
+          reason: `A catalog match that fits signals like ${basedOn[0] ?? "your shelf"}.`,
+          basedOn,
+          explanation: fallbackExplanation(book.title, body, basedOn),
         });
       }
     }

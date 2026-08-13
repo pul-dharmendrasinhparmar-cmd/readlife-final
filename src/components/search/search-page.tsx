@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import {
   useCallback,
   useEffect,
+  useId,
   useMemo,
   useRef,
   useState,
@@ -659,6 +660,7 @@ function BookCarousel({
   footer,
   onOpenBook,
   onAddTbr,
+  onWhy,
 }: {
   label: string;
   books: DiscoverBook[];
@@ -666,6 +668,7 @@ function BookCarousel({
   footer?: (book: DiscoverBook) => ReactNode;
   onOpenBook: (b: DiscoverBook) => void;
   onAddTbr: (b: DiscoverBook) => void;
+  onWhy?: (b: DiscoverBook) => void;
 }) {
   if (books.length === 0) return null;
 
@@ -685,6 +688,7 @@ function BookCarousel({
             featured={featured}
             onOpen={() => onOpenBook(book)}
             onAddTbr={() => onAddTbr(book)}
+            onWhy={onWhy ? () => onWhy(book) : undefined}
           />
           {footer?.(book)}
         </div>
@@ -698,69 +702,95 @@ function BookCard({
   featured,
   onOpen,
   onAddTbr,
+  onWhy,
 }: {
   book: DiscoverBook;
   featured?: boolean;
   onOpen: () => void;
   onAddTbr: () => void;
+  onWhy?: () => void;
 }) {
+  const showWhy =
+    Boolean(onWhy) &&
+    Boolean(
+      book.recommendationExplanation?.trim() ||
+        book.recommendationReason?.trim(),
+    );
+
   return (
     <article
       className={`discover-card group flex h-full min-h-0 flex-1 flex-col gap-3 rounded-[1.25rem] p-3 transition hover:-translate-y-0.5 hover:shadow-[0_14px_32px_rgba(42,36,56,0.1)] ${
         featured ? "sm:p-3.5" : ""
       }`}
     >
-      <button
-        type="button"
-        onClick={onOpen}
-        className="flex min-h-0 flex-1 flex-col text-left"
-      >
-        <div
-          className="relative mx-auto aspect-[2/3] w-full max-w-[140px] shrink-0 overflow-hidden rounded-lg shadow-md"
-          style={{ background: book.color }}
+      <div className="flex min-h-0 flex-1 flex-col">
+        <button
+          type="button"
+          onClick={onOpen}
+          className="flex min-h-0 flex-1 flex-col text-left"
         >
-          <Image
-            src={book.cover}
-            alt={`Cover of ${book.title}`}
-            fill
-            className="object-cover transition duration-300 group-hover:scale-[1.03]"
-            sizes="140px"
-          />
-        </div>
-        <div className="mt-3 flex min-h-0 flex-1 flex-col">
-          <h3 className="line-clamp-2 font-serif text-[0.98rem] leading-snug font-semibold text-ink">
-            {book.title}
-          </h3>
-          <p className="mt-0.5 line-clamp-1 text-xs text-muted">{book.author}</p>
-          <p className="mt-1.5 text-xs font-semibold text-ink">
-            ★ {book.averageRating.toFixed(1)}
-          </p>
-          <p className="mt-1 line-clamp-1 text-[0.7rem] text-muted">
-            {book.genres.slice(0, 2).join(" · ")}
-          </p>
-          <p className="mt-2 line-clamp-2 min-h-[2.75em] text-[0.72rem] leading-snug text-ink/70 italic">
-            {book.recommendationReason ?? "\u00A0"}
-          </p>
-          {book.recommendationBasedOn && book.recommendationBasedOn.length > 0 ? (
-            <div className="mt-2 flex flex-col gap-1">
-              <p className="text-[0.62rem] font-semibold uppercase tracking-[0.06em] text-muted">
-                Based on
+          <div
+            className="relative mx-auto aspect-[2/3] w-full max-w-[140px] shrink-0 overflow-hidden rounded-lg shadow-md"
+            style={{ background: book.color }}
+          >
+            <Image
+              src={book.cover}
+              alt={`Cover of ${book.title}`}
+              fill
+              className="object-cover transition duration-300 group-hover:scale-[1.03]"
+              sizes="140px"
+            />
+          </div>
+          <div className="mt-3 flex min-h-0 flex-1 flex-col">
+            <h3 className="line-clamp-2 font-serif text-[0.98rem] leading-snug font-semibold text-ink">
+              {book.title}
+            </h3>
+            <p className="mt-0.5 line-clamp-1 text-xs text-muted">{book.author}</p>
+            <p className="mt-1.5 text-xs font-semibold text-ink">
+              ★ {book.averageRating.toFixed(1)}
+            </p>
+            <p className="mt-1 line-clamp-1 text-[0.7rem] text-muted">
+              {book.genres.slice(0, 2).join(" · ")}
+            </p>
+            {book.recommendationReason ? (
+              <p className="mt-2 line-clamp-2 min-h-[2.75em] text-[0.72rem] leading-snug text-ink/70 italic">
+                {book.recommendationReason}
               </p>
-              <div className="flex flex-wrap gap-1">
-                {book.recommendationBasedOn.slice(0, 3).map((label) => (
-                  <span
-                    key={label}
-                    className="inline-block max-w-full truncate rounded-full border border-forest/35 bg-forest/10 px-2 py-0.5 text-[0.62rem] font-medium leading-tight text-forest-soft"
-                    title={label}
-                  >
-                    {label}
-                  </span>
-                ))}
+            ) : featured ? (
+              <p className="mt-2 min-h-[2.75em] text-[0.72rem]">{"\u00A0"}</p>
+            ) : null}
+            {book.recommendationBasedOn &&
+            book.recommendationBasedOn.length > 0 ? (
+              <div className="mt-2 flex flex-col gap-1">
+                <p className="text-[0.62rem] font-semibold uppercase tracking-[0.06em] text-muted">
+                  Based on
+                </p>
+                <div className="flex flex-wrap gap-1">
+                  {book.recommendationBasedOn.slice(0, 3).map((label) => (
+                    <span
+                      key={label}
+                      className="inline-block max-w-full truncate rounded-full border border-forest/35 bg-forest/10 px-2 py-0.5 text-[0.62rem] font-medium leading-tight text-forest-soft"
+                      title={label}
+                    >
+                      {label}
+                    </span>
+                  ))}
+                </div>
               </div>
-            </div>
-          ) : null}
-        </div>
-      </button>
+            ) : null}
+          </div>
+        </button>
+        {showWhy ? (
+          <button
+            type="button"
+            onClick={onWhy}
+            className="mt-2 self-start rounded-full border border-forest/40 bg-forest/15 px-2.5 py-1 text-[0.68rem] font-semibold tracking-wide text-forest-soft transition hover:border-forest/60 hover:bg-forest/25"
+            aria-label={`Why we recommended ${book.title}`}
+          >
+            Why?
+          </button>
+        ) : null}
+      </div>
       <button
         type="button"
         onClick={onAddTbr}
@@ -769,6 +799,125 @@ function BookCard({
         + Add to TBR
       </button>
     </article>
+  );
+}
+
+function WhyRecommendModal({
+  book,
+  open,
+  onClose,
+}: {
+  book: DiscoverBook | null;
+  open: boolean;
+  onClose: () => void;
+}) {
+  const titleId = useId();
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: globalThis.KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [open, onClose]);
+
+  if (!open || !book) return null;
+
+  const explanation =
+    book.recommendationExplanation?.trim() ||
+    book.recommendationReason?.trim() ||
+    "This pick was tuned to your ReadLife shelf and reading personality.";
+  const basedOn = book.recommendationBasedOn ?? [];
+
+  return (
+    <div className="fixed inset-0 z-[70] flex items-end justify-center p-4 sm:items-center">
+      <button
+        type="button"
+        className="absolute inset-0 bg-[#2a2438]/35 backdrop-blur-[2px]"
+        aria-label="Close"
+        onClick={onClose}
+      />
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        className="relative z-10 w-full max-w-md rounded-[1.5rem] border border-[#4a425c] bg-[#3a324f] p-5 shadow-[0_24px_60px_rgba(42,36,56,0.25)] sm:p-6"
+      >
+        <div className="flex items-start justify-between gap-3">
+          <p className="text-[0.68rem] font-semibold tracking-[0.12em] text-ink/70 uppercase">
+            Why we picked this
+          </p>
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-ink transition hover:bg-[#3f3654]"
+            aria-label="Close"
+          >
+            <span aria-hidden className="text-lg leading-none">
+              ×
+            </span>
+          </button>
+        </div>
+
+        <div className="mt-3 flex gap-3">
+          <div
+            className="relative h-[96px] w-[64px] shrink-0 overflow-hidden rounded-lg shadow-md"
+            style={{ background: book.color }}
+          >
+            <Image
+              src={book.cover}
+              alt=""
+              fill
+              className="object-cover"
+              sizes="64px"
+            />
+          </div>
+          <div className="min-w-0">
+            <h2
+              id={titleId}
+              className="font-serif text-lg font-semibold leading-snug text-ink"
+            >
+              {book.title}
+            </h2>
+            <p className="mt-0.5 text-sm text-muted">{book.author}</p>
+          </div>
+        </div>
+
+        <p className="mt-4 text-sm leading-relaxed text-ink">{explanation}</p>
+
+        {basedOn.length > 0 ? (
+          <div className="mt-4">
+            <p className="text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-muted">
+              Based on
+            </p>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {basedOn.map((label) => (
+                <span
+                  key={label}
+                  className="inline-block max-w-full rounded-full border border-forest/35 bg-forest/10 px-2.5 py-1 text-[0.7rem] font-medium leading-tight text-forest-soft"
+                >
+                  {label}
+                </span>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
+        <button
+          type="button"
+          onClick={onClose}
+          className="mt-5 w-full rounded-full bg-forest px-4 py-2.5 text-sm font-semibold text-paper transition hover:opacity-95"
+        >
+          Got it
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -913,6 +1062,7 @@ function AiForYouRow({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fetched, setFetched] = useState(false);
+  const [whyBook, setWhyBook] = useState<DiscoverBook | null>(null);
 
   const displayBooks = books ?? fallback;
 
@@ -931,6 +1081,7 @@ function AiForYouRow({
           id: string;
           reason: string;
           basedOn?: string[] | string;
+          explanation?: string;
         }[];
         error?: string;
       };
@@ -947,10 +1098,12 @@ function AiForYouRow({
             : typeof item.basedOn === "string" && item.basedOn.trim()
               ? [item.basedOn.trim()]
               : [];
+          const explanation = String(item.explanation ?? "").trim();
           return {
             ...book,
             recommendationReason: item.reason,
             recommendationBasedOn: basedOn.slice(0, 4),
+            recommendationExplanation: explanation || undefined,
           };
         })
         .filter(Boolean) as DiscoverBook[];
@@ -976,14 +1129,9 @@ function AiForYouRow({
           </h2>
           <p className="mt-1 text-sm text-muted">
             {fetched
-              ? "AI picks from the ReadLife catalog, tuned to your shelf."
+              ? "AI picks from the catalog — tap Why? on any book for the specific reasons."
               : "Picked from your reading history and Reader DNA — tap for live AI picks."}
           </p>
-          {fetched ? (
-            <p className="mt-2 text-xs text-forest-soft/90">
-              Based on your library, tastes, and reading personality
-            </p>
-          ) : null}
         </div>
         <button
           type="button"
@@ -1019,8 +1167,14 @@ function AiForYouRow({
           featured
           onOpenBook={onOpenBook}
           onAddTbr={onAddTbr}
+          onWhy={fetched ? setWhyBook : undefined}
         />
       )}
+      <WhyRecommendModal
+        book={whyBook}
+        open={Boolean(whyBook)}
+        onClose={() => setWhyBook(null)}
+      />
     </section>
   );
 }
