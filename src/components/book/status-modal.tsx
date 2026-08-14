@@ -1,8 +1,21 @@
 "use client";
 
-import type { LibraryStatus } from "@/components/search/types";
+import { useEffect, useState } from "react";
+import type { BookFormat, LibraryStatus } from "@/components/search/types";
+import { FORMAT_LABELS } from "@/lib/discovery-storage";
 
 export type StatusChoice = LibraryStatus | "none";
+
+export type StatusSaveExtras = {
+  format?: BookFormat;
+};
+
+/** Formats offered when marking Currently Reading. */
+export const READING_FORMATS: BookFormat[] = [
+  "physical",
+  "ebook",
+  "audiobook",
+];
 
 /** Dark-theme status chips — never pair pastels with `text-ink` (light). */
 export const STATUS_PILL: Record<
@@ -99,21 +112,45 @@ const OPTIONS: {
 type Props = {
   open: boolean;
   current: LibraryStatus | null;
+  currentFormat?: BookFormat | null;
   onClose: () => void;
-  onSave: (status: StatusChoice) => void;
+  onSave: (status: StatusChoice, extras?: StatusSaveExtras) => void;
   onDelete: () => void;
 };
 
 export function LibraryStatusModal({
   open,
   current,
+  currentFormat,
   onClose,
   onSave,
   onDelete,
 }: Props) {
+  const [pickingFormat, setPickingFormat] = useState(false);
+  const [format, setFormat] = useState<BookFormat>(
+    currentFormat && READING_FORMATS.includes(currentFormat)
+      ? currentFormat
+      : "physical",
+  );
+
+  useEffect(() => {
+    if (!open) {
+      setPickingFormat(false);
+      return;
+    }
+    setFormat(
+      currentFormat && READING_FORMATS.includes(currentFormat)
+        ? currentFormat
+        : "physical",
+    );
+    setPickingFormat(current === "reading");
+  }, [open, current, currentFormat]);
+
   if (!open) return null;
 
-  const selected: StatusChoice = current ?? "none";
+  const selected: StatusChoice = pickingFormat
+    ? "reading"
+    : (current ?? "none");
 
   return (
     <div className="fixed inset-0 z-[70] flex items-start justify-center px-4 pt-[12vh] sm:pt-[16vh]">
@@ -134,7 +171,7 @@ export function LibraryStatusModal({
             id="library-status-title"
             className="text-sm font-bold tracking-wide text-ink"
           >
-            Update book in library
+            {pickingFormat ? "How are you reading?" : "Update book in library"}
           </h2>
           <button
             type="button"
@@ -145,28 +182,98 @@ export function LibraryStatusModal({
           </button>
         </div>
 
-        <div className="space-y-2 px-4 py-4">
-          {OPTIONS.map((opt) => {
-            const active = selected === opt.id;
-            return (
+        {pickingFormat ? (
+          <div className="space-y-3 px-4 py-4">
+            <p className="text-xs text-muted">
+              Choose a format for Currently Reading.
+            </p>
+            <div className="grid gap-2">
+              {READING_FORMATS.map((f) => {
+                const active = format === f;
+                return (
+                  <button
+                    key={f}
+                    type="button"
+                    onClick={() => setFormat(f)}
+                    className={`flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-left transition hover:brightness-110 ${
+                      active
+                        ? "border-forest bg-forest ring-2 ring-forest-deep"
+                        : "border-[#564d6a] bg-[#342c45]"
+                    }`}
+                  >
+                    <span
+                      className={`text-sm font-bold ${
+                        active ? "text-[#2a2438]" : "text-ink"
+                      }`}
+                    >
+                      {FORMAT_LABELS[f]}
+                    </span>
+                    <span
+                      className={`text-xs ${
+                        active ? "text-[#2a2438]/75" : "text-muted"
+                      }`}
+                    >
+                      {f === "physical"
+                        ? "Print copy"
+                        : f === "ebook"
+                          ? "Kindle, phone, tablet…"
+                          : "Listening"}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="flex gap-2 pt-1">
               <button
-                key={opt.id}
                 type="button"
-                onClick={() => onSave(opt.id)}
-                className={`flex w-full flex-col items-start rounded-2xl border px-4 py-2.5 text-left shadow-sm transition hover:brightness-110 ${opt.className} ${
-                  active ? opt.activeClass : ""
-                }`}
+                onClick={() => setPickingFormat(false)}
+                className="flex-1 rounded-full border border-[#564d6a] px-4 py-2.5 text-sm font-bold text-ink hover:bg-[#3f3654]"
               >
-                <span className={`text-sm font-bold ${opt.labelClass}`}>
-                  {opt.label}
-                </span>
-                <span className={`text-xs ${opt.blurbClass}`}>{opt.blurb}</span>
+                Back
               </button>
-            );
-          })}
-        </div>
+              <button
+                type="button"
+                onClick={() => onSave("reading", { format })}
+                className="flex-1 rounded-full bg-forest px-4 py-2.5 text-sm font-bold text-[#2a2438] hover:bg-forest-deep"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-2 px-4 py-4">
+            {OPTIONS.map((opt) => {
+              const active = selected === opt.id;
+              return (
+                <button
+                  key={opt.id}
+                  type="button"
+                  onClick={() => {
+                    if (opt.id === "reading") {
+                      setPickingFormat(true);
+                      return;
+                    }
+                    onSave(opt.id);
+                  }}
+                  className={`flex w-full flex-col items-start rounded-2xl border px-4 py-2.5 text-left shadow-sm transition hover:brightness-110 ${opt.className} ${
+                    active ? opt.activeClass : ""
+                  }`}
+                >
+                  <span className={`text-sm font-bold ${opt.labelClass}`}>
+                    {opt.label}
+                  </span>
+                  <span className={`text-xs ${opt.blurbClass}`}>
+                    {opt.id === "reading" && currentFormat
+                      ? `${opt.blurb} · ${FORMAT_LABELS[currentFormat]}`
+                      : opt.blurb}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        )}
 
-        {current ? (
+        {current && !pickingFormat ? (
           <div className="border-t border-[#564d6a] px-4 py-4">
             <button
               type="button"

@@ -8,7 +8,11 @@ import { ReviewPolishButton, BookChatPanel } from "@/components/ai/book-ai-panel
 import { AppNav } from "@/components/layout/app-nav";
 import { getBookById } from "@/components/search/data";
 import { ToastProvider, useToast } from "@/components/search/toast";
-import type { DiscoveryState, UserRatingBreakdown } from "@/components/search/types";
+import type {
+  BookFormat,
+  DiscoveryState,
+  UserRatingBreakdown,
+} from "@/components/search/types";
 import {
   addToTbr,
   getEntry,
@@ -259,7 +263,7 @@ function BookPageInner({ bookId }: Props) {
     toast({ text: "Review saved." });
   };
 
-  const applyStatus = (choice: StatusChoice) => {
+  const applyStatus = (choice: StatusChoice, extras?: { format?: BookFormat }) => {
     if (!discovery) return;
     if (choice === "none") {
       if (entry) {
@@ -269,9 +273,17 @@ function BookPageInner({ bookId }: Props) {
       setStatusOpen(false);
       return;
     }
-    const next = setLibraryStatus(discovery, book.id, choice);
+    const next = setLibraryStatus(discovery, book.id, choice, {
+      ...(extras?.format
+        ? { format: extras.format, preferredFormat: extras.format }
+        : {}),
+    });
     persist(next);
-    toast({ text: `Updated · ${STATUS_PILL[choice].label}` });
+    const formatNote =
+      choice === "reading" && extras?.format
+        ? ` · ${extras.format === "ebook" ? "Ebook" : extras.format === "audiobook" ? "Audiobook" : "Physical"}`
+        : "";
+    toast({ text: `Updated · ${STATUS_PILL[choice].label}${formatNote}` });
     setStatusOpen(false);
   };
 
@@ -852,6 +864,7 @@ function BookPageInner({ bookId }: Props) {
       <LibraryStatusModal
         open={statusOpen}
         current={entry?.status ?? null}
+        currentFormat={entry?.format ?? entry?.preferredFormat ?? null}
         onClose={() => setStatusOpen(false)}
         onSave={applyStatus}
         onDelete={() => {

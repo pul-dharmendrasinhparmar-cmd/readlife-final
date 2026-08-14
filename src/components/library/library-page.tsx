@@ -640,12 +640,16 @@ function LibraryPageInner() {
                 menuId={menuId}
                 setMenuId={setMenuId}
                 onOpen={openBook}
-                onQuickStatus={(bookId, status) => {
-                  persist(setLibraryStatus(state, bookId, status));
+                onQuickStatus={(bookId, status, extras) => {
+                  persist(setLibraryStatus(state, bookId, status, extras));
+                  const formatLabel =
+                    extras?.format && FORMAT_LABELS[extras.format]
+                      ? ` · ${FORMAT_LABELS[extras.format]}`
+                      : "";
                   toast({
                     text:
                       status === "reading"
-                        ? "Moved to Currently Reading."
+                        ? `Moved to Currently Reading${formatLabel}.`
                         : status === "read"
                           ? "Marked as Finished."
                           : `Status updated.`,
@@ -766,8 +770,12 @@ function LibraryPageInner() {
         onStatus={(status, extras) => {
           if (!activeBookId) return;
           persist(setLibraryStatus(state, activeBookId, status, extras));
+          const formatLabel =
+            extras?.format && FORMAT_LABELS[extras.format]
+              ? ` · ${FORMAT_LABELS[extras.format]}`
+              : "";
           const messages: Partial<Record<LibraryStatus, string>> = {
-            reading: "Moved to Currently Reading.",
+            reading: `Moved to Currently Reading${formatLabel}.`,
             read: "Marked as Finished.",
             paused: `Paused at ${extras?.progressPct ?? getEntry(state, activeBookId)?.progressPct ?? 0}%.`,
             dnf: "Moved to DNF.",
@@ -1157,7 +1165,11 @@ function CollectionSection({
   menuId: string | null;
   setMenuId: (id: string | null) => void;
   onOpen: (id: string) => void;
-  onQuickStatus: (id: string, status: LibraryStatus) => void;
+  onQuickStatus: (
+    id: string,
+    status: LibraryStatus,
+    extras?: Partial<LibraryEntry>,
+  ) => void;
 }) {
   const headers: Partial<Record<Tab, { title: string; subtitle?: string }>> = {
     all: { title: "All Books" },
@@ -1288,8 +1300,18 @@ function LibraryCard({
   menuOpen: boolean;
   setMenuOpen: (o: boolean) => void;
   onOpen: () => void;
-  onQuickStatus: (id: string, status: LibraryStatus) => void;
+  onQuickStatus: (
+    id: string,
+    status: LibraryStatus,
+    extras?: Partial<LibraryEntry>,
+  ) => void;
 }) {
+  const [pickFormat, setPickFormat] = useState(false);
+
+  useEffect(() => {
+    if (!menuOpen) setPickFormat(false);
+  }, [menuOpen]);
+
   return (
     <article className="group relative flex flex-col rounded-[1.25rem] border border-[#4a425c]/80 bg-[#3a324f]/90 p-3 transition hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(42,36,56,0.1)]">
       {selectMode ? (
@@ -1355,18 +1377,52 @@ function LibraryCard({
           ···
         </button>
         {menuOpen ? (
-          <div className="absolute right-0 bottom-8 z-10 w-40 overflow-hidden rounded-xl border border-[#4a425c] bg-[#3a324f] shadow-lg">
+          <div className="absolute right-0 bottom-8 z-10 w-44 overflow-hidden rounded-xl border border-[#4a425c] bg-[#3a324f] shadow-lg">
             {entry.status !== "reading" ? (
-              <button
-                type="button"
-                className="block w-full px-3 py-2 text-left text-xs font-semibold text-ink hover:bg-[#3f3654]"
-                onClick={() => {
-                  onQuickStatus(book.id, "reading");
-                  setMenuOpen(false);
-                }}
-              >
-                Mark as Reading
-              </button>
+              pickFormat ? (
+                <div className="px-2 py-2">
+                  <p className="px-1 pb-1.5 text-[0.65rem] font-semibold text-muted">
+                    Format
+                  </p>
+                  {(
+                    [
+                      ["physical", "Physical"],
+                      ["ebook", "Ebook"],
+                      ["audiobook", "Audiobook"],
+                    ] as const
+                  ).map(([id, label]) => (
+                    <button
+                      key={id}
+                      type="button"
+                      className="block w-full rounded-lg px-2 py-1.5 text-left text-xs font-semibold text-ink hover:bg-[#3f3654]"
+                      onClick={() => {
+                        onQuickStatus(book.id, "reading", {
+                          format: id,
+                          preferredFormat: id,
+                        });
+                        setMenuOpen(false);
+                      }}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    className="mt-1 block w-full px-2 py-1 text-left text-[0.65rem] font-semibold text-muted hover:text-ink"
+                    onClick={() => setPickFormat(false)}
+                  >
+                    Back
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  className="block w-full px-3 py-2 text-left text-xs font-semibold text-ink hover:bg-[#3f3654]"
+                  onClick={() => setPickFormat(true)}
+                >
+                  Mark as Reading
+                </button>
+              )
             ) : null}
             {entry.status === "reading" || entry.status === "paused" ? (
               <button

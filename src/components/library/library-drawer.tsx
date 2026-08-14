@@ -18,6 +18,7 @@ import {
   SOURCE_OPTIONS,
 } from "@/lib/discovery-storage";
 import { UserRatingEditor } from "@/components/book/user-rating-editor";
+import { READING_FORMATS } from "@/components/book/status-modal";
 
 type Props = {
   open: boolean;
@@ -50,6 +51,7 @@ export function LibraryDrawer({
   const [dnfReason, setDnfReason] = useState(DNF_REASONS[0]);
   const [confirmDnf, setConfirmDnf] = useState(false);
   const [showReviewForm, setShowReviewForm] = useState(false);
+  const [pickReadingFormat, setPickReadingFormat] = useState(false);
 
   useEffect(() => {
     if (!open || !entry) return;
@@ -61,6 +63,7 @@ export function LibraryDrawer({
     setDnfReason(entry.dnfReason ?? DNF_REASONS[0]);
     setConfirmDnf(false);
     setShowReviewForm(false);
+    setPickReadingFormat(false);
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
@@ -69,6 +72,15 @@ export function LibraryDrawer({
   }, [open, entry, onClose]);
 
   if (!open || !book || !entry) return null;
+
+  const startReading = (format: BookFormat, extras: Partial<LibraryEntry> = {}) => {
+    onStatus("reading", {
+      format,
+      preferredFormat: format,
+      ...extras,
+    });
+    setPickReadingFormat(false);
+  };
 
   return (
     <div className="fixed inset-0 z-[60]">
@@ -347,9 +359,16 @@ export function LibraryDrawer({
                     </button>
                   ))}
                 </div>
-                <Action onClick={() => onStatus("reading")}>
-                  Mark as Reading
-                </Action>
+                {pickReadingFormat ? (
+                  <ReadingFormatPicker
+                    onPick={(format) => startReading(format)}
+                    onCancel={() => setPickReadingFormat(false)}
+                  />
+                ) : (
+                  <Action onClick={() => setPickReadingFormat(true)}>
+                    Mark as Reading
+                  </Action>
+                )}
               </>
             ) : null}
 
@@ -358,6 +377,27 @@ export function LibraryDrawer({
                 <Action onClick={() => onStatus("read", { rating: entry.rating ?? 4 })}>
                   Mark Complete
                 </Action>
+                <div className="rounded-2xl border border-[#564d6a] p-3">
+                  <p className="text-xs font-semibold text-ink">Change format</p>
+                  <div className="mt-2 grid grid-cols-3 gap-1.5">
+                    {READING_FORMATS.map((f) => (
+                      <button
+                        key={f}
+                        type="button"
+                        onClick={() =>
+                          onSave({ format: f, preferredFormat: f })
+                        }
+                        className={`rounded-xl border px-1.5 py-2 text-[0.65rem] font-semibold ${
+                          (entry.format ?? entry.preferredFormat) === f
+                            ? "border-forest bg-forest text-[#2a2438]"
+                            : "border-[#564d6a] text-ink hover:bg-[#3f3654]"
+                        }`}
+                      >
+                        {FORMAT_LABELS[f]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
                 <div className="rounded-2xl border border-[#564d6a] p-3">
                   <p className="text-xs font-semibold text-ink">Pause</p>
                   <select
@@ -406,7 +446,16 @@ export function LibraryDrawer({
 
             {entry.status === "paused" ? (
               <>
-                <Action onClick={() => onStatus("reading")}>Resume Reading</Action>
+                {pickReadingFormat ? (
+                  <ReadingFormatPicker
+                    onPick={(format) => startReading(format)}
+                    onCancel={() => setPickReadingFormat(false)}
+                  />
+                ) : (
+                  <Action onClick={() => setPickReadingFormat(true)}>
+                    Resume Reading
+                  </Action>
+                )}
                 <Action onClick={() => onStatus("tbr", { priority: "read-soon" })}>
                   Move to TBR
                 </Action>
@@ -438,22 +487,36 @@ export function LibraryDrawer({
                 <Action onClick={() => onStatus("tbr", { priority: "someday" })}>
                   Move to TBR
                 </Action>
-                <Action onClick={() => onStatus("reading")}>Try Again (Reading)</Action>
+                {pickReadingFormat ? (
+                  <ReadingFormatPicker
+                    onPick={(format) => startReading(format)}
+                    onCancel={() => setPickReadingFormat(false)}
+                  />
+                ) : (
+                  <Action onClick={() => setPickReadingFormat(true)}>
+                    Try Again (Reading)
+                  </Action>
+                )}
               </>
             ) : null}
 
             {entry.status === "read" ? (
-              <Action
-                onClick={() =>
-                  onStatus("reading", {
-                    timesRead: (entry.timesRead ?? 1) + 1,
-                    progressPct: 0,
-                    pagesRead: 0,
-                  })
-                }
-              >
-                Start Reread
-              </Action>
+              pickReadingFormat ? (
+                <ReadingFormatPicker
+                  onPick={(format) =>
+                    startReading(format, {
+                      timesRead: (entry.timesRead ?? 1) + 1,
+                      progressPct: 0,
+                      pagesRead: 0,
+                    })
+                  }
+                  onCancel={() => setPickReadingFormat(false)}
+                />
+              ) : (
+                <Action onClick={() => setPickReadingFormat(true)}>
+                  Start Reread
+                </Action>
+              )
             ) : null}
 
             <label className="mt-2 block text-xs">
@@ -505,6 +568,39 @@ function Action({
     >
       {children}
     </button>
+  );
+}
+
+function ReadingFormatPicker({
+  onPick,
+  onCancel,
+}: {
+  onPick: (format: BookFormat) => void;
+  onCancel: () => void;
+}) {
+  return (
+    <div className="rounded-2xl border border-forest/40 bg-[#342c45] p-3">
+      <p className="text-xs font-semibold text-ink">How are you reading?</p>
+      <div className="mt-2 grid grid-cols-3 gap-1.5">
+        {READING_FORMATS.map((f) => (
+          <button
+            key={f}
+            type="button"
+            onClick={() => onPick(f)}
+            className="rounded-xl border border-[#564d6a] px-1.5 py-2.5 text-[0.65rem] font-semibold text-ink hover:border-forest hover:bg-forest hover:text-[#2a2438]"
+          >
+            {FORMAT_LABELS[f]}
+          </button>
+        ))}
+      </div>
+      <button
+        type="button"
+        onClick={onCancel}
+        className="mt-2 w-full rounded-full py-1.5 text-[0.7rem] font-semibold text-muted hover:text-ink"
+      >
+        Cancel
+      </button>
+    </div>
   );
 }
 

@@ -336,6 +336,7 @@ export function Dashboard() {
         <div className="relative min-h-0 min-w-0">
           <ReadingRoom
             vibe={vibe}
+            avatar={onboarding.avatar}
             spots={hotspots}
             greeting={greeting.line}
             highlightedId={tourHighlight}

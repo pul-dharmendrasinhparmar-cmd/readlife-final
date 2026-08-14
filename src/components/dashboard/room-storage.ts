@@ -87,3 +87,18 @@ export const VIBE_SCENE: Record<RoomVibe, string> = {
   rainy: "/rooms/dashboard-scene-rainy.png",
   snowy: "/rooms/dashboard-scene-snowy.png",
 };
+
+const VIBE_SCENE_MALE: Record<RoomVibe, string> = {
+  day: "/rooms/dashboard-scene-day-male.jpg",
+  night: "/rooms/dashboard-scene-night-male.jpg",
+  rainy: "/rooms/dashboard-scene-rainy-male.jpg",
+  snowy: "/rooms/dashboard-scene-snowy-male.jpg",
+};
+
+export function resolveVibeScene(
+  vibe: RoomVibe,
+  avatar: "male" | "female" | "custom" | null | undefined,
+): string {
+  if (avatar === "male") return VIBE_SCENE_MALE[vibe];
+  return VIBE_SCENE[vibe];
+}

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { resolveAvatarImage } from "@/components/onboarding/data";
 import { formatPersonalityCode } from "@/components/personality/personalities";
 import type { FeaturedBadgeOption } from "./featured-badges";
+import { SocialLinkIcons } from "./social-links";
 import type { UserProfile } from "./types";
 
 const PET_EMOJI: Record<string, string> = {
@@ -126,8 +127,14 @@ export function ProfileHero({
                     {formatPersonalityCode(personality.code)}
                   </span>
                 ) : null}
+                <SocialLinkIcons links={profile.socialLinks} className="ml-0.5" />
               </p>
-            ) : null}
+            ) : (
+              <SocialLinkIcons
+                links={profile.socialLinks}
+                className="mt-2.5 rounded-full bg-cream-card px-2 py-1"
+              />
+            )}
 
             <p className="mt-3 max-w-xl text-sm leading-relaxed text-ink/85">
               {profile.bio}

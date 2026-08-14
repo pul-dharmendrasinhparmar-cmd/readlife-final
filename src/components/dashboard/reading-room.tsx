@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { VIBE_SCENE, type RoomVibe } from "./room-storage";
+import { resolveVibeScene, type RoomVibe } from "./room-storage";
 import { Hotspots, type HotspotDef, type HotspotId } from "./hotspots";
 
 type Props = {
   vibe: RoomVibe;
+  /** Reader avatar — male uses the male reading-room art when available. */
+  avatar?: "male" | "female" | "custom" | null;
   spots: HotspotDef[];
   greeting: string;
   highlightedId?: HotspotId | null;
@@ -24,6 +26,7 @@ const VIBE_OVERLAY: Record<RoomVibe, string> = {
 
 export function ReadingRoom({
   vibe,
+  avatar,
   spots,
   greeting,
   highlightedId,
@@ -31,6 +34,7 @@ export function ReadingRoom({
 }: Props) {
   const [hoveredSpot, setHoveredSpot] = useState<string | null>(null);
   const [reduceMotion, setReduceMotion] = useState(false);
+  const sceneSrc = resolveVibeScene(vibe, avatar);
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -55,8 +59,8 @@ export function ReadingRoom({
         {/* Room art — swaps with window vibe */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          key={vibe}
-          src={VIBE_SCENE[vibe]}
+          key={sceneSrc}
+          src={sceneSrc}
           alt={`Your cozy reading room · ${vibe}`}
           className="absolute inset-0 h-full w-full object-cover object-[center_45%]"
         />

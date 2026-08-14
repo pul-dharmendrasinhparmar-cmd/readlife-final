@@ -235,6 +235,15 @@ export function EditProfileModal({ open, profile, onClose, onSave }: Props) {
               <input
                 className="mt-1 w-full rounded-2xl border border-[#564d6a] bg-paper px-3 py-2 text-ink outline-none"
                 value={draft.socialLinks[key] ?? ""}
+                placeholder={
+                  key === "instagram"
+                    ? "username or https://instagram.com/…"
+                    : key === "tiktok"
+                      ? "username or https://tiktok.com/@…"
+                      : key === "youtube"
+                        ? "@channel or full YouTube URL"
+                        : "username or Goodreads URL"
+                }
                 onChange={(e) =>
                   setDraft({
                     ...draft,
